@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
 import { Mail, MessageCircle, Phone, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -25,11 +25,32 @@ export default function SendInvoiceDialog({ invoice, open, onClose }) {
   const encodedMsg = encodeURIComponent(message);
   const phone = (invoice.client_phone || "").replace(/\s+/g, "");
 
-  const handleEmail = () => {
-    if (!invoice.client_email) { toast.error("Klienti nuk ka email!"); return; }
-    const subject = encodeURIComponent(`Fatura ${invoice.invoice_number} - ScentLinq Pro`);
-    const body = encodeURIComponent(message);
-    window.open(`mailto:${invoice.client_email}?subject=${subject}&body=${body}`, "_blank");
+  const handleEmail = async () => {
+    setSending("email");
+    const itemsHtml = (invoice.items || []).map(it =>
+      `<tr><td>${it.name}</td><td>${it.quantity} ${it.unit}</td><td>€${it.price_inc_vat}</td><td>€${it.line_total}</td></tr>`
+    ).join("");
+    const body = `
+      <h2>Fatura ${invoice.invoice_number}</h2>
+      <p><b>Klienti:</b> ${invoice.client_name}</p>
+      ${invoice.client_email ? `<p><b>Email:</b> ${invoice.client_email}</p>` : ""}
+      ${invoice.client_phone ? `<p><b>Tel:</b> ${invoice.client_phone}</p>` : ""}
+      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%">
+        <thead><tr><th>Artikulli</th><th>Sasia</th><th>Çmimi</th><th>Total</th></tr></thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+      <p>Subtotal: €${(invoice.subtotal||0).toFixed(2)}</p>
+      <p>TVSH: €${(invoice.vat_amount||0).toFixed(2)}</p>
+      <p><b>Total: €${(invoice.amount||0).toFixed(2)}</b></p>
+      ${invoice.due_date ? `<p>Afati: ${invoice.due_date}</p>` : ""}
+    `;
+    await base44.integrations.Core.SendEmail({
+      to: "info@scentlinqpro-ks.com",
+      subject: `Fatura ${invoice.invoice_number} - ${invoice.client_name}`,
+      body,
+    });
+    toast.success("Email u dërgua te info@scentlinqpro-ks.com");
+    setSending(null);
     onClose();
   };
 
@@ -46,8 +67,8 @@ export default function SendInvoiceDialog({ invoice, open, onClose }) {
       label: "WhatsApp",
       icon: MessageCircle,
       color: "bg-green-500",
-      href: `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodedMsg}`,
-      disabled: false,
+      href: phone ? `https://wa.me/${phone.replace(/\+/g,"")}?text=${encodedMsg}` : null,
+      disabled: !phone,
     },
     {
       key: "viber",
