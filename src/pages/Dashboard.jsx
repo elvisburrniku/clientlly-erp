@@ -23,6 +23,7 @@ export default function Dashboard() {
   useEffect(() => { loadDashboardData(); }, [period, vatMode]);
 
   const loadDashboardData = async () => {
+    setLoading(true);
     try {
       const [invoices, transactions, users] = await Promise.all([
         base44.entities.Invoice.list(),
