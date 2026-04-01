@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Invoices from './pages/Invoices';
 import Expenses from './pages/Expenses';
 import Products from './pages/Products';
+import Reminders from './pages/Reminders';
 import Clients from './pages/Clients';
 import Suppliers from './pages/Suppliers';
 import Cashbox from './pages/Cashbox';
@@ -50,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/expenses" element={<Expenses />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/reminders" element={<Reminders />} />
         <Route path="/clients" element={<Clients />} />
         <Route path="/suppliers" element={<Suppliers />} />
         <Route path="/cashbox" element={<Cashbox />} />

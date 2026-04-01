@@ -1,0 +1,63 @@
+{
+  "name": "Reminder",
+  "type": "object",
+  "properties": {
+    "invoice_id": {
+      "type": "string",
+      "description": "ID e fatur\u00ebs"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Emri i klientit"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email i klientit"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Numri i fatur\u00ebs"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data kur duhet pagesa"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Shuma q\u00eb duhet paguar"
+    },
+    "reminder_type": {
+      "type": "string",
+      "enum": [
+        "before_due",
+        "on_due",
+        "after_due"
+      ],
+      "description": "Kur t\u00eb d\u00ebrgohet kujtesa"
+    },
+    "days_before": {
+      "type": "number",
+      "description": "Sa dit\u00eb para afatit (p\u00ebr before_due)",
+      "default": 3
+    },
+    "last_sent": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Kur u d\u00ebrgua p\u00ebr her\u00ebn e fundit"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb kujtesa aktive",
+      "default": true
+    }
+  },
+  "required": [
+    "invoice_id",
+    "client_name",
+    "client_email",
+    "invoice_number",
+    "due_date",
+    "amount"
+  ]
+}

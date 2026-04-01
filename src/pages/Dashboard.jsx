@@ -5,6 +5,7 @@ import StatCard from "../components/dashboard/StatCard";
 import MonthlyRevenueBar from "../components/dashboard/MonthlyRevenueBar";
 import RevenueChart from "../components/dashboard/RevenueChart";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
+import UpcomingReminders from "../components/dashboard/UpcomingReminders";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
@@ -153,6 +154,7 @@ export default function Dashboard() {
           <RevenueChart />
         </div>
         <div className="space-y-4">
+          <UpcomingReminders />
           <UndeliveredCashAlert users={undeliveredUsers} />
           <div className="bg-card rounded-2xl border border-border p-5">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Aktiviteti i fundit</p>
