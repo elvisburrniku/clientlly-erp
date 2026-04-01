@@ -20,18 +20,22 @@ export default function CashHandover() {
   const [submitting, setSubmitting] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(null);
   const [emailLoading, setEmailLoading] = useState(null);
+  const [cashInvoices, setCashInvoices] = useState([]);
+  const [selectedInvoices, setSelectedInvoices] = useState([]);
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    const [user, data] = await Promise.all([
+    const [user, data, invoices] = await Promise.all([
       base44.auth.me(),
       base44.entities.CashHandover.list("-created_date", 100),
+      base44.entities.Invoice.filter({ payment_method: "cash", is_open: true }, "-created_date", 100),
     ]);
     setCurrentUser(user);
     setHandovers(data);
+    setCashInvoices(invoices);
     setLoading(false);
   };
 
@@ -76,21 +80,29 @@ export default function CashHandover() {
   };
 
   const handleCreate = async () => {
-    if (!amount) {
-      toast.error("Fut shuma");
+    if (selectedInvoices.length === 0) {
+      toast.error("Zgjidh të paktën një faturë");
       return;
     }
     setSubmitting(true);
+    const selectedData = cashInvoices.filter(inv => selectedInvoices.includes(inv.id));
+    const totalAmount = selectedData.reduce((sum, inv) => sum + inv.amount, 0);
+    
     await base44.entities.CashHandover.create({
-      amount: parseFloat(amount),
+      amount: totalAmount,
+      invoices: selectedData.map(inv => ({
+        invoice_id: inv.id,
+        invoice_number: inv.invoice_number,
+        client_name: inv.client_name,
+        amount: inv.amount
+      })),
       user_email: currentUser.email,
       user_name: currentUser.full_name,
       note,
       status: "pending",
-      invoices: [],
     });
     toast.success("Kërkesa u krijua");
-    setAmount("");
+    setSelectedInvoices([]);
     setNote("");
     setDialogOpen(false);
     setSubmitting(false);
@@ -237,38 +249,74 @@ export default function CashHandover() {
 
       {/* Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Krijo Kërkesë për Dorëzim</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label>Shuma (€)</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="mt-1.5"
-              />
+              <Label className="text-xs font-semibold mb-2 block">Zgjidh Faturat Cash</Label>
+              <div className="border border-border rounded-lg max-h-48 overflow-y-auto">
+                {cashInvoices.length === 0 ? (
+                  <p className="p-4 text-sm text-muted-foreground text-center">Nuk ka fatura cash të hapura</p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {cashInvoices.map(invoice => (
+                      <div key={invoice.id} className="p-3 hover:bg-muted/20 transition-colors flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedInvoices.includes(invoice.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) setSelectedInvoices([...selectedInvoices, invoice.id]);
+                            else setSelectedInvoices(selectedInvoices.filter(id => id !== invoice.id));
+                          }}
+                          className="w-4 h-4 mt-0.5 rounded cursor-pointer"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-2">
+                            <div>
+                              <p className="text-sm font-semibold">{invoice.invoice_number}</p>
+                              <p className="text-xs text-muted-foreground">{invoice.client_name}</p>
+                            </div>
+                            <p className="text-sm font-bold whitespace-nowrap">€{invoice.amount.toFixed(2)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+            {selectedInvoices.length > 0 && (
+              <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">Fatura të Zgjedhura</p>
+                {cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).map(inv => (
+                  <div key={inv.id} className="flex justify-between text-sm">
+                    <span>{inv.invoice_number} - {inv.client_name}</span>
+                    <span className="font-medium">€{inv.amount.toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="border-t border-border mt-2 pt-2 flex justify-between font-semibold">
+                  <span>Total:</span>
+                  <span className="text-success">€{cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).reduce((s, i) => s + i.amount, 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                </div>
+              </div>
+            )}
             <div>
-              <Label>Shënim</Label>
+              <Label>Shënim (opsionale)</Label>
               <Textarea
                 placeholder="Shënim opsional..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 className="mt-1.5"
-                rows={3}
+                rows={2}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
-            <Button onClick={handleCreate} disabled={submitting || !amount}>
-              {submitting ? "Duke krijuar..." : "Krijo"}
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setSelectedInvoices([]); setNote(""); }}>Anulo</Button>
+            <Button onClick={handleCreate} disabled={submitting || selectedInvoices.length === 0}>
+              {submitting ? "Duke krijuar..." : "Dorëzo Kërkesë"}
             </Button>
           </DialogFooter>
         </DialogContent>
