@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Info, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -595,6 +595,7 @@ export default function Invoices() {
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Krijo Faturë të Re</DialogTitle>
+            <DialogDescription>Plotëso të gjitha fushat e kërkuara për të krijuar faturën</DialogDescription>
           </DialogHeader>
           <div className="space-y-5 py-2">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -692,6 +693,7 @@ export default function Invoices() {
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Modifiko Faturën — {editInvoice?.invoice_number}</DialogTitle>
+            <DialogDescription>Përditëso të dhënat e faturës sipas nevojës</DialogDescription>
           </DialogHeader>
           <div className="space-y-5 py-2">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
