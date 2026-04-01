@@ -299,6 +299,12 @@ export default function Invoices() {
     loadData();
   };
 
+  const handleStatusChange = async (inv, newStatus) => {
+    await base44.entities.Invoice.update(inv.id, { status: newStatus });
+    toast.success(`Statusi ndryshoi në ${newStatus}`);
+    loadData();
+  };
+
   const hasActiveFilters = filterClient || filterMonth || filterYear || filterDateFrom || filterDateTo;
 
   const clearFilters = () => {
@@ -518,15 +524,18 @@ export default function Invoices() {
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</span>
                     </td>
-                    <td className="px-6 py-4">{statusBadge(inv.status)}</td>
                     <td className="px-6 py-4">
-                      <button onClick={() => toggleOpen(inv)} className="flex items-center gap-1.5 text-xs font-semibold">
-                        {inv.is_open !== false ? (
-                          <><ToggleRight className="w-5 h-5 text-emerald-500" /><span className="text-emerald-600">Hapur</span></>
-                        ) : (
-                          <><ToggleLeft className="w-5 h-5 text-slate-400" /><span className="text-muted-foreground">Mbyllur</span></>
-                        )}
-                      </button>
+                      <select
+                        value={inv.status || "draft"}
+                        onChange={(e) => handleStatusChange(inv, e.target.value)}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-full border-0 bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200 transition"
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="sent">Dërguar</option>
+                        <option value="paid">Paguar</option>
+                        <option value="overdue">Vonuar</option>
+                        <option value="cancelled">Anuluar</option>
+                      </select>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.payment_method || "—"}</span>
