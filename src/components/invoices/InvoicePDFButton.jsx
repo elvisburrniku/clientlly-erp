@@ -19,7 +19,7 @@ export default function InvoicePDFButton({ invoice }) {
   const generate = async () => {
     const templates = await base44.entities.InvoiceTemplate.list('-created_date', 1);
     const template = templates.length > 0 ? templates[0] : {};
-    const [r, g, b] = hexToRgb(template.primary_color || '#525252');
+    const [r, g, b] = [55, 65, 81];
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210;
     const margin = 18;
