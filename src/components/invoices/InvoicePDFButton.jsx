@@ -26,6 +26,15 @@ export default function InvoicePDFButton({ invoice }) {
     const W = 210;
     const margin = 18;
 
+    // Add background image if available
+    if (template.bg_image_url) {
+      try {
+        doc.addImage(template.bg_image_url, 'PNG', 0, 0, W, 297);
+      } catch (e) {
+        // Image failed, continue without it
+      }
+    }
+
     // Header band with custom color
     doc.setFillColor(...PDF_COLORS.header);
     doc.rect(0, 0, W, 48, "F");
@@ -39,7 +48,9 @@ export default function InvoicePDFButton({ invoice }) {
       }
     }
 
+    // Set text color for white text on header
     doc.setTextColor(255, 255, 255);
+
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
     doc.text(safe(template.company_name || "ERP Finance"), margin + (template.logo_url ? 14 : 0), 20);

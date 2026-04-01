@@ -22,6 +22,10 @@
       "type": "string",
       "description": "URL i logos s\u00eb kompanis\u00eb"
     },
+    "bg_image_url": {
+      "type": "string",
+      "description": "URL i imazhit t\u00eb sfondit p\u00ebr fatur\u00ebn"
+    },
     "primary_color": {
       "type": "string",
       "description": "Ngjyra kryesore e fatur\u00ebs (hex code, p.sh. #4338CA)",
