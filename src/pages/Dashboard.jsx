@@ -88,12 +88,12 @@ export default function Dashboard() {
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           {/* Period filter */}
           <div className="flex bg-white border border-border rounded-xl p-1 shadow-sm">
             {["today","month","year"].map(p => (
@@ -114,7 +114,7 @@ export default function Dashboard() {
                 vatMode === "exc" ? "bg-slate-700 text-white shadow" : "text-muted-foreground hover:text-foreground"
               )}>Pa TVSH</button>
           </div>
-          <p className="text-sm text-muted-foreground hidden sm:block">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          <p className="text-xs text-muted-foreground hidden sm:block">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
       </div>
 
