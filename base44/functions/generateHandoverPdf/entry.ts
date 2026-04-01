@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     const contentWidth = pageWidth - 2 * margin;
 
     // Color scheme
-    const primaryColor = [37, 99, 235];
+    const primaryColor = [55, 65, 81];
     const lightGray = [226, 232, 240];
     const darkText = [30, 41, 59];
     const grayText = [71, 85, 105];
