@@ -1,0 +1,33 @@
+{
+  "name": "CategoryBudget",
+  "type": "object",
+  "properties": {
+    "category_id": {
+      "type": "string",
+      "description": "ID e kategoris\u00eb"
+    },
+    "category_name": {
+      "type": "string",
+      "description": "Emri i kategoris\u00eb"
+    },
+    "monthly_limit": {
+      "type": "number",
+      "description": "Limiti mujor i buxhetit n\u00eb EUR"
+    },
+    "warning_percentage": {
+      "type": "number",
+      "description": "P\u00ebrqindja kur shfaqet paralajm\u00ebrim (p.sh. 80)",
+      "default": 80
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb aktiv ky limit",
+      "default": true
+    }
+  },
+  "required": [
+    "category_id",
+    "category_name",
+    "monthly_limit"
+  ]
+}
