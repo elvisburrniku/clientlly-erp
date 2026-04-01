@@ -457,6 +457,48 @@ export default function Invoices() {
                     </div>
                   </div>
                   <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-2">Periudha</label>
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <button
+                        onClick={() => {
+                          const today = new Date().toISOString().split('T')[0];
+                          setFilterDateFrom(today);
+                          setFilterDateTo(today);
+                          setPage(1);
+                        }}
+                        className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                      >
+                        Sot
+                      </button>
+                      <button
+                        onClick={() => {
+                          const now = new Date();
+                          const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                          const end = now.toISOString().split('T')[0];
+                          setFilterDateFrom(start);
+                          setFilterDateTo(end);
+                          setPage(1);
+                        }}
+                        className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                      >
+                        Muaj
+                      </button>
+                      <button
+                        onClick={() => {
+                          const now = new Date();
+                          const start = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+                          const end = now.toISOString().split('T')[0];
+                          setFilterDateFrom(start);
+                          setFilterDateTo(end);
+                          setPage(1);
+                        }}
+                        className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                      >
+                        Vit
+                      </button>
+                    </div>
+                  </div>
+                  <div>
                     <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
                     <input
                       type="date"
@@ -474,31 +516,45 @@ export default function Invoices() {
                       className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
                     />
                   </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-muted/20">
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr.</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Total</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Statusi</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Gjendja</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Pagesa</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Faturoi</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
-                <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {invoices.length === 0 ? (
-                <tr>
+                  </div>
+                  )}
+                  </div>
+                  </div>
+                  </div>
+                  </div>
+
+                  {/* Table */}
+                  <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-border">
+                  <div className="flex items-center justify-between gap-3">
+                  <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
+                  <div className="relative flex items-center gap-2">
+                  {hasActiveFilters && (
+                  <button onClick={clearFilters} className="text-xs text-destructive hover:underline">Pastro filtrat</button>
+                  )}
+                  </div>
+                  </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                  <table className="w-full">
+                  <thead>
+                  <tr className="border-b border-border bg-muted/20">
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr.</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Total</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Statusi</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Gjendja</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Pagesa</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Faturoi</th>
+                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
+                  <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
+                  </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                  {invoices.length === 0 ? (
+                  <tr>
                   <td colSpan={11} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
@@ -508,80 +564,6 @@ export default function Invoices() {
                       <p className="text-xs text-muted-foreground">Krijo faturën e parë duke klikuar butonin lart</p>
                     </div>
                   </td>
-                </tr>
-              ) : (
-                paginated.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors group">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold">{inv.client_name}</div>
-                      {inv.client_email && <div className="text-xs text-muted-foreground mt-0.5">{inv.client_email}</div>}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <select
-                        value={inv.status || "draft"}
-                        onChange={(e) => handleStatusChange(inv, e.target.value)}
-                        className="text-xs font-semibold px-2.5 py-1 rounded-full border-0 bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200 transition"
-                      >
-                        <option value="draft">Draft</option>
-                        <option value="sent">Dërguar</option>
-                        <option value="paid">Paguar</option>
-                        <option value="overdue">Vonuar</option>
-                        <option value="cancelled">Anuluar</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.payment_method || "—"}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs text-muted-foreground">{inv.issued_by ? inv.issued_by.split("@")[0] : "—"}</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{moment(inv.created_date).format("DD MMM YY")}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-1.5 justify-end items-center">
-                        <InvoicePDFButton invoice={inv} />
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-7 w-7">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}>
-                              <Eye className="w-4 h-4 mr-2" /> Shiko Faturën
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}>
-                              <Info className="w-4 h-4 mr-2" /> Detaje
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openEdit(inv)}>
-                              <Pencil className="w-4 h-4 mr-2" /> Modifiko
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setSendDialog(inv)}>
-                              <Send className="w-4 h-4 mr-2" /> Ridërgo Faturën
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSendReminder(inv)}>
-                              <Bell className="w-4 h-4 mr-2" /> Kujtesë për Faturën
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDuplicate(inv)}>
-                              <Copy className="w-4 h-4 mr-2" /> Dyfisho
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDelete(inv)} className="text-destructive focus:text-destructive">
-                              <Trash2 className="w-4 h-4 mr-2" /> Fshi Faturën
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </td>
                   </tr>
                 ))
               )}
