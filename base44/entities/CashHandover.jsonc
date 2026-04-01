@@ -1,0 +1,46 @@
+{
+  "name": "CashHandover",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number",
+      "description": "Amount being handed over in EUR"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Status of the handover request"
+    },
+    "note": {
+      "type": "string",
+      "description": "Note about the handover"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the staff member handing over cash"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Name of the staff member"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Email of the manager/admin who approved"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date when approved"
+    }
+  },
+  "required": [
+    "amount",
+    "user_email",
+    "user_name"
+  ]
+}

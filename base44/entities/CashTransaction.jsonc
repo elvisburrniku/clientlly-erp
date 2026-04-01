@@ -1,0 +1,39 @@
+{
+  "name": "CashTransaction",
+  "type": "object",
+  "properties": {
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount in EUR"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "cash_in",
+        "cash_out"
+      ],
+      "description": "Type of transaction"
+    },
+    "note": {
+      "type": "string",
+      "description": "Transaction note/description"
+    },
+    "reference_type": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "handover",
+        "invoice"
+      ],
+      "description": "What triggered this transaction"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID of the related record"
+    }
+  },
+  "required": [
+    "amount",
+    "type"
+  ]
+}

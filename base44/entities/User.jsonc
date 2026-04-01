@@ -1,0 +1,21 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "manager",
+        "accountant",
+        "staff"
+      ],
+      "default": "staff"
+    },
+    "cash_on_hand": {
+      "type": "number",
+      "default": 0,
+      "description": "Current cash balance the user holds"
+    }
+  }
+}

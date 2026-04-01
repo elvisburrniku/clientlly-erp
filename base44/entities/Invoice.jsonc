@@ -1,0 +1,56 @@
+{
+  "name": "Invoice",
+  "type": "object",
+  "properties": {
+    "invoice_number": {
+      "type": "string",
+      "description": "Invoice number"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Invoice total in EUR"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "paid",
+        "overdue",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "bank_transfer",
+        "card"
+      ],
+      "description": "How the invoice was paid"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Due date"
+    },
+    "description": {
+      "type": "string",
+      "description": "Invoice description"
+    },
+    "issued_by": {
+      "type": "string",
+      "description": "Email of staff who issued"
+    }
+  },
+  "required": [
+    "invoice_number",
+    "client_name",
+    "amount"
+  ]
+}
