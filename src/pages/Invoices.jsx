@@ -279,6 +279,7 @@ export default function Invoices() {
   };
 
   const getTotalPaid = (inv) => {
+    if (!inv) return 0;
     return (inv.payment_records || []).reduce((s, p) => s + p.amount, 0);
   };
 
