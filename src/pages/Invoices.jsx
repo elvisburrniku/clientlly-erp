@@ -383,73 +383,73 @@ export default function Invoices() {
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between gap-3">
             <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
-            <div className="flex items-center gap-2">
+            <div className="relative flex items-center gap-2">
               {hasActiveFilters && (
                 <button onClick={clearFilters} className="text-xs text-destructive hover:underline">Pastro filtrat</button>
               )}
               <Button variant="ghost" size="icon" className={cn("h-8 w-8", searchOpen && "bg-muted")} onClick={() => setSearchOpen(o => !o)}>
                 <Search className="w-4 h-4" />
               </Button>
+              {searchOpen && (
+                <div className="absolute right-0 top-10 z-50 w-64 bg-white border border-border rounded-2xl shadow-xl p-4 flex flex-col gap-3">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Klienti / Nr. Faturës</label>
+                    <input
+                      type="text"
+                      placeholder="Kërko..."
+                      value={filterClient}
+                      onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
+                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Muaji</label>
+                    <select
+                      value={filterMonth}
+                      onChange={(e) => { setFilterMonth(e.target.value); setPage(1); }}
+                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                    >
+                      <option value="">Të gjithë</option>
+                      {["Janar","Shkurt","Mars","Prill","Maj","Qershor","Korrik","Gusht","Shtator","Tetor","Nëntor","Dhjetor"].map((m,i) => (
+                        <option key={i+1} value={i+1}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Viti</label>
+                    <select
+                      value={filterYear}
+                      onChange={(e) => { setFilterYear(e.target.value); setPage(1); }}
+                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                    >
+                      <option value="">Të gjithë</option>
+                      {[2024, 2025, 2026, 2027].map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
+                    <input
+                      type="date"
+                      value={filterDateFrom}
+                      onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
+                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Deri më Date</label>
+                    <input
+                      type="date"
+                      value={filterDateTo}
+                      onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
+                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          {searchOpen && (
-            <div className="mt-4 flex flex-col gap-3 max-w-sm">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Klienti / Nr. Faturës</label>
-                <input
-                  type="text"
-                  placeholder="Kërko..."
-                  value={filterClient}
-                  onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Muaji</label>
-                <select
-                  value={filterMonth}
-                  onChange={(e) => { setFilterMonth(e.target.value); setPage(1); }}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                >
-                  <option value="">Të gjithë</option>
-                  {["Janar","Shkurt","Mars","Prill","Maj","Qershor","Korrik","Gusht","Shtator","Tetor","Nëntor","Dhjetor"].map((m,i) => (
-                    <option key={i+1} value={i+1}>{m}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Viti</label>
-                <select
-                  value={filterYear}
-                  onChange={(e) => { setFilterYear(e.target.value); setPage(1); }}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                >
-                  <option value="">Të gjithë</option>
-                  {[2024, 2025, 2026, 2027].map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
-                <input
-                  type="date"
-                  value={filterDateFrom}
-                  onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Deri më Date</label>
-                <input
-                  type="date"
-                  value={filterDateTo}
-                  onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                />
-              </div>
-            </div>
-          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
