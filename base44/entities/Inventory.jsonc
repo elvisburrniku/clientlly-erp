@@ -1,0 +1,43 @@
+{
+  "name": "Inventory",
+  "type": "object",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "ID e produktit"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Emri i produktit"
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Sasia n\u00eb magazin\u00eb",
+      "default": 0
+    },
+    "min_quantity": {
+      "type": "number",
+      "description": "Sasia minimale para paralajm\u00ebrimit",
+      "default": 10
+    },
+    "unit": {
+      "type": "string",
+      "description": "Nj\u00ebsia mat\u00ebse (cope, kg, ore, m2, etj.)",
+      "default": "cope"
+    },
+    "last_restocked": {
+      "type": "string",
+      "format": "date",
+      "description": "Data e fundit q\u00eb u ristoku"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Sh\u00ebnime rreth produktit"
+    }
+  },
+  "required": [
+    "product_id",
+    "product_name",
+    "quantity"
+  ]
+}

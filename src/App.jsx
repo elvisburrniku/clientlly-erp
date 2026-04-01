@@ -16,6 +16,7 @@ import Suppliers from './pages/Suppliers';
 import Cashbox from './pages/Cashbox';
 import CashHandover from './pages/CashHandover';
 import Reports from './pages/Reports';
+import Inventory from './pages/Inventory';
 import Settings from './pages/Settings';
 import InvoiceDetail from './pages/InvoiceDetail';
 
@@ -57,6 +58,7 @@ const AuthenticatedApp = () => {
         <Route path="/cashbox" element={<Cashbox />} />
         <Route path="/cash-handover" element={<CashHandover />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/inventory" element={<Inventory />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
