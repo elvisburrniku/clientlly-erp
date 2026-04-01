@@ -36,7 +36,7 @@ export default function Invoices() {
   const PAGE_SIZE = 50;
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [sendDialog, setSendDialog] = useState(null); // invoice to send
+  const [sendDialog, setSendDialog] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +44,7 @@ export default function Invoices() {
   const [editInvoice, setEditInvoice] = useState(null);
   const [reminderDialog, setReminderDialog] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [filterSearchType, setFilterSearchType] = useState("client"); // "client" | "invoice"
+  const [filterSearchType, setFilterSearchType] = useState("client");
   const [filterClient, setFilterClient] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
@@ -135,7 +135,6 @@ export default function Invoices() {
       inv.due_date || "",
       inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
     ]);
-    // Build HTML table that Excel can open natively
     const tableRows = rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("");
     const html = `<html><head><meta charset="UTF-8"></head><body><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
     const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
@@ -148,49 +147,47 @@ export default function Invoices() {
   };
 
   const exportPDFList = () => {
-    (() => {
-      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-      const W = 297; const margin = 14;
-      doc.setFillColor(67, 56, 202);
-      doc.rect(0, 0, W, 22, "F");
-      doc.setTextColor(255,255,255);
-      doc.setFontSize(14); doc.setFont("helvetica", "bold");
-      doc.text("Lista e Faturave", margin, 14);
-      doc.setFontSize(9); doc.setFont("helvetica", "normal");
-      doc.text(`Gjeneruar: ${new Date().toLocaleDateString("sq-AL")}  |  Total: ${filtered.length} fatura`, W - margin, 14, { align: "right" });
-      const headers = ["Nr.", "Klienti", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Data"];
-      const colW = [28, 60, 22, 18, 24, 18, 18, 20, 20];
-      let x = margin; let y = 32;
-      doc.setFillColor(243,244,246);
-      doc.rect(margin, y - 5, W - margin*2, 8, "F");
-      doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(100,100,100);
-      headers.forEach((h, i) => { doc.text(h, x + 2, y); x += colW[i]; });
-      y += 5;
-      doc.setFont("helvetica", "normal"); doc.setFontSize(8);
-      filtered.forEach((inv, ri) => {
-        if (y > 185) { doc.addPage(); y = 20; }
-        if (ri % 2 === 0) { doc.setFillColor(249,250,251); doc.rect(margin, y - 4, W - margin*2, 8, "F"); }
-        doc.setTextColor(30,30,30);
-        const row = [
-          inv.invoice_number || "",
-          inv.client_name || "",
-          `E${(inv.subtotal||0).toFixed(2)}`,
-          `E${(inv.vat_amount||0).toFixed(2)}`,
-          `E${(inv.amount||0).toFixed(2)}`,
-          inv.status || "",
-          inv.is_open !== false ? "Hapur" : "Mbyllur",
-          inv.payment_method || "",
-          inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
-        ];
-        x = margin;
-        row.forEach((v, i) => { doc.text(String(v).slice(0, Math.floor(colW[i]/2) + 2), x + 2, y); x += colW[i]; });
-        y += 8;
-      });
-      doc.setFillColor(67,56,202); doc.rect(0, 195, W, 10, "F");
-      doc.setTextColor(255,255,255); doc.setFontSize(7);
-      doc.text(`Totali: E${filtered.reduce((s,i) => s+(i.amount||0), 0).toFixed(2)}`, W - margin, 201, { align: "right" });
-      doc.save(`lista_faturat_${new Date().toISOString().slice(0,10)}.pdf`);
-    })();
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const W = 297; const margin = 14;
+    doc.setFillColor(67, 56, 202);
+    doc.rect(0, 0, W, 22, "F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(14); doc.setFont("helvetica", "bold");
+    doc.text("Lista e Faturave", margin, 14);
+    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+    doc.text(`Gjeneruar: ${new Date().toLocaleDateString("sq-AL")}  |  Total: ${filtered.length} fatura`, W - margin, 14, { align: "right" });
+    const headers = ["Nr.", "Klienti", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Data"];
+    const colW = [28, 60, 22, 18, 24, 18, 18, 20, 20];
+    let x = margin; let y = 32;
+    doc.setFillColor(243,244,246);
+    doc.rect(margin, y - 5, W - margin*2, 8, "F");
+    doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(100,100,100);
+    headers.forEach((h, i) => { doc.text(h, x + 2, y); x += colW[i]; });
+    y += 5;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+    filtered.forEach((inv, ri) => {
+      if (y > 185) { doc.addPage(); y = 20; }
+      if (ri % 2 === 0) { doc.setFillColor(249,250,251); doc.rect(margin, y - 4, W - margin*2, 8, "F"); }
+      doc.setTextColor(30,30,30);
+      const row = [
+        inv.invoice_number || "",
+        inv.client_name || "",
+        `€${(inv.subtotal||0).toFixed(2)}`,
+        `€${(inv.vat_amount||0).toFixed(2)}`,
+        `€${(inv.amount||0).toFixed(2)}`,
+        inv.status || "",
+        inv.is_open !== false ? "Hapur" : "Mbyllur",
+        inv.payment_method || "",
+        inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
+      ];
+      x = margin;
+      row.forEach((v, i) => { doc.text(String(v).slice(0, Math.floor(colW[i]/2) + 2), x + 2, y); x += colW[i]; });
+      y += 8;
+    });
+    doc.setFillColor(67,56,202); doc.rect(0, 195, W, 10, "F");
+    doc.setTextColor(255,255,255); doc.setFontSize(7);
+    doc.text(`Totali: €${filtered.reduce((s,i) => s+(i.amount||0), 0).toFixed(2)}`, W - margin, 201, { align: "right" });
+    doc.save(`lista_faturat_${new Date().toISOString().slice(0,10)}.pdf`);
   };
 
   const handleDuplicate = async (inv) => {
@@ -367,7 +364,6 @@ export default function Invoices() {
             <Plus className="w-4 h-4" /> Krijo Faturë
           </Button>
         </div>
-
       </div>
 
       {/* Summary strip */}
@@ -389,187 +385,240 @@ export default function Invoices() {
         </div>
       </div>
 
+      {/* Search & Filters */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <p className="text-sm font-semibold">Filtrat & Kërkimi</p>
+          <Button variant="ghost" size="icon" className={cn("h-8 w-8", searchOpen && "bg-muted")} onClick={() => setSearchOpen(o => !o)}>
+            <Search className="w-4 h-4" />
+          </Button>
+        </div>
+        {searchOpen && (
+          <div className="p-4 flex flex-col gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground block mb-1">Kërko sipas</label>
+              <div className="flex bg-muted rounded-lg p-0.5 mb-2">
+                <button
+                  onClick={() => { setFilterSearchType("client"); setFilterClient(""); setPage(1); }}
+                  className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "client" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                >Klienti</button>
+                <button
+                  onClick={() => { setFilterSearchType("invoice"); setFilterClient(""); setPage(1); }}
+                  className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "invoice" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                >Nr. Faturës</button>
+              </div>
+              <input
+                type="text"
+                placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
+                value={filterClient}
+                onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground block mb-2">Periudha</label>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <button
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    setFilterDateFrom(today);
+                    setFilterDateTo(today);
+                    setPage(1);
+                  }}
+                  className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                >Sot</button>
+                <button
+                  onClick={() => {
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                    const end = now.toISOString().split('T')[0];
+                    setFilterDateFrom(start);
+                    setFilterDateTo(end);
+                    setPage(1);
+                  }}
+                  className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                >Muaj</button>
+                <button
+                  onClick={() => {
+                    const now = new Date();
+                    const start = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+                    const end = now.toISOString().split('T')[0];
+                    setFilterDateFrom(start);
+                    setFilterDateTo(end);
+                    setPage(1);
+                  }}
+                  className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                >Vit</button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
+                <input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Deri më Date</label>
+                <input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>Pastro filtrat</Button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
-          <div className="flex items-center justify-between gap-3">
-            <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
-            <div className="relative flex items-center gap-2">
-              {hasActiveFilters && (
-                <button onClick={clearFilters} className="text-xs text-destructive hover:underline">Pastro filtrat</button>
-              )}
-              <Button variant="ghost" size="icon" className={cn("h-8 w-8", searchOpen && "bg-muted")} onClick={() => setSearchOpen(o => !o)}>
-                <Search className="w-4 h-4" />
-              </Button>
-              {searchOpen && (
-                <div className="absolute right-0 top-10 z-50 w-64 bg-white border border-border rounded-2xl shadow-xl p-4 flex flex-col gap-3">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Kërko sipas</label>
-                    <div className="flex bg-muted rounded-lg p-0.5 mb-2">
-                      <button
-                        onClick={() => { setFilterSearchType("client"); setFilterClient(""); setPage(1); }}
-                        className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "client" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
-                      >Klienti</button>
-                      <button
-                        onClick={() => { setFilterSearchType("invoice"); setFilterClient(""); setPage(1); }}
-                        className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "invoice" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
-                      >Nr. Faturës</button>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
-                        value={filterClient}
-                        onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
-                        className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                      />
-                      {filterClient && (
-                        <div className="absolute top-full mt-1 w-full bg-white border border-border rounded-lg shadow-md max-h-40 overflow-y-auto">
-                          {filterSearchType === "client" ? (
-                            (() => {
-                              const clients = Array.from(new Set(invoices.map(i => i.client_name))).filter(c => c?.toLowerCase().includes(filterClient.toLowerCase())).sort();
-                              return clients.length > 0 ? clients.map(c => (
-                                <button
-                                  key={c}
-                                  onClick={() => { setFilterClient(c); setPage(1); }}
-                                  className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition"
-                                >{c}</button>
-                              )) : (
-                                <div className="px-3 py-2 text-xs text-muted-foreground">Asnjë rezultat</div>
-                              );
-                            })()
-                          ) : (
-                            (() => {
-                              const invoiceNums = Array.from(new Set(invoices.map(i => i.invoice_number))).filter(n => n?.toLowerCase().includes(filterClient.toLowerCase())).sort();
-                              return invoiceNums.length > 0 ? invoiceNums.map(n => (
-                                <button
-                                  key={n}
-                                  onClick={() => { setFilterClient(n); setPage(1); }}
-                                  className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition"
-                                >{n}</button>
-                              )) : (
-                                <div className="px-3 py-2 text-xs text-muted-foreground">Asnjë rezultat</div>
-                              );
-                            })()
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-2">Periudha</label>
-                    <div className="grid grid-cols-3 gap-2 mb-3">
-                      <button
-                        onClick={() => {
-                          const today = new Date().toISOString().split('T')[0];
-                          setFilterDateFrom(today);
-                          setFilterDateTo(today);
-                          setPage(1);
-                        }}
-                        className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
-                      >
-                        Sot
-                      </button>
-                      <button
-                        onClick={() => {
-                          const now = new Date();
-                          const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-                          const end = now.toISOString().split('T')[0];
-                          setFilterDateFrom(start);
-                          setFilterDateTo(end);
-                          setPage(1);
-                        }}
-                        className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
-                      >
-                        Muaj
-                      </button>
-                      <button
-                        onClick={() => {
-                          const now = new Date();
-                          const start = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-                          const end = now.toISOString().split('T')[0];
-                          setFilterDateFrom(start);
-                          setFilterDateTo(end);
-                          setPage(1);
-                        }}
-                        className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
-                      >
-                        Vit
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
-                    <input
-                      type="date"
-                      value={filterDateFrom}
-                      onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
-                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Deri më Date</label>
-                    <input
-                      type="date"
-                      value={filterDateTo}
-                      onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
-                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                    />
-                  </div>
-                  </div>
-                  )}
-                  </div>
-                  </div>
-                  </div>
-                  </div>
-
-                  {/* Table */}
-                  <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-border">
-                  <div className="flex items-center justify-between gap-3">
-                  <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
-                  <div className="relative flex items-center gap-2">
-                  {hasActiveFilters && (
-                  <button onClick={clearFilters} className="text-xs text-destructive hover:underline">Pastro filtrat</button>
-                  )}
-                  </div>
-                  </div>
-                  </div>
-                  <div className="overflow-x-auto">
-                  <table className="w-full">
-                  <thead>
-                  <tr className="border-b border-border bg-muted/20">
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr.</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Total</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Statusi</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Gjendja</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Pagesa</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Faturoi</th>
-                  <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
-                  <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
-                  </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                  {invoices.length === 0 ? (
-                  <tr>
+          <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr.</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Total</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Statusi</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Gjendja</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Pagesa</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Faturoi</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
+                <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {paginated.length === 0 ? (
+                <tr>
                   <td colSpan={11} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <FileText className="w-7 h-7 text-muted-foreground/50" />
                       </div>
-                      <p className="text-sm text-muted-foreground font-medium">Nuk ka fatura ende</p>
-                      <p className="text-xs text-muted-foreground">Krijo faturën e parë duke klikuar butonin lart</p>
+                      <p className="text-sm text-muted-foreground font-medium">Nuk ka fatura</p>
+                      <p className="text-xs text-muted-foreground">Krijo faturën e parë duke klikuar butonin "Krijo Faturë"</p>
                     </div>
                   </td>
+                </tr>
+              ) : (
+                paginated.map((inv) => (
+                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors group">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-semibold">{inv.client_name}</div>
+                      {inv.client_email && <div className="text-xs text-muted-foreground mt-0.5">{inv.client_email}</div>}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={inv.status || "draft"}
+                        onChange={(e) => handleStatusChange(inv, e.target.value)}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-full border-0 bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200 transition"
+                      >
+                        <option value="draft">Draft</option>
+                        <option value="sent">Dërguar</option>
+                        <option value="paid">Paguar</option>
+                        <option value="overdue">Vonuar</option>
+                        <option value="cancelled">Anuluar</option>
+                      </select>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.is_open ? 'Haper' : 'Mbyllur'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.payment_method || "—"}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-xs text-muted-foreground">{inv.issued_by ? inv.issued_by.split("@")[0] : "—"}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{moment(inv.created_date).format("DD MMM YY")}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1.5 justify-end items-center">
+                        <InvoicePDFButton invoice={inv} />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-7 w-7">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}>
+                              <Eye className="w-4 h-4 mr-2" /> Shiko Faturën
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openEdit(inv)}>
+                              <Pencil className="w-4 h-4 mr-2" /> Modifiko
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setSendDialog(inv)}>
+                              <Send className="w-4 h-4 mr-2" /> Ridërgo Faturën
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendReminder(inv)}>
+                              <Bell className="w-4 h-4 mr-2" /> Kujtesë për Faturën
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDuplicate(inv)}>
+                              <Copy className="w-4 h-4 mr-2" /> Dyfisho
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDelete(inv)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="w-4 h-4 mr-2" /> Fshi Faturën
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
+            <p className="text-sm text-muted-foreground">
+              Duke shfaqur {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} nga {filtered.length} fatura
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >← Prapa</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                <button key={n} onClick={() => setPage(n)}
+                  className={cn("w-8 h-8 text-sm font-medium rounded-lg border transition",
+                    page === n ? "bg-primary text-white border-primary" : "bg-white border-border hover:bg-muted"
+                  )}>{n}</button>
+              ))}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition"
+              >Para →</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Create Dialog */}
@@ -642,33 +691,6 @@ export default function Invoices() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Duke shfaqur {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, invoices.length)} nga {invoices.length} fatura
-          </p>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >← Prapa</button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-              <button key={n} onClick={() => setPage(n)}
-                className={cn("w-8 h-8 text-sm font-medium rounded-lg border transition",
-                  page === n ? "bg-primary text-white border-primary" : "bg-white border-border hover:bg-muted"
-                )}>{n}</button>
-            ))}
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition"
-            >Para →</button>
-          </div>
-        </div>
-      )}
 
       {/* Edit Dialog */}
       <Dialog open={!!editInvoice} onOpenChange={(o) => { if (!o) { setEditInvoice(null); setForm(emptyForm()); } }}>
