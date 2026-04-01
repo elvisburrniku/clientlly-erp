@@ -1,0 +1,26 @@
+{
+  "name": "ExpenseCategory",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i kategoris\u00eb"
+    },
+    "description": {
+      "type": "string",
+      "description": "P\u00ebrshkrimi i kategoris\u00eb"
+    },
+    "color": {
+      "type": "string",
+      "description": "Ngjyra hex e kategoris\u00eb (p.sh. #FF5733)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb kategoria aktive",
+      "default": true
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

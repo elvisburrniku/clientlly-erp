@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Plus, Trash2 } from "lucide-react";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
@@ -15,14 +15,24 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({});
   const [invoiceSettings, setInvoiceSettings] = useState(null);
+  const [units, setUnits] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [showNewUnit, setShowNewUnit] = useState(false);
+  const [newUnitName, setNewUnitName] = useState("");
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
-      const [u, temps, invSets] = await Promise.all([
+      const [u, temps, invSets, unts, cats] = await Promise.all([
         base44.auth.me(),
         base44.entities.InvoiceTemplate.list('-created_date', 1),
         base44.entities.InvoiceSettings.list('-created_date', 1),
-      ]);
+        base44.entities.Unit.list('-created_date', 100).catch(() => []),
+        base44.entities.ExpenseCategory.list('-created_date', 100).catch(() => []),
+      ]);  
+      setUnits(unts);
+      setCategories(cats);
       setUser(u);
       if (temps.length > 0) {
         setTemplate(temps[0]);
@@ -37,6 +47,54 @@ export default function Settings() {
     };
     loadData();
   }, []);
+
+  const addUnit = async () => {
+    if (!newUnitName.trim()) return;
+    try {
+      const newUnit = await base44.entities.Unit.create({ name: newUnitName });
+      setUnits([...units, newUnit]);
+      setNewUnitName("");
+      setShowNewUnit(false);
+      toast.success("Njësia u shtua");
+    } catch (err) {
+      toast.error("Gabim në ruajtje");
+    }
+  };
+
+  const deleteUnit = async (id) => {
+    if (!window.confirm("Fshi këtë njësi?")) return;
+    try {
+      await base44.entities.Unit.delete(id);
+      setUnits(units.filter(u => u.id !== id));
+      toast.success("Njësia u fshi");
+    } catch (err) {
+      toast.error("Gabim në fshirje");
+    }
+  };
+
+  const addCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    try {
+      const newCat = await base44.entities.ExpenseCategory.create({ name: newCategoryName });
+      setCategories([...categories, newCat]);
+      setNewCategoryName("");
+      setShowNewCategory(false);
+      toast.success("Kategoria u shtua");
+    } catch (err) {
+      toast.error("Gabim në ruajtje");
+    }
+  };
+
+  const deleteCategory = async (id) => {
+    if (!window.confirm("Fshi këtë kategori?")) return;
+    try {
+      await base44.entities.ExpenseCategory.delete(id);
+      setCategories(categories.filter(c => c.id !== id));
+      toast.success("Kategoria u fshi");
+    } catch (err) {
+      toast.error("Gabim në fshirje");
+    }
+  };
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -197,6 +255,56 @@ export default function Settings() {
             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
             {saving ? 'Duke ruajtur...' : 'Ruaj Cilësimet e Faturave'}
           </Button>
+        </div>
+      </div>
+
+      <div className="bg-card rounded-xl border border-border p-6 space-y-5">
+        <h3 className="text-base font-semibold">Njësitë e Matjes</h3>
+        <div className="space-y-3">
+          {units.map(u => (
+            <div key={u.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border">
+              <span className="text-sm font-medium">{u.name}</span>
+              <button onClick={() => deleteUnit(u.id)} className="text-destructive/60 hover:text-destructive">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          {!showNewUnit ? (
+            <Button onClick={() => setShowNewUnit(true)} variant="outline" className="w-full gap-2">
+              <Plus className="w-4 h-4" /> Njësi e Re
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Input placeholder="P.sh. cope, kg, m, l..." value={newUnitName} onChange={(e) => setNewUnitName(e.target.value)} className="text-sm" />
+              <Button size="sm" variant="outline" onClick={addUnit} className="px-2">✓</Button>
+              <Button size="sm" variant="outline" onClick={() => { setShowNewUnit(false); setNewUnitName(""); }} className="px-2">✕</Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-card rounded-xl border border-border p-6 space-y-5">
+        <h3 className="text-base font-semibold">Kategoriat e Shpenzimeve</h3>
+        <div className="space-y-3">
+          {categories.map(c => (
+            <div key={c.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border">
+              <span className="text-sm font-medium">{c.name}</span>
+              <button onClick={() => deleteCategory(c.id)} className="text-destructive/60 hover:text-destructive">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+          {!showNewCategory ? (
+            <Button onClick={() => setShowNewCategory(true)} variant="outline" className="w-full gap-2">
+              <Plus className="w-4 h-4" /> Kategori e Re
+            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Input placeholder="P.sh. Qira, Paga, Transport..." value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} className="text-sm" />
+              <Button size="sm" variant="outline" onClick={addCategory} className="px-2">✓</Button>
+              <Button size="sm" variant="outline" onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }} className="px-2">✕</Button>
+            </div>
+          )}
         </div>
       </div>
 

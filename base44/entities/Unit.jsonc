@@ -1,0 +1,26 @@
+{
+  "name": "Unit",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i nj\u00ebsis\u00eb (cope, kg, m, m2, lit\u00ebr, or\u00eb, etj)"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Simboli i nj\u00ebsis\u00eb (pc, kg, m, l, h, etj)"
+    },
+    "description": {
+      "type": "string",
+      "description": "P\u00ebrshkrimi"
+    },
+    "is_default": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb nj\u00ebsia e paracaktuar",
+      "default": false
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

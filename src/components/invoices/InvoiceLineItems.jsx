@@ -21,10 +21,28 @@ const emptyItem = () => ({
 
 export default function InvoiceLineItems({ items, onChange, onDiscountChange, discountInfo = { type: "none", value: 0, amount: 0 } }) {
   const [products, setProducts] = useState([]);
+  const [units, setUnits] = useState([]);
+  const [showNewUnit, setShowNewUnit] = useState(null);
+  const [newUnitName, setNewUnitName] = useState("");
 
   useEffect(() => {
-    base44.entities.Product.list('-created_date', 100).then(setProducts).catch(() => {});
+    Promise.all([
+      base44.entities.Product.list('-created_date', 100).catch(() => []),
+      base44.entities.Unit.list('-created_date', 100).catch(() => [])
+    ]).then(([prods, unts]) => {
+      setProducts(prods);
+      setUnits(unts);
+    });
   }, []);
+
+  const addUnit = async (index) => {
+    if (!newUnitName.trim()) return;
+    const newUnit = await base44.entities.Unit.create({ name: newUnitName });
+    setUnits([...units, newUnit]);
+    update(index, "unit", newUnitName);
+    setShowNewUnit(null);
+    setNewUnitName("");
+  };
 
   const update = (index, field, value) => {
     const updated = items.map((item, i) => {
@@ -136,7 +154,23 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Njësia</label>
-                <Input className="text-sm" placeholder="cope, kg, ore..." value={item.unit} onChange={(e) => update(i, "unit", e.target.value)} />
+                {showNewUnit === i ? (
+                  <div className="flex gap-1.5">
+                    <Input className="text-sm" placeholder="Emri i njësisë" value={newUnitName} onChange={(e) => setNewUnitName(e.target.value)} />
+                    <Button size="sm" variant="outline" onClick={() => addUnit(i)} className="px-2">✓</Button>
+                    <Button size="sm" variant="outline" onClick={() => { setShowNewUnit(null); setNewUnitName(""); }} className="px-2">✕</Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-1.5">
+                    <Select value={item.unit} onValueChange={(v) => update(i, "unit", v)}>
+                      <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {units.map(u => <SelectItem key={u.id} value={u.name}>{u.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" variant="outline" onClick={() => setShowNewUnit(i)} className="px-2.5">+</Button>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">TVSH %</label>

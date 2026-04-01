@@ -39,8 +39,25 @@ export default function Expenses() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); loadCategories(); }, []);
+
+  const loadCategories = async () => {
+    const cats = await base44.entities.ExpenseCategory.list("-created_date", 100).catch(() => []);
+    setCategories(cats);
+  };
+
+  const addCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    const newCat = await base44.entities.ExpenseCategory.create({ name: newCategoryName });
+    setCategories([...categories, newCat]);
+    setForm({ ...form, category: newCat.id });
+    setShowNewCategory(false);
+    setNewCategoryName("");
+  };
 
   const loadData = async () => {
     try {
@@ -90,9 +107,9 @@ export default function Expenses() {
   }
 
   const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-  const byCategory = Object.keys(EXPENSE_CATEGORIES).map(cat => ({
+  const byCategory = categories.map(cat => ({
     category: cat,
-    total: expenses.filter(e => e.category === cat).reduce((sum, e) => sum + (e.amount || 0), 0),
+    total: expenses.filter(e => e.category === cat.id).reduce((sum, e) => sum + (e.amount || 0), 0),
   })).filter(x => x.total > 0);
 
   return (
@@ -128,8 +145,8 @@ export default function Expenses() {
           <h3 className="text-base font-semibold mb-4">Sipas Kategorive</h3>
           <div className="space-y-3">
             {byCategory.map(({ category, total }) => (
-              <div key={category} className="flex justify-between items-center py-2">
-                <span className="text-sm text-muted-foreground">{EXPENSE_CATEGORIES[category]}</span>
+              <div key={category.id} className="flex justify-between items-center py-2">
+                <span className="text-sm text-muted-foreground">{category.name}</span>
                 <span className="font-medium">€{total.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
               </div>
             ))}
@@ -165,7 +182,7 @@ export default function Expenses() {
                 expenses.map(exp => (
                   <tr key={exp.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold">{EXPENSE_CATEGORIES[exp.category]}</span>
+                      <span className="text-sm font-semibold">{categories.find(c => c.id === exp.category)?.name || exp.category}</span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{exp.description || "—"}</td>
                     <td className="px-6 py-4"><span className="text-sm font-bold">€{(exp.amount || 0).toFixed(2)}</span></td>
@@ -205,11 +222,23 @@ export default function Expenses() {
               <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(EXPENSE_CATEGORIES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                     {categories.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2 mt-2">
+              <Button size="sm" variant="outline" onClick={() => setShowNewCategory(true)} className="w-full" disabled={showNewCategory}>
+                + Kategori e Re
+              </Button>
+            </div>
+            {showNewCategory && (
+              <div className="flex gap-2 mt-2">
+                <Input placeholder="Emri i kategorisë" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} className="text-sm" />
+                <Button size="sm" variant="outline" onClick={addCategory} className="px-2">✓</Button>
+                <Button size="sm" variant="outline" onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }} className="px-2">✕</Button>
+              </div>
+            )}
             </div>
             <div>
               <Label>Përshkrimi</Label>
