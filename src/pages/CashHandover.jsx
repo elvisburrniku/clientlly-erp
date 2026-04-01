@@ -42,41 +42,49 @@ export default function CashHandover() {
   const isManager = currentUser?.role === "admin" || currentUser?.role === "manager";
 
   const handleApproveWithInvoices = async (handover) => {
-    await base44.entities.CashHandover.update(handover.id, {
-      status: "approved",
-      approved_by: currentUser.email,
-      approved_date: new Date().toISOString(),
-    });
+    try {
+      await base44.entities.CashHandover.update(handover.id, {
+        status: "approved",
+        approved_by: currentUser.email,
+        approved_date: new Date().toISOString(),
+      });
 
-    // Add to cashbox
-    await base44.entities.CashTransaction.create({
-      amount: handover.amount,
-      type: "cash_in",
-      note: `Dorëzim nga ${handover.user_name}`,
-      reference_type: "handover",
-      reference_id: handover.id,
-    });
+      // Add to cashbox
+      await base44.entities.CashTransaction.create({
+        amount: handover.amount,
+        type: "cash_in",
+        note: `Dorëzim nga ${handover.user_name}`,
+        reference_type: "handover",
+        reference_id: handover.id,
+      });
 
-    // Mark invoices as paid
-    if (handover.invoices && handover.invoices.length > 0) {
-      for (const inv of handover.invoices) {
-        await base44.entities.Invoice.update(inv.invoice_id, { status: "paid", is_open: false });
+      // Mark invoices as paid
+      if (handover.invoices && handover.invoices.length > 0) {
+        for (const inv of handover.invoices) {
+          await base44.entities.Invoice.update(inv.invoice_id, { status: "paid", is_open: false });
+        }
       }
-    }
 
-    toast.success("Dorëzimi u aprovua dhe faturat u shënuan si paguar");
-    loadData();
+      toast.success("Dorëzimi u aprovua dhe faturat u shënuan si paguar");
+      loadData();
+    } catch (error) {
+      toast.error("Gabim në aprovim: " + error.message);
+    }
   };
 
   const handleReject = async (handover) => {
     const reason = prompt("Arsyeja e refuzimit:");
     if (!reason) return;
-    await base44.entities.CashHandover.update(handover.id, {
-      status: "rejected",
-      rejection_reason: reason
-    });
-    toast.info("Dorëzimi u refuzua");
-    loadData();
+    try {
+      await base44.entities.CashHandover.update(handover.id, {
+        status: "rejected",
+        rejection_reason: reason
+      });
+      toast.info("Dorëzimi u refuzua");
+      loadData();
+    } catch (error) {
+      toast.error("Gabim në refuzim");
+    }
   };
 
   const handleCreate = async () => {
@@ -85,34 +93,44 @@ export default function CashHandover() {
       return;
     }
     setSubmitting(true);
-    const selectedData = cashInvoices.filter(inv => selectedInvoices.includes(inv.id));
-    const totalAmount = selectedData.reduce((sum, inv) => sum + inv.amount, 0);
-    
-    await base44.entities.CashHandover.create({
-      amount: totalAmount,
-      invoices: selectedData.map(inv => ({
-        invoice_id: inv.id,
-        invoice_number: inv.invoice_number,
-        client_name: inv.client_name,
-        amount: inv.amount
-      })),
-      user_email: currentUser.email,
-      user_name: currentUser.full_name,
-      note,
-      status: "pending",
-    });
-    toast.success("Kërkesa u krijua");
-    setSelectedInvoices([]);
-    setNote("");
-    setDialogOpen(false);
+    try {
+      const selectedData = cashInvoices.filter(inv => selectedInvoices.includes(inv.id));
+      const totalAmount = selectedData.reduce((sum, inv) => sum + inv.amount, 0);
+      
+      await base44.entities.CashHandover.create({
+        amount: totalAmount,
+        invoices: selectedData.map(inv => ({
+          invoice_id: inv.id,
+          invoice_number: inv.invoice_number,
+          client_name: inv.client_name,
+          amount: inv.amount
+        })),
+        user_email: currentUser.email,
+        user_name: currentUser.full_name,
+        note,
+        status: "pending",
+      });
+      toast.success("Kërkesa u krijua");
+      setSelectedInvoices([]);
+      setNote("");
+      setDialogOpen(false);
+      loadData();
+    } catch (error) {
+      toast.error("Gabim në krijim: " + error.message);
+    }
     setSubmitting(false);
-    loadData();
   };
 
   const handleGeneratePdf = async (handover) => {
     setPdfLoading(handover.id);
     try {
-      await base44.functions.invoke("generateHandoverPdf", { handoverId: handover.id });
+      const res = await base44.functions.invoke("generateHandoverPdf", { handoverId: handover.id });
+      if (res.data?.file_url) {
+        const link = document.createElement('a');
+        link.href = res.data.file_url;
+        link.download = `handover-${handover.id}.pdf`;
+        link.click();
+      }
       toast.success("PDF u gjenru");
     } catch (error) {
       toast.error("Gabim gjatë gjenrimit të PDF");
@@ -126,7 +144,7 @@ export default function CashHandover() {
       await base44.functions.invoke("sendHandoverEmail", { handoverId: handover.id });
       toast.success("Email u dërgua");
     } catch (error) {
-      toast.error("Gabim gjatë dërgimit të emailit");
+      toast.error("Gabim gjatë dërgimit të emailit: " + error.message);
     }
     setEmailLoading(null);
   };
