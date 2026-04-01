@@ -43,7 +43,12 @@ export default function Invoices() {
   const [mergePDFOpen, setMergePDFOpen] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null);
   const [reminderDialog, setReminderDialog] = useState(null);
-  const [datePeriod, setDatePeriod] = useState("all");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterClient, setFilterClient] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
 
   useEffect(() => { loadData(); }, []);
 
@@ -293,16 +298,35 @@ export default function Invoices() {
     loadData();
   };
 
+  const hasActiveFilters = filterClient || filterMonth || filterYear || filterDateFrom || filterDateTo;
+
+  const clearFilters = () => {
+    setFilterClient("");
+    setFilterMonth("");
+    setFilterYear("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setPage(1);
+  };
+
   const filtered = invoices.filter(inv => {
-    const matchSearch = inv.client_name?.toLowerCase().includes(search.toLowerCase()) ||
-      inv.invoice_number?.toLowerCase().includes(search.toLowerCase());
-    if (!matchSearch) return false;
-    if (datePeriod === "all") return true;
     const d = new Date(inv.created_date);
-    const now = new Date();
-    if (datePeriod === "today") return d.toDateString() === now.toDateString();
-    if (datePeriod === "month") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    if (datePeriod === "year") return d.getFullYear() === now.getFullYear();
+    if (filterClient) {
+      const q = filterClient.toLowerCase();
+      if (!inv.client_name?.toLowerCase().includes(q) && !inv.invoice_number?.toLowerCase().includes(q)) return false;
+    }
+    if (filterMonth) {
+      if ((d.getMonth() + 1) !== parseInt(filterMonth)) return false;
+    }
+    if (filterYear) {
+      if (d.getFullYear() !== parseInt(filterYear)) return false;
+    }
+    if (filterDateFrom) {
+      if (d < new Date(filterDateFrom)) return false;
+    }
+    if (filterDateTo) {
+      if (d > new Date(filterDateTo + "T23:59:59")) return false;
+    }
     return true;
   });
   const openCount = invoices.filter(i => i.is_open !== false).length;
@@ -356,28 +380,76 @@ export default function Invoices() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-          <div className="flex items-center gap-3 flex-wrap">
-            <p className="font-semibold text-sm">{filtered.length} fatura{search && ` (filtruara)`}</p>
-            <div className="flex bg-muted rounded-xl p-1">
-              {[{k:"all",l:"Të gjitha"},{k:"today",l:"Sot"},{k:"month",l:"Muaji"},{k:"year",l:"Viti"}].map(({k,l}) => (
-                <button key={k} onClick={() => { setDatePeriod(k); setPage(1); }}
-                  className={cn("px-3 py-1 text-xs font-medium rounded-lg transition-all",
-                    datePeriod === k ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  )}>{l}</button>
-              ))}
+        <div className="px-6 py-4 border-b border-border">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="text-xs text-destructive hover:underline">Pastro filtrat</button>
+              )}
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => setSearchOpen(o => !o)}>
+                <Search className="w-4 h-4" /> Kërko / Filtro
+              </Button>
             </div>
           </div>
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Kërko sipas klientit ose numrit..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-border rounded-xl bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-            />
-          </div>
+          {searchOpen && (
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="lg:col-span-2">
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Klienti / Nr. Faturës</label>
+                <input
+                  type="text"
+                  placeholder="Kërko..."
+                  value={filterClient}
+                  onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Muaji</label>
+                <select
+                  value={filterMonth}
+                  onChange={(e) => { setFilterMonth(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                >
+                  <option value="">Të gjithë</option>
+                  {["Janar","Shkurt","Mars","Prill","Maj","Qershor","Korrik","Gusht","Shtator","Tetor","Nëntor","Dhjetor"].map((m,i) => (
+                    <option key={i+1} value={i+1}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Viti</label>
+                <select
+                  value={filterYear}
+                  onChange={(e) => { setFilterYear(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                >
+                  <option value="">Të gjithë</option>
+                  {[2024, 2025, 2026, 2027].map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
+                <input
+                  type="date"
+                  value={filterDateFrom}
+                  onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                />
+              </div>
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className="text-xs font-medium text-muted-foreground block mb-1">Deri më Date</label>
+                <input
+                  type="date"
+                  value={filterDateTo}
+                  onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
+                />
+              </div>
+            </div>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
