@@ -115,7 +115,7 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
                     <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
                       <SelectTrigger className="text-sm"><SelectValue placeholder="Zgjedh produktin..." /></SelectTrigger>
                       <SelectContent>
-                        {products.map(p => (
+                        {products.filter(p => p.type === item.type).map(p => (
                           <SelectItem key={p.id} value={p.id}>{p.name} (€{(p.price_ex_vat || 0).toFixed(2)})</SelectItem>
                         ))}
                       </SelectContent>
