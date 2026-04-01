@@ -240,7 +240,6 @@ export default function Expenses() {
                 <Button size="sm" variant="outline" onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }} className="px-2">✕</Button>
               </div>
             )}
-            </div>
             <div>
               <Label>Përshkrimi</Label>
               <Textarea placeholder="P.sh. Qira për muajin prill..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} />
