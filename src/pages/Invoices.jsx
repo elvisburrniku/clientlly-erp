@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, RotateCcw, Bell, Copy, Pencil, Info } from "lucide-react";
+import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Info, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -41,8 +41,9 @@ export default function Invoices() {
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
   const [mergePDFOpen, setMergePDFOpen] = useState(false);
-  const [editInvoice, setEditInvoice] = useState(null); // invoice being edited
+  const [editInvoice, setEditInvoice] = useState(null);
   const [reminderDialog, setReminderDialog] = useState(null);
+  const [datePeriod, setDatePeriod] = useState("all");
 
   useEffect(() => { loadData(); }, []);
 
@@ -285,10 +286,25 @@ export default function Invoices() {
     );
   }
 
-  const filtered = invoices.filter(inv =>
-    inv.client_name?.toLowerCase().includes(search.toLowerCase()) ||
-    inv.invoice_number?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleDelete = async (inv) => {
+    if (!window.confirm(`Fshi faturën ${inv.invoice_number}?`)) return;
+    await base44.entities.Invoice.delete(inv.id);
+    toast.success("Fatura u fshi");
+    loadData();
+  };
+
+  const filtered = invoices.filter(inv => {
+    const matchSearch = inv.client_name?.toLowerCase().includes(search.toLowerCase()) ||
+      inv.invoice_number?.toLowerCase().includes(search.toLowerCase());
+    if (!matchSearch) return false;
+    if (datePeriod === "all") return true;
+    const d = new Date(inv.created_date);
+    const now = new Date();
+    if (datePeriod === "today") return d.toDateString() === now.toDateString();
+    if (datePeriod === "month") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    if (datePeriod === "year") return d.getFullYear() === now.getFullYear();
+    return true;
+  });
   const openCount = invoices.filter(i => i.is_open !== false).length;
   const totalRevenue = invoices.reduce((s, i) => s + (i.amount || 0), 0);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -341,7 +357,17 @@ export default function Invoices() {
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-          <p className="font-semibold text-sm">{filtered.length} fatura{search && ` (filtruara nga ${invoices.length})`}</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <p className="font-semibold text-sm">{filtered.length} fatura{search && ` (filtruara)`}</p>
+            <div className="flex bg-muted rounded-xl p-1">
+              {[{k:"all",l:"Të gjitha"},{k:"today",l:"Sot"},{k:"month",l:"Muaji"},{k:"year",l:"Viti"}].map(({k,l}) => (
+                <button key={k} onClick={() => { setDatePeriod(k); setPage(1); }}
+                  className={cn("px-3 py-1 text-xs font-medium rounded-lg transition-all",
+                    datePeriod === k ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}>{l}</button>
+              ))}
+            </div>
+          </div>
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
@@ -444,6 +470,10 @@ export default function Invoices() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleDuplicate(inv)}>
                               <Copy className="w-4 h-4 mr-2" /> Dyfisho
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDelete(inv)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="w-4 h-4 mr-2" /> Fshi Faturën
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
