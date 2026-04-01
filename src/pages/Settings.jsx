@@ -14,12 +14,14 @@ export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({});
+  const [invoiceSettings, setInvoiceSettings] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
-      const [u, temps] = await Promise.all([
+      const [u, temps, invSets] = await Promise.all([
         base44.auth.me(),
         base44.entities.InvoiceTemplate.list('-created_date', 1),
+        base44.entities.InvoiceSettings.list('-created_date', 1),
       ]);
       setUser(u);
       if (temps.length > 0) {
@@ -27,6 +29,9 @@ export default function Settings() {
         setForm(temps[0]);
       } else {
         setForm({ company_name: '', company_email: '', company_phone: '', company_address: '', logo_url: '', primary_color: '#4338CA', footer_text: '' });
+      }
+      if (invSets.length > 0) {
+        setInvoiceSettings(invSets[0]);
       }
       setLoading(false);
     };
@@ -63,6 +68,22 @@ export default function Settings() {
       }
       const temps = await base44.entities.InvoiceTemplate.list('-created_date', 1);
       if (temps.length > 0) setTemplate(temps[0]);
+    } catch (err) {
+      toast.error('Gabim në ruajtje');
+    }
+    setSaving(false);
+  };
+
+  const handleSaveInvoiceSettings = async () => {
+    setSaving(true);
+    try {
+      if (invoiceSettings?.id) {
+        await base44.entities.InvoiceSettings.update(invoiceSettings.id, invoiceSettings);
+        toast.success('Cilësimet e faturave u përditësuan');
+      } else {
+        await base44.entities.InvoiceSettings.create(invoiceSettings || { invoice_number_format: 'INV-{###}' });
+        toast.success('Cilësimet e faturave u krijuan');
+      }
     } catch (err) {
       toast.error('Gabim në ruajtje');
     }
@@ -148,6 +169,35 @@ export default function Settings() {
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           {saving ? 'Duke ruajtur...' : 'Ruaj Shabllon'}
         </Button>
+      </div>
+
+      <div className="bg-card rounded-xl border border-border p-6 space-y-5">
+        <h3 className="text-base font-semibold">Cilësimet e Faturave</h3>
+        <div className="space-y-4">
+          <div>
+            <Label>Format i Numrit të Faturës</Label>
+            <p className="text-xs text-muted-foreground mt-1 mb-2">Shembuj: INV-{'{###}'} → INV-001, FAT-{'{###}'} → FAT-001, INV-{'{YYYY}'}-{'{###}'} → INV-2026-001</p>
+            <Input placeholder="INV-{###}" value={invoiceSettings?.invoice_number_format || 'INV-{###}'} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, invoice_number_format: e.target.value })} className="mt-1" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label>Ditë përpara afatit për kujtesë</Label>
+              <Input type="number" min="1" value={invoiceSettings?.payment_reminder_days_before || 3} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, payment_reminder_days_before: parseInt(e.target.value) })} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Ditë pas afatit për kujtesë</Label>
+              <Input type="number" min="1" value={invoiceSettings?.payment_reminder_days_after || 5} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, payment_reminder_days_after: parseInt(e.target.value) })} className="mt-1.5" />
+            </div>
+          </div>
+          <div>
+            <Label>Shënime të Parazgjedhura Për Pagesës</Label>
+            <Textarea placeholder="Llogarinë bankar, termin e pagesës..." value={invoiceSettings?.default_payment_notes || ''} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, default_payment_notes: e.target.value })} className="mt-1.5" rows={3} />
+          </div>
+          <Button onClick={handleSaveInvoiceSettings} disabled={saving} className="w-full gap-2">
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {saving ? 'Duke ruajtur...' : 'Ruaj Cilësimet e Faturave'}
+          </Button>
+        </div>
       </div>
 
       <div className="bg-card rounded-xl border border-border p-6 space-y-4">

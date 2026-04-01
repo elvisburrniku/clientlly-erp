@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Info, Trash2 } from "lucide-react";
+import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Info, Trash2, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -23,7 +23,11 @@ const emptyForm = () => ({
   client_name: "",
   client_email: "",
   client_phone: "",
+  client_nipt: "",
+  client_address: "",
   payment_method: "cash",
+  payment_notes: "",
+  internal_notes: "",
   due_date: "",
   description: "",
   is_recurring: false,
@@ -47,14 +51,37 @@ export default function Invoices() {
   const [editInvoice, setEditInvoice] = useState(null);
   const [reminderDialog, setReminderDialog] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [clients, setClients] = useState([]);
   const [filterSearchType, setFilterSearchType] = useState("client");
   const [filterClient, setFilterClient] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
+  const [settings, setSettings] = useState(null);
+  const [paymentDialog, setPaymentDialog] = useState(null);
+  const [paymentForm, setPaymentForm] = useState({ amount: 0, method: "cash", date: new Date().toISOString().split('T')[0], notes: "" });
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); loadSettings(); loadClients(); }, []);
+
+  const loadClients = async () => {
+    const data = await base44.entities.Client.list("-created_date", 100);
+    setClients(data);
+  };
+
+  const fillClientData = (clientId) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      setForm({
+        ...form,
+        client_name: client.name,
+        client_email: client.email,
+        client_phone: client.phone || "",
+        client_nipt: client.nipt || "",
+        client_address: client.address || "",
+      });
+    }
+  };
 
   const loadData = async () => {
     const [user, data] = await Promise.all([
@@ -64,6 +91,24 @@ export default function Invoices() {
     setCurrentUser(user);
     setInvoices(data);
     setLoading(false);
+  };
+
+  const loadSettings = async () => {
+    const sets = await base44.entities.InvoiceSettings.list("-created_date", 1);
+    setSettings(sets.length > 0 ? sets[0] : null);
+  };
+
+  const generateInvoiceNumber = async () => {
+    let format = settings?.invoice_number_format || "INV-{###}";
+    let counter = (settings?.invoice_number_counter || 0) + 1;
+    let number = format.replace("{###}", String(counter).padStart(3, "0")).replace("{YYYY}", new Date().getFullYear());
+    if (settings) {
+      await base44.entities.InvoiceSettings.update(settings.id, { invoice_number_counter: counter });
+    } else {
+      await base44.entities.InvoiceSettings.create({ invoice_number_format: format, invoice_number_counter: counter });
+    }
+    await loadSettings();
+    return number;
   };
 
   const calcTotals = (items) => {
@@ -83,7 +128,7 @@ export default function Invoices() {
     if (!form.client_name || form.items.length === 0) return;
     setSubmitting(true);
 
-    const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
+    const invoiceNumber = await generateInvoiceNumber();
     const { subtotal, vat_amount, amount } = calcTotals(form.items);
 
     const newInvoice = {
@@ -92,11 +137,15 @@ export default function Invoices() {
       client_name: form.client_name,
       client_email: form.client_email,
       client_phone: form.client_phone,
+      client_nipt: form.client_nipt || undefined,
+      client_address: form.client_address || undefined,
       items: form.items,
       subtotal,
       vat_amount,
       amount,
       payment_method: form.payment_method,
+      payment_notes: form.payment_notes || undefined,
+      internal_notes: form.internal_notes || undefined,
       due_date: form.due_date || undefined,
       description: form.description,
       is_recurring: form.is_recurring || false,
@@ -229,6 +278,10 @@ export default function Invoices() {
     toast.success("Kujtesa u dërgua");
   };
 
+  const getTotalPaid = (inv) => {
+    return (inv.payment_records || []).reduce((s, p) => s + p.amount, 0);
+  };
+
   const handleUpdate = async () => {
     if (!editInvoice) return;
     setSubmitting(true);
@@ -280,6 +333,42 @@ export default function Invoices() {
     if (!window.confirm(`Fshi faturën ${inv.invoice_number}?`)) return;
     await base44.entities.Invoice.delete(inv.id);
     toast.success("Fatura u fshi");
+    loadData();
+  };
+
+  const handleAddPayment = async () => {
+    if (!paymentDialog || paymentForm.amount <= 0) return;
+    setSubmitting(true);
+    const payments = paymentDialog.payment_records || [];
+    const newPayment = { amount: paymentForm.amount, payment_method: paymentForm.method, paid_date: paymentForm.date, notes: paymentForm.notes };
+    const totalPaid = payments.reduce((s, p) => s + p.amount, 0) + paymentForm.amount;
+    const remaining = paymentDialog.amount - totalPaid;
+    const newStatus = remaining <= 0 ? "paid" : "partially_paid";
+    const newOpen = remaining > 0;
+    await base44.entities.Invoice.update(paymentDialog.id, {
+      payment_records: [...payments, newPayment],
+      status: newStatus,
+      is_open: newOpen,
+    });
+    setPaymentDialog(null);
+    setPaymentForm({ amount: 0, method: "cash", date: new Date().toISOString().split('T')[0], notes: "" });
+    setSubmitting(false);
+    toast.success("Pagesa u regjistrua");
+    loadData();
+  };
+
+  const handleConvertProforma = async (inv) => {
+    if (inv.invoice_type !== "proforma") return;
+    setSubmitting(true);
+    const invoiceNumber = await generateInvoiceNumber();
+    const newInvoice = { ...inv, invoice_type: "standard", invoice_number: invoiceNumber, converted_from_proforma: true, parent_invoice_id: inv.id };
+    delete newInvoice.id;
+    delete newInvoice.created_date;
+    delete newInvoice.updated_date;
+    delete newInvoice.created_by;
+    await base44.entities.Invoice.create(newInvoice);
+    setSubmitting(false);
+    toast.success("Proforma u konvertua në faturë standarde");
     loadData();
   };
 
@@ -569,6 +658,12 @@ export default function Invoices() {
                             <DropdownMenuItem onClick={() => handleSendReminder(inv)}>
                               <Bell className="w-4 h-4 mr-2" /> Kujtesë për Faturën
                             </DropdownMenuItem>
+                            {inv.is_open && <DropdownMenuItem onClick={() => setPaymentDialog(inv)}>
+                              <DollarSign className="w-4 h-4 mr-2" /> Shto Pagesë
+                            </DropdownMenuItem>}
+                            {inv.invoice_type === "proforma" && <DropdownMenuItem onClick={() => handleConvertProforma(inv)}>
+                              <FileText className="w-4 h-4 mr-2" /> Konverto në Faturë
+                            </DropdownMenuItem>}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleDuplicate(inv)}>
                               <Copy className="w-4 h-4 mr-2" /> Dyfisho
@@ -653,6 +748,12 @@ export default function Invoices() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label>Klienti *</Label>
+                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
+                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh klientin ose shkruaj" /></SelectTrigger>
+                  <SelectContent>
+                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
                 <Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="mt-1.5" />
               </div>
               <div>
@@ -660,11 +761,21 @@ export default function Invoices() {
                 <Input type="email" placeholder="email@domain.com" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="mt-1.5" />
               </div>
               <div>
-                <Label>Telefon (me prefiks +355...)</Label>
+                <Label>Telefon</Label>
                 <Input placeholder="+355 6X XXX XXXX" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="mt-1.5" />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>NIPT</Label>
+                <Input placeholder="L XXXX XXXXX K XX" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Adresa</Label>
+                <Input placeholder="Adresa e klientit" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="mt-1.5" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label>Metoda e Pagesës</Label>
                 <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
@@ -680,6 +791,14 @@ export default function Invoices() {
                 <Label>Afati i Pagesës</Label>
                 <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" />
               </div>
+              <div>
+                <Label>Shënime Pagese</Label>
+                <Input placeholder="Llogarinë, termin e pagesës, etj..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1.5" />
+              </div>
+            </div>
+            <div>
+              <Label>Shënime të Brendshme (vetëm për ekipin)</Label>
+              <Textarea placeholder="Shënime të fshehura nga klienti..." value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1.5" rows={2} />
             </div>
             <div className="border-t pt-4">
               <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
@@ -770,11 +889,23 @@ export default function Invoices() {
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div><Label>Klienti *</Label><Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="mt-1.5" /></div>
+              <div><Label>Klienti *</Label>
+                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
+                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh klientin" /></SelectTrigger>
+                  <SelectContent>
+                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="mt-1.5" />
+              </div>
               <div><Label>Email Klientit</Label><Input type="email" placeholder="email@domain.com" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="mt-1.5" /></div>
               <div><Label>Telefon</Label><Input placeholder="+355 6X XXX XXXX" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="mt-1.5" /></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><Label>NIPT</Label><Input placeholder="L XXXX XXXXX K XX" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="mt-1.5" /></div>
+              <div><Label>Adresa</Label><Input placeholder="Adresa e klientit" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="mt-1.5" /></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><Label>Metoda e Pagesës</Label>
                 <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
@@ -786,7 +917,9 @@ export default function Invoices() {
                 </Select>
               </div>
               <div><Label>Afati i Pagesës</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" /></div>
+              <div><Label>Shënime Pagese</Label><Input placeholder="Llogarinë, termin e pagesës..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1.5" /></div>
             </div>
+            <div><Label>Shënime të Brendshme (vetëm për ekipin)</Label><Textarea placeholder="Shënime të fshehura nga klienti..." value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1.5" rows={2} /></div>
             <div className="border-t pt-4">
               <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
               <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
@@ -830,6 +963,49 @@ export default function Invoices() {
       {/* Send Dialog */}
       <SendInvoiceDialog invoice={sendDialog} open={!!sendDialog} onClose={() => setSendDialog(null)} />
       <MergePDFDialog invoices={invoices} open={mergePDFOpen} onClose={() => setMergePDFOpen(false)} />
+
+      {/* Payment Dialog */}
+      <Dialog open={!!paymentDialog} onOpenChange={(o) => { if (!o) setPaymentDialog(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Shto Pagesë — {paymentDialog?.invoice_number}</DialogTitle>
+            <DialogDescription>Fatura origjinale: €{(paymentDialog?.amount || 0).toFixed(2)}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="bg-muted/40 rounded-lg p-3 text-sm">
+              <p className="text-muted-foreground">Paguar deri tani: <span className="font-semibold text-foreground">€{getTotalPaid(paymentDialog).toFixed(2)}</span></p>
+              <p className="text-muted-foreground mt-1">Mbetur: <span className="font-semibold text-foreground">€{(paymentDialog ? paymentDialog.amount - getTotalPaid(paymentDialog) : 0).toFixed(2)}</span></p>
+            </div>
+            <div>
+              <Label>Shuma *</Label>
+              <Input type="number" min="0" step="0.01" placeholder="0.00" value={paymentForm.amount} onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseFloat(e.target.value) || 0 })} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Metoda e Pagesës</Label>
+              <Select value={paymentForm.method} onValueChange={(v) => setPaymentForm({ ...paymentForm, method: v })}>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="bank_transfer">Transfer Bankar</SelectItem>
+                  <SelectItem value="card">Kartë</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Data e Pagesës</Label>
+              <Input type="date" value={paymentForm.date} onChange={(e) => setPaymentForm({ ...paymentForm, date: e.target.value })} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Shënime</Label>
+              <Textarea placeholder="Shënime opsionale..." value={paymentForm.notes} onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })} className="mt-1.5" rows={2} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPaymentDialog(null)}>Anulo</Button>
+            <Button onClick={handleAddPayment} disabled={submitting || paymentForm.amount <= 0}>Regjistro Pagesë</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

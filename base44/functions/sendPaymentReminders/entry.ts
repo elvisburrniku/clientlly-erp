@@ -3,62 +3,64 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
-    }
-
-    const reminders = await base44.asServiceRole.entities.Reminder.list('-created_date', 100);
-    const now = new Date();
-    let sent = 0;
-
-    for (const reminder of reminders) {
-      if (!reminder.is_active) continue;
-
-      const dueDate = new Date(reminder.due_date);
-      const daysUntil = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
-
+    
+    // Get all open invoices
+    const invoices = await base44.asServiceRole.entities.Invoice.list('-created_date', 1000);
+    const settings = await base44.asServiceRole.entities.InvoiceSettings.list('-created_date', 1);
+    
+    const config = settings.length > 0 ? settings[0] : {};
+    const daysBefore = config.payment_reminder_days_before || 3;
+    const daysAfter = config.payment_reminder_days_after || 5;
+    
+    const today = new Date();
+    let remindersSent = 0;
+    
+    for (const invoice of invoices) {
+      // Only process open invoices with client email
+      if (!invoice.is_open || !invoice.client_email) continue;
+      
+      if (!invoice.due_date) continue;
+      
+      const dueDate = new Date(invoice.due_date);
+      const daysUntilDue = Math.floor((dueDate - today) / (1000 * 60 * 60 * 24));
+      
       let shouldSend = false;
-      if (reminder.reminder_type === 'before_due') {
-        shouldSend = daysUntil === (reminder.days_before || 3);
-      } else if (reminder.reminder_type === 'on_due') {
-        shouldSend = daysUntil === 0;
-      } else if (reminder.reminder_type === 'after_due') {
-        shouldSend = daysUntil === -1;
+      let reminderType = '';
+      
+      // Send reminder X days before due date
+      if (daysUntilDue === daysBefore && daysUntilDue > 0) {
+        shouldSend = true;
+        reminderType = 'before';
       }
-
-      if (!shouldSend) continue;
-
-      const lastSent = reminder.last_sent ? new Date(reminder.last_sent) : null;
-      if (lastSent && (now - lastSent) < 24 * 60 * 60 * 1000) {
-        continue;
+      // Send reminder X days after due date
+      else if (daysUntilDue === -daysAfter && daysUntilDue < 0) {
+        shouldSend = true;
+        reminderType = 'after';
       }
-
-      try {
-        const subject = `Kujtesë: Fatura ${reminder.invoice_number} pret pagesën`;
-        const body = `<p>Pershendetje ${reminder.client_name},</p>
-<p>Ju kujtojmë se fatura <b>${reminder.invoice_number}</b> me vlerë <b>€${(reminder.amount || 0).toFixed(2)}</b> me afat <b>${new Date(reminder.due_date).toLocaleDateString('sq-AL')}</b> është ende e papaguar.</p>
-<p>Ju lutem kryeni pagesën sa më parë.</p>
-<p>Faleminderit!</p>`;
-
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: reminder.client_email,
-          subject: subject,
-          body: body,
-        });
-
-        await base44.asServiceRole.entities.Reminder.update(reminder.id, {
-          last_sent: new Date().toISOString(),
-        });
-
-        sent++;
-      } catch (err) {
-        console.error(`Failed to send reminder for ${reminder.invoice_number}:`, err.message);
+      
+      if (shouldSend) {
+        const subject = reminderType === 'before' 
+          ? `Kujtesë: Fatura ${invoice.invoice_number} do të shënohet si e vonuar në ${invoice.due_date}`
+          : `Kujtesë urgjente: Fatura ${invoice.invoice_number} është e vonuar`;
+        
+        const body = reminderType === 'before'
+          ? `<p>Pershendetje ${invoice.client_name},</p><p>Ju kujtojmë se fatura <b>${invoice.invoice_number}</b> me vlerë <b>€${(invoice.amount || 0).toFixed(2)}</b> do të shënohet si e vonuar pas datës <b>${invoice.due_date}</b>.</p><p>Ju lutem kryeni pagesën sa më parë.</p><p>Faleminderit!</p>`
+          : `<p>Pershendetje ${invoice.client_name},</p><p>Fatura <b>${invoice.invoice_number}</b> me vlerë <b>€${(invoice.amount || 0).toFixed(2)}</b> ka kaluar afatin e pagesës (<b>${invoice.due_date}</b>) dhe është aktualisht e vonuar.</p><p>Ju lutem kryeni pagesën sa më parë.</p><p>Faleminderit!</p>`;
+        
+        try {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: invoice.client_email,
+            subject: subject,
+            body: body,
+          });
+          remindersSent++;
+        } catch (err) {
+          console.error(`Failed to send reminder for invoice ${invoice.invoice_number}:`, err.message);
+        }
       }
     }
-
-    return Response.json({ success: true, sent, message: `${sent} kujtesa u dërguan` });
+    
+    return Response.json({ success: true, remindersSent: remindersSent });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

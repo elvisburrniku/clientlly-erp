@@ -28,6 +28,14 @@
       "type": "string",
       "description": "Client phone (with country code)"
     },
+    "client_nipt": {
+      "type": "string",
+      "description": "Client NIPT"
+    },
+    "client_address": {
+      "type": "string",
+      "description": "Client address"
+    },
     "items": {
       "type": "array",
       "description": "Invoice line items",
@@ -130,6 +138,28 @@
       ],
       "description": "How the invoice was paid"
     },
+    "payment_records": {
+      "type": "array",
+      "description": "Payment history with partial payments",
+      "items": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "payment_method": {
+            "type": "string"
+          },
+          "paid_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "due_date": {
       "type": "string",
       "format": "date"
@@ -140,6 +170,10 @@
     "payment_notes": {
       "type": "string",
       "description": "Payment instructions or notes"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Internal notes (not shown to client)"
     },
     "issued_by": {
       "type": "string",
@@ -161,7 +195,12 @@
     },
     "parent_invoice_id": {
       "type": "string",
-      "description": "ID of the invoice this was duplicated from"
+      "description": "ID of the invoice this was duplicated from or converted from proforma"
+    },
+    "converted_from_proforma": {
+      "type": "boolean",
+      "description": "Was this invoice converted from a proforma",
+      "default": false
     }
   },
   "required": [
