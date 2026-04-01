@@ -96,13 +96,13 @@ export default function InvoicePDFButton({ invoice }) {
         doc.rect(margin, y - 2, W - margin * 2, 8, "F");
       }
       doc.setTextColor(30, 30, 30);
-      doc.text(item.name || "—", colX[0] + 2, y + 4);
+      doc.text(String(item.name || "—"), colX[0] + 2, y + 4);
       doc.text(item.type === "product" ? "Produkt" : "Shërbim", colX[1] + 2, y + 4);
-      doc.text(String(item.quantity ?? "—"), colX[3] - 1, y + 4, { align: "right" });
-      doc.text(item.unit || "—", colX[3] + 2, y + 4);
-      doc.text(`€${(item.price_ex_vat || 0).toFixed(2)}`, colX[5] - 1, y + 4, { align: "right" });
+      doc.text(String(item.quantity ?? 0), colX[3] - 1, y + 4, { align: "right" });
+      doc.text(String(item.unit || "—"), colX[3] + 2, y + 4);
+      doc.text(`\u20ac${(item.price_ex_vat || 0).toFixed(2)}`, colX[5] - 1, y + 4, { align: "right" });
       doc.text(`${item.vat_rate || 0}%`, colX[5] + 2, y + 4);
-      doc.text(`€${(item.line_total || 0).toFixed(2)}`, W - margin - 2, y + 4, { align: "right" });
+      doc.text(`\u20ac${(item.line_total || 0).toFixed(2)}`, W - margin - 2, y + 4, { align: "right" });
       y += 8;
     });
 
