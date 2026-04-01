@@ -3,13 +3,17 @@ import { base44 } from "@/api/base44Client";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import moment from "moment";
 
-export default function RevenueExpenseChart({ categoryFilter }) {
+export default function RevenueExpenseChart({ categoryFilter, onDataChange }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadChartData();
   }, [categoryFilter]);
+
+  useEffect(() => {
+    if (onDataChange) onDataChange(data);
+  }, [data, onDataChange]);
 
   const loadChartData = async () => {
     setLoading(true);
@@ -54,6 +58,7 @@ export default function RevenueExpenseChart({ categoryFilter }) {
         .slice(-12)
         .map(m => ({
           ...m,
+          monthKey: m.month,
           month: moment(m.month).format("MMM YY"),
           profit: m.revenue - m.expenses,
         }));
