@@ -681,22 +681,22 @@ export default function Invoices() {
                 <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" />
               </div>
             </div>
-            <div>
-              <Label className="mb-2 block">Artikujt / Shërbimet</Label>
+            <div className="border-t pt-4">
+              <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
               <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
             </div>
-            <div className="bg-muted/40 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal (pa TVSH)</span>
-                <span className="font-medium">€{formTotals.subtotal.toFixed(2)}</span>
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 space-y-3 text-sm border border-primary/10">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">Subtotal (pa TVSH)</span>
+                <span className="font-semibold text-foreground text-base">€{formTotals.subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">TVSH</span>
-                <span className="font-medium">€{formTotals.vat_amount.toFixed(2)}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">TVSH</span>
+                <span className="font-semibold text-foreground text-base">€{formTotals.vat_amount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between border-t border-border pt-2">
-                <span className="font-semibold">Total me TVSH</span>
-                <span className="font-bold text-base">€{formTotals.amount.toFixed(2)}</span>
+              <div className="border-t border-primary/20 pt-3 flex justify-between">
+                <span className="font-bold text-foreground">Total me TVSH</span>
+                <span className="font-bold text-lg text-primary">€{formTotals.amount.toFixed(2)}</span>
               </div>
             </div>
             <div>
@@ -787,14 +787,14 @@ export default function Invoices() {
               </div>
               <div><Label>Afati i Pagesës</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" /></div>
             </div>
-            <div>
-              <Label className="mb-2 block">Artikujt / Shërbimet</Label>
+            <div className="border-t pt-4">
+              <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
               <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
             </div>
-            <div className="bg-muted/40 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-medium">€{calcTotals(form.items).subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">TVSH</span><span className="font-medium">€{calcTotals(form.items).vat_amount.toFixed(2)}</span></div>
-              <div className="flex justify-between border-t border-border pt-2"><span className="font-semibold">Total me TVSH</span><span className="font-bold text-base">€{calcTotals(form.items).amount.toFixed(2)}</span></div>
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 space-y-3 text-sm border border-primary/10">
+              <div className="flex justify-between items-center"><span className="text-muted-foreground font-medium">Subtotal (pa TVSH)</span><span className="font-semibold text-foreground text-base">€{calcTotals(form.items).subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between items-center"><span className="text-muted-foreground font-medium">TVSH</span><span className="font-semibold text-foreground text-base">€{calcTotals(form.items).vat_amount.toFixed(2)}</span></div>
+              <div className="border-t border-primary/20 pt-3 flex justify-between"><span className="font-bold text-foreground">Total me TVSH</span><span className="font-bold text-lg text-primary">€{calcTotals(form.items).amount.toFixed(2)}</span></div>
             </div>
             <div><Label>Shënime</Label><Textarea placeholder="Shënime opsionale..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} /></div>
             <div className="border-t pt-4 mt-4">
