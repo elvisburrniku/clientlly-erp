@@ -3,18 +3,71 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { Upload, Loader2 } from "lucide-react";
 
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [template, setTemplate] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [form, setForm] = useState({});
 
   useEffect(() => {
-    base44.auth.me().then((u) => {
+    const loadData = async () => {
+      const [u, temps] = await Promise.all([
+        base44.auth.me(),
+        base44.entities.InvoiceTemplate.list('-created_date', 1),
+      ]);
       setUser(u);
+      if (temps.length > 0) {
+        setTemplate(temps[0]);
+        setForm(temps[0]);
+      } else {
+        setForm({ company_name: '', company_email: '', company_phone: '', company_address: '', logo_url: '', primary_color: '#4338CA', footer_text: '' });
+      }
       setLoading(false);
-    });
+    };
+    loadData();
   }, []);
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm({ ...form, logo_url: file_url });
+      toast.success('Logo u ngarkua');
+    } catch (err) {
+      toast.error('Gabim gjatë ngarkimit');
+    }
+    setUploading(false);
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!form.company_name) {
+      toast.error('Emri i kompanisë është i detyrueshëm');
+      return;
+    }
+    setSaving(true);
+    try {
+      if (template?.id) {
+        await base44.entities.InvoiceTemplate.update(template.id, form);
+        toast.success('Shabllon i përditësuar');
+      } else {
+        await base44.entities.InvoiceTemplate.create(form);
+        toast.success('Shabllon i krijuar');
+      }
+      const temps = await base44.entities.InvoiceTemplate.list('-created_date', 1);
+      if (temps.length > 0) setTemplate(temps[0]);
+    } catch (err) {
+      toast.error('Gabim në ruajtje');
+    }
+    setSaving(false);
+  };
 
   if (loading) {
     return (
@@ -47,6 +100,54 @@ export default function Settings() {
             <Input value={user?.role || "staff"} disabled className="mt-1.5 bg-muted/50 capitalize" />
           </div>
         </div>
+      </div>
+
+      <div className="bg-card rounded-xl border border-border p-6 space-y-5">
+        <h3 className="text-base font-semibold">Shabllon Faturash</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label>Emri i Kompanisë *</Label>
+            <Input placeholder="ScentLinq Pro" value={form.company_name || ''} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="mt-1.5" />
+          </div>
+          <div>
+            <Label>Email i Kompanisë</Label>
+            <Input type="email" placeholder="info@company.com" value={form.company_email || ''} onChange={(e) => setForm({ ...form, company_email: e.target.value })} className="mt-1.5" />
+          </div>
+          <div>
+            <Label>Numri i Telefonit</Label>
+            <Input placeholder="+355 6X XXX XXXX" value={form.company_phone || ''} onChange={(e) => setForm({ ...form, company_phone: e.target.value })} className="mt-1.5" />
+          </div>
+          <div>
+            <Label>Ngjyra Kryesore</Label>
+            <div className="flex gap-2 mt-1.5">
+              <input type="color" value={form.primary_color || '#4338CA'} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} className="w-12 h-9 rounded-lg cursor-pointer border border-border" />
+              <Input value={form.primary_color || '#4338CA'} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} className="flex-1" />
+            </div>
+          </div>
+        </div>
+        <div>
+          <Label>Adresa e Kompanisë</Label>
+          <Input placeholder="Tirane, Shqiperi" value={form.company_address || ''} onChange={(e) => setForm({ ...form, company_address: e.target.value })} className="mt-1.5" />
+        </div>
+        <div>
+          <Label>Logo e Kompanisë</Label>
+          <div className="mt-1.5 flex items-center gap-3">
+            {form.logo_url && <img src={form.logo_url} alt="Logo" className="h-12 rounded-lg border border-border" />}
+            <label className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted cursor-pointer transition">
+              <Upload className="w-4 h-4" />
+              {uploading ? 'Duke ngarkuar...' : 'Ngarko Logo'}
+              <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploading} className="hidden" />
+            </label>
+          </div>
+        </div>
+        <div>
+          <Label>Teksti në Fund të Faturës</Label>
+          <Textarea placeholder="Faleminderit për besimin tuaj!" value={form.footer_text || ''} onChange={(e) => setForm({ ...form, footer_text: e.target.value })} className="mt-1.5" rows={3} />
+        </div>
+        <Button onClick={handleSaveTemplate} disabled={saving} className="w-full gap-2">
+          {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+          {saving ? 'Duke ruajtur...' : 'Ruaj Shabllon'}
+        </Button>
       </div>
 
       <div className="bg-card rounded-xl border border-border p-6 space-y-4">

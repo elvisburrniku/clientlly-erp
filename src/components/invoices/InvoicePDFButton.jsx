@@ -1,6 +1,7 @@
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { jsPDF } from "jspdf";
+import { base44 } from "@/api/base44Client";
 
 // jsPDF built-in fonts don't support Albanian chars - use ASCII-safe versions
 const safe = (str) =>
@@ -9,25 +10,43 @@ const safe = (str) =>
     .replace(/ç/g, "c").replace(/Ç/g, "C")
     .replace(/—/g, "-");
 
+const hexToRgb = (hex) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [67, 56, 202];
+};
+
 export default function InvoicePDFButton({ invoice }) {
-  const generate = () => {
+  const generate = async () => {
+    const templates = await base44.entities.InvoiceTemplate.list('-created_date', 1);
+    const template = templates.length > 0 ? templates[0] : {};
+    const [r, g, b] = hexToRgb(template.primary_color || '#4338CA');
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210;
     const margin = 18;
 
-    // Header band
-    doc.setFillColor(67, 56, 202);
+    // Header band with custom color
+    doc.setFillColor(r, g, b);
     doc.rect(0, 0, W, 48, "F");
+
+    // Logo if exists
+    if (template.logo_url) {
+      try {
+        doc.addImage(template.logo_url, 'PNG', margin, 4, 12, 12);
+      } catch (e) {
+        // Logo failed to load, skip
+      }
+    }
 
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
-    doc.text("ERP Finance", margin, 20);
+    doc.text(safe(template.company_name || "ERP Finance"), margin + (template.logo_url ? 14 : 0), 20);
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text("finance@company.al  |  +355 69 000 0000", margin, 28);
-    doc.text("Tirane, Shqiperi", margin, 34);
+    const contactLine = [(template.company_email || "info@company.al"), (template.company_phone || "+355 69 000 0000")].filter(Boolean).join("  |  ");
+    doc.text(safe(contactLine), margin + (template.logo_url ? 14 : 0), 28);
+    doc.text(safe(template.company_address || "Tirane, Shqiperi"), margin + (template.logo_url ? 14 : 0), 34);
 
     doc.setFontSize(28);
     doc.setFont("helvetica", "bold");
@@ -125,7 +144,7 @@ export default function InvoicePDFButton({ invoice }) {
     });
 
     y += 18;
-    doc.setFillColor(67, 56, 202);
+    doc.setFillColor(r, g, b);
     doc.rect(boxX, y, boxW, 10, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
@@ -150,7 +169,8 @@ export default function InvoicePDFButton({ invoice }) {
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(130, 130, 130);
-    doc.text("Faleminderit per besimin tuaj!", W / 2, 290, { align: "center" });
+    const footerText = template.footer_text || "Faleminderit per besimin tuaj!";
+    doc.text(safe(footerText), W / 2, 290, { align: "center" });
 
     doc.save(`${invoice.invoice_number}.pdf`);
   };

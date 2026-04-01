@@ -1,0 +1,43 @@
+{
+  "name": "InvoiceTemplate",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string",
+      "description": "Emri i kompanis\u00eb"
+    },
+    "company_email": {
+      "type": "string",
+      "description": "Email i kompanis\u00eb"
+    },
+    "company_phone": {
+      "type": "string",
+      "description": "Numri i telefonit i kompanis\u00eb"
+    },
+    "company_address": {
+      "type": "string",
+      "description": "Adresa e kompanis\u00eb"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL i logos s\u00eb kompanis\u00eb"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Ngjyra kryesore e fatur\u00ebs (hex code, p.sh. #4338CA)",
+      "default": "#4338CA"
+    },
+    "footer_text": {
+      "type": "string",
+      "description": "Teksti i sh\u00ebnimeve n\u00eb fund t\u00eb fatur\u00ebs"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb ky shabllon aktiv",
+      "default": true
+    }
+  },
+  "required": [
+    "company_name"
+  ]
+}
