@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
+import MonthlyRevenueBar from "../components/dashboard/MonthlyRevenueBar";
 import RevenueChart from "../components/dashboard/RevenueChart";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
 import { cn } from "@/lib/utils";
@@ -138,6 +139,9 @@ export default function Dashboard() {
           />
         )}
       </div>
+
+      {/* Monthly Revenue Bar */}
+      <MonthlyRevenueBar />
 
       {/* Chart + Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
