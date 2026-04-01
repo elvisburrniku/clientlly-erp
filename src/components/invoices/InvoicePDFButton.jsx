@@ -19,13 +19,13 @@ export default function InvoicePDFButton({ invoice }) {
   const generate = async () => {
     const templates = await base44.entities.InvoiceTemplate.list('-created_date', 1);
     const template = templates.length > 0 ? templates[0] : {};
-    const [r, g, b] = hexToRgb(template.primary_color || '#4338CA');
+    const [r, g, b] = hexToRgb(template.primary_color || '#525252');
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const W = 210;
     const margin = 18;
 
     // Header band with custom color
-    doc.setFillColor(r, g, b);
+    doc.setFillColor(55, 65, 81);
     doc.rect(0, 0, W, 48, "F");
 
     // Logo if exists
@@ -144,7 +144,7 @@ export default function InvoicePDFButton({ invoice }) {
     });
 
     y += 18;
-    doc.setFillColor(r, g, b);
+    doc.setFillColor(55, 65, 81);
     doc.rect(boxX, y, boxW, 10, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);

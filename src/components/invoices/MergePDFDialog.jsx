@@ -18,7 +18,7 @@ function buildInvoicePage(doc, inv, isFirst) {
   const W = 210;
   const margin = 18;
 
-  doc.setFillColor(67, 56, 202);
+  doc.setFillColor(55, 65, 81);
   doc.rect(0, 0, W, 48, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
@@ -109,7 +109,7 @@ function buildInvoicePage(doc, inv, isFirst) {
     doc.text(val, W - margin, y + i * 8, { align: "right" });
   });
   y += 18;
-  doc.setFillColor(67, 56, 202);
+  doc.setFillColor(55, 65, 81);
   doc.rect(boxX, y, boxW, 10, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
@@ -179,7 +179,7 @@ export default function MergePDFDialog({ invoices, open, onClose }) {
                 <button
                   key={days}
                   onClick={() => setPreset(days)}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-muted transition"
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition"
                 >
                   {label}
                 </button>
@@ -202,8 +202,9 @@ export default function MergePDFDialog({ invoices, open, onClose }) {
           {/* Preview count */}
           <div className={cn(
             "rounded-xl p-4 text-sm border",
-            filtered.length > 0 ? "bg-primary/5 border-primary/20 text-primary" : "bg-muted border-border text-muted-foreground"
+            filtered.length > 0 ? "bg-gray-50 border-gray-200 text-gray-700" : "bg-gray-50 border-gray-200 text-gray-500"
           )}>
+            <FileText className="w-4 h-4 text-gray-600" />
             {filtered.length > 0
               ? <><span className="font-bold">{filtered.length}</span> fatura të gjetura në këtë periudhë</>
               : "Nuk ka fatura në periudhën e zgjedhur"}
