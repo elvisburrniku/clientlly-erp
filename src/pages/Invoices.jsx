@@ -284,6 +284,10 @@ export default function Invoices() {
   };
 
   const handleStatusChange = async (inv, newStatus) => {
+    if (inv.invoice_type === "proforma" && newStatus === "paid") {
+      toast.error("Proforma nuk mund të shënohet si paguar. Krijoni faturë standarde pasi të konfirmohet.");
+      return;
+    }
     await base44.entities.Invoice.update(inv.id, { status: newStatus });
     toast.success(`Statusi ndryshoi në ${newStatus}`);
     loadData();
@@ -509,6 +513,10 @@ export default function Invoices() {
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold">{inv.client_name}</div>
                       {inv.client_email && <div className="text-xs text-muted-foreground mt-0.5">{inv.client_email}</div>}
+                      <div className="mt-1.5 flex gap-1">
+                        {inv.invoice_type === "proforma" && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Proforma</span>}
+                        {inv.invoice_type === "credit_note" && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Kredit Note</span>}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
