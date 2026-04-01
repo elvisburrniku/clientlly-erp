@@ -30,12 +30,10 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
     const updated = items.map((item, i) => {
       if (i !== index) return item;
       const next = { ...item, [field]: value };
-      // Recalculate price_inc_vat and line_total when relevant fields change
       if (["price_ex_vat", "vat_rate", "quantity", "discount_type", "discount_value"].includes(field) || field === "price_inc_vat") {
         if (field !== "price_inc_vat") {
           next.price_inc_vat = parseFloat((next.price_ex_vat * (1 + next.vat_rate / 100)).toFixed(2));
         } else {
-          // back-calculate ex vat
           next.price_ex_vat = parseFloat((next.price_inc_vat / (1 + next.vat_rate / 100)).toFixed(2));
         }
         const baseTotal = parseFloat((next.quantity * next.price_inc_vat).toFixed(2));
@@ -93,6 +91,8 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
     return 0;
   };
 
+  return (
+    <div className="space-y-4">
       <div className="space-y-4">
         {items.map((item, i) => (
           <div key={i} className="bg-white border border-border rounded-xl p-4 hover:border-primary/30 transition">
@@ -199,4 +199,36 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
           <Plus className="w-4 h-4" /> Shto Artikull të Ri
         </Button>
       </div>
+
+      {onDiscountChange && (
+        <div className="border-t pt-4 space-y-3">
+          <div className="text-sm font-semibold">Zbritje në Total (Opsionale)</div>
+          <div className="grid grid-cols-3 gap-3">
+            <Select value={discountInfo.type} onValueChange={(v) => onDiscountChange({ ...discountInfo, type: v, value: 0 })}>
+              <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Pa zbritje</SelectItem>
+                <SelectItem value="percentage">%</SelectItem>
+                <SelectItem value="fixed">€ Fikse</SelectItem>
+              </SelectContent>
+            </Select>
+            {discountInfo.type !== "none" && (
+              <>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Vlera"
+                  value={discountInfo.value || 0}
+                  onChange={(e) => onDiscountChange({ ...discountInfo, value: parseFloat(e.target.value) || 0 })}
+                  className="text-xs"
+                />
+                <div className="text-xs font-semibold bg-muted/40 rounded px-2 py-1.5 flex items-center">−€{getDiscountAmount().toFixed(2)}</div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
