@@ -4,8 +4,11 @@ import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTria
 import StatCard from "../components/dashboard/StatCard";
 import RevenueChart from "../components/dashboard/RevenueChart";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
+  const [period, setPeriod] = useState("today");
+  const [vatMode, setVatMode] = useState("inc"); // inc = me TVSH, exc = pa TVSH
   const [stats, setStats] = useState({
     totalInvoices: 0,
     totalExpenses: 0,
@@ -17,9 +20,7 @@ export default function Dashboard() {
   const [undeliveredUsers, setUndeliveredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+  useEffect(() => { loadDashboardData(); }, [period, vatMode]);
 
   const loadDashboardData = async () => {
     try {
@@ -29,15 +30,25 @@ export default function Dashboard() {
         base44.entities.User.list(),
       ]);
 
-      const totalInvoices = invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+      // Filter invoices by period
+      const now = new Date();
+      const filtered = invoices.filter((inv) => {
+        const d = new Date(inv.created_date);
+        if (period === "today") return d.toDateString() === now.toDateString();
+        if (period === "month") return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        return d.getFullYear() === now.getFullYear();
+      });
+
+      const getAmount = (inv) => vatMode === "inc" ? (inv.amount || 0) : (inv.subtotal || inv.amount || 0);
+
+      const totalInvoices = filtered.reduce((sum, inv) => sum + getAmount(inv), 0);
       const cashIn = transactions.filter(t => t.type === "cash_in").reduce((sum, t) => sum + (t.amount || 0), 0);
       const cashOut = transactions.filter(t => t.type === "cash_out").reduce((sum, t) => sum + (t.amount || 0), 0);
       const cashBalance = cashIn - cashOut;
-      
+
       const usersWithCash = users.filter(u => (u.cash_on_hand || 0) > 0);
       const totalUndelivered = usersWithCash.reduce((sum, u) => sum + (u.cash_on_hand || 0), 0);
-
-      const uniqueClients = new Set(invoices.map(i => i.client_name)).size;
+      const uniqueClients = new Set(filtered.map(i => i.client_name)).size;
 
       setStats({
         totalInvoices,
@@ -72,15 +83,39 @@ export default function Dashboard() {
     { icon: Wallet,     title: "Arka",           value: `€${stats.cashBalance.toLocaleString()}`,               description: "Bilanci i arkës",               color: "green" },
   ];
 
+  const periodLabels = { today: "Sot", month: "Muaji", year: "Viti" };
+
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         </div>
-        <p className="text-sm text-muted-foreground">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Period filter */}
+          <div className="flex bg-white border border-border rounded-xl p-1 shadow-sm">
+            {["today","month","year"].map(p => (
+              <button key={p} onClick={() => setPeriod(p)}
+                className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                  period === p ? "bg-primary text-white shadow" : "text-muted-foreground hover:text-foreground"
+                )}>{periodLabels[p]}</button>
+            ))}
+          </div>
+          {/* VAT toggle */}
+          <div className="flex bg-white border border-border rounded-xl p-1 shadow-sm">
+            <button onClick={() => setVatMode("inc")}
+              className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                vatMode === "inc" ? "bg-emerald-500 text-white shadow" : "text-muted-foreground hover:text-foreground"
+              )}>Me TVSH</button>
+            <button onClick={() => setVatMode("exc")}
+              className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                vatMode === "exc" ? "bg-slate-700 text-white shadow" : "text-muted-foreground hover:text-foreground"
+              )}>Pa TVSH</button>
+          </div>
+          <p className="text-sm text-muted-foreground hidden sm:block">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+        </div>
       </div>
 
       {/* Stat cards */}

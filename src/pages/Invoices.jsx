@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import moment from "moment";
 import InvoiceLineItems from "../components/invoices/InvoiceLineItems";
 import SendInvoiceDialog from "../components/invoices/SendInvoiceDialog";
+import InvoicePDFButton from "../components/invoices/InvoicePDFButton";
 
 const emptyForm = () => ({
   client_name: "",
@@ -196,9 +197,12 @@ export default function Invoices() {
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{inv.due_date || "—"}</td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{moment(inv.created_date).format("DD MMM YY")}</td>
                     <td className="px-5 py-3.5">
-                      <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setSendDialog(inv)}>
-                        <Send className="w-3 h-3" /> Dërgo
-                      </Button>
+                      <div className="flex gap-1.5">
+                        <InvoicePDFButton invoice={inv} />
+                        <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setSendDialog(inv)}>
+                          <Send className="w-3 h-3" /> Dërgo
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))
