@@ -135,71 +135,108 @@ export default function Invoices() {
     );
   }
 
+  const openCount = invoices.filter(i => i.is_open !== false).length;
+  const totalRevenue = invoices.reduce((s, i) => s + (i.amount || 0), 0);
+
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-6 lg:p-10 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Faturat</h1>
-          <p className="text-sm text-muted-foreground mt-1">{invoices.length} fatura gjithsej</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
+          <h1 className="text-3xl font-bold tracking-tight">Faturat</h1>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
+        <Button onClick={() => setDialogOpen(true)} className="gap-2 self-start sm:self-auto">
           <Plus className="w-4 h-4" /> Krijo Faturë
         </Button>
       </div>
 
+      {/* Summary strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
+          <p className="text-2xl font-bold mt-1">{invoices.length}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">fatura</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Hapura</p>
+          <p className="text-2xl font-bold mt-1 text-emerald-600">{openCount}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">pa u paguar</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 col-span-2 sm:col-span-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Totali</p>
+          <p className="text-2xl font-bold mt-1 text-primary">€{totalRevenue.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">me TVSH</p>
+        </div>
+      </div>
+
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <p className="font-semibold text-sm">{invoices.length} fatura gjithsej</p>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border bg-muted/30">
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Nr. Faturës</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Klienti</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Subtotal</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">TVSH</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Total</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Statusi</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Hapur/Mbyllur</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Pagesa</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Afati</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Data</th>
-                <th className="text-left text-xs font-semibold text-muted-foreground px-5 py-3">Veprime</th>
+              <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr.</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Total</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Statusi</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Gjendja</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Pagesa</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Afati</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
+                <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border">
               {invoices.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center text-sm text-muted-foreground py-12">
-                    <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
-                    Nuk ka fatura
+                  <td colSpan={11} className="text-center py-16">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                        <FileText className="w-7 h-7 text-muted-foreground/50" />
+                      </div>
+                      <p className="text-sm text-muted-foreground font-medium">Nuk ka fatura ende</p>
+                      <p className="text-xs text-muted-foreground">Krijo faturën e parë duke klikuar butonin lart</p>
+                    </div>
                   </td>
                 </tr>
               ) : (
                 invoices.map((inv) => (
-                  <tr key={inv.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="px-5 py-3.5 text-sm font-semibold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</td>
-                    <td className="px-5 py-3.5">
-                      <div className="text-sm font-medium">{inv.client_name}</div>
-                      {inv.client_email && <div className="text-xs text-muted-foreground">{inv.client_email}</div>}
+                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors group">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</span>
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
-                    <td className="px-5 py-3.5 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
-                    <td className="px-5 py-3.5 text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</td>
-                    <td className="px-5 py-3.5">{statusBadge(inv.status)}</td>
-                    <td className="px-5 py-3.5">
-                      <button onClick={() => toggleOpen(inv)} className="flex items-center gap-1.5 text-xs font-medium">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-semibold">{inv.client_name}</div>
+                      {inv.client_email && <div className="text-xs text-muted-foreground mt-0.5">{inv.client_email}</div>}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</span>
+                    </td>
+                    <td className="px-6 py-4">{statusBadge(inv.status)}</td>
+                    <td className="px-6 py-4">
+                      <button onClick={() => toggleOpen(inv)} className="flex items-center gap-1.5 text-xs font-semibold">
                         {inv.is_open !== false ? (
                           <><ToggleRight className="w-5 h-5 text-emerald-500" /><span className="text-emerald-600">Hapur</span></>
                         ) : (
-                          <><ToggleLeft className="w-5 h-5 text-muted-foreground" /><span className="text-muted-foreground">Mbyllur</span></>
+                          <><ToggleLeft className="w-5 h-5 text-slate-400" /><span className="text-muted-foreground">Mbyllur</span></>
                         )}
                       </button>
                     </td>
-                    <td className="px-5 py-3.5 text-sm text-muted-foreground capitalize">{inv.payment_method || "—"}</td>
-                    <td className="px-5 py-3.5 text-sm text-muted-foreground">{inv.due_date || "—"}</td>
-                    <td className="px-5 py-3.5 text-sm text-muted-foreground">{moment(inv.created_date).format("DD MMM YY")}</td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex gap-1.5">
+                    <td className="px-6 py-4">
+                      <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.payment_method || "—"}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{inv.due_date || "—"}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{moment(inv.created_date).format("DD MMM YY")}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1.5 justify-end">
                         <InvoicePDFButton invoice={inv} />
                         <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setSendDialog(inv)}>
                           <Send className="w-3 h-3" /> Dërgo
@@ -221,7 +258,6 @@ export default function Invoices() {
             <DialogTitle>Krijo Faturë të Re</DialogTitle>
           </DialogHeader>
           <div className="space-y-5 py-2">
-            {/* Client info */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label>Klienti *</Label>
@@ -236,7 +272,6 @@ export default function Invoices() {
                 <Input placeholder="+355 6X XXX XXXX" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="mt-1.5" />
               </div>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Metoda e Pagesës</Label>
@@ -254,17 +289,10 @@ export default function Invoices() {
                 <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" />
               </div>
             </div>
-
-            {/* Line items */}
             <div>
               <Label className="mb-2 block">Artikujt / Shërbimet</Label>
-              <InvoiceLineItems
-                items={form.items}
-                onChange={(items) => setForm({ ...form, items })}
-              />
+              <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
             </div>
-
-            {/* Totals */}
             <div className="bg-muted/40 rounded-xl p-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal (pa TVSH)</span>
@@ -279,7 +307,6 @@ export default function Invoices() {
                 <span className="font-bold text-base">€{formTotals.amount.toFixed(2)}</span>
               </div>
             </div>
-
             <div>
               <Label>Shënime</Label>
               <Textarea placeholder="Shënime opsionale..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} />
