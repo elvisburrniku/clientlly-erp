@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, MoreHorizontal } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -12,25 +12,14 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import moment from "moment";
 
-const EXPENSE_CATEGORIES = {
-  qira: "Qira",
-  paga: "Paga",
-  furnizime: "Furnizime",
-  transport: "Transport",
-  komunikim: "Komunikim",
-  energji: "Energji",
-  sigurimi: "Sigurimi",
-  mirëmbajtje: "Mirëmbajtje",
-  reklamim: "Reklamim",
-  tjeter: "Tjeter",
-};
-
 const emptyForm = () => ({
   category: "",
   description: "",
   amount: 0,
   expense_date: new Date().toISOString().split("T")[0],
   payment_method: "cash",
+  supplier: "",
+  is_paid: true,
 });
 
 export default function Expenses() {
@@ -46,8 +35,14 @@ export default function Expenses() {
   const [dateTo, setDateTo] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [budgets, setBudgets] = useState([]);
 
-  useEffect(() => { loadData(); loadCategories(); }, []);
+  useEffect(() => { loadData(); loadCategories(); loadBudgets(); }, []);
+
+  const loadBudgets = async () => {
+    const buds = await base44.entities.CategoryBudget.list("-created_date", 100).catch(() => []);
+    setBudgets(buds);
+  };
 
   const loadCategories = async () => {
     const cats = await base44.entities.ExpenseCategory.list("-created_date", 100).catch(() => []);
@@ -100,6 +95,16 @@ export default function Expenses() {
     } catch (err) {
       toast.error("Gabim në fshirje");
     }
+  };
+
+  const getBudgetStatus = (categoryId) => {
+    const budget = budgets.find(b => b.category_id === categoryId);
+    if (!budget) return { status: 'none', percentage: 0 };
+    const monthExpenses = expenses.filter(e => e.category === categoryId && new Date(e.expense_date).getMonth() === new Date().getMonth()).reduce((s, e) => s + (e.amount || 0), 0);
+    const percentage = (monthExpenses / budget.monthly_limit) * 100;
+    if (percentage >= 100) return { status: 'exceeded', percentage: Math.round(percentage), spent: monthExpenses, limit: budget.monthly_limit };
+    if (percentage >= budget.warning_percentage) return { status: 'warning', percentage: Math.round(percentage), spent: monthExpenses, limit: budget.monthly_limit };
+    return { status: 'ok', percentage: Math.round(percentage), spent: monthExpenses, limit: budget.monthly_limit };
   };
 
   const filtered = expenses.filter(exp => {
@@ -233,31 +238,38 @@ export default function Expenses() {
                   </td>
                 </tr>
               ) : (
-                filtered.map(exp => (
-                  <tr key={exp.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-semibold">{categories.find(c => c.id === exp.category)?.name || exp.category}</span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{exp.description || "—"}</td>
-                    <td className="px-6 py-4"><span className="text-sm font-bold">€{(exp.amount || 0).toFixed(2)}</span></td>
-                    <td className="px-6 py-4 text-xs text-muted-foreground">{moment(exp.expense_date).format("DD MMM YY")}</td>
-                    <td className="px-6 py-4"><span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{exp.payment_method || "—"}</span></td>
-                    <td className="px-6 py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-7 w-7">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleDelete(exp.id)} className="text-destructive focus:text-destructive">
-                            <Trash2 className="w-4 h-4 mr-2" /> Fshi
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))
+                filtered.map(exp => {
+                  const budgetStatus = getBudgetStatus(exp.category);
+                  return (
+                    <tr key={exp.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">{categories.find(c => c.id === exp.category)?.name || exp.category}</span>
+                          {budgetStatus.status === 'exceeded' && <AlertCircle className="w-4 h-4 text-destructive" title={`Buxheti tejkaluar: €${budgetStatus.spent.toFixed(2)}/€${budgetStatus.limit.toFixed(2)}`} />}
+                          {budgetStatus.status === 'warning' && <AlertCircle className="w-4 h-4 text-amber-500" title={`Approxi. 80%: €${budgetStatus.spent.toFixed(2)}/€${budgetStatus.limit.toFixed(2)}`} />}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">{exp.description || "—"}</td>
+                      <td className="px-6 py-4"><span className="text-sm font-bold">€{(exp.amount || 0).toFixed(2)}</span></td>
+                      <td className="px-6 py-4 text-xs text-muted-foreground">{moment(exp.expense_date).format("DD MMM YY")}</td>
+                      <td className="px-6 py-4"><span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{exp.payment_method || "—"}</span></td>
+                      <td className="px-6 py-4 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-7 w-7">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleDelete(exp.id)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="w-4 h-4 mr-2" /> Fshi
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -274,7 +286,7 @@ export default function Expenses() {
             <div>
               <Label>Kategoria *</Label>
               <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh kategorinë" /></SelectTrigger>
                 <SelectContent>
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
@@ -282,18 +294,22 @@ export default function Expenses() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex gap-2 mt-2">
+            <div className="flex gap-2">
               <Button size="sm" variant="outline" onClick={() => setShowNewCategory(true)} className="w-full" disabled={showNewCategory}>
                 + Kategori e Re
               </Button>
             </div>
             {showNewCategory && (
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2">
                 <Input placeholder="Emri i kategorisë" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} className="text-sm" />
                 <Button size="sm" variant="outline" onClick={addCategory} className="px-2">✓</Button>
                 <Button size="sm" variant="outline" onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }} className="px-2">✕</Button>
               </div>
             )}
+            <div>
+              <Label>Furnitori</Label>
+              <Input placeholder="Emri i furnitorit" value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} className="mt-1.5 text-sm" />
+            </div>
             <div>
               <Label>Përshkrimi</Label>
               <Textarea placeholder="P.sh. Qira për muajin prill..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} />
@@ -316,6 +332,10 @@ export default function Expenses() {
                   <SelectItem value="card">Kartë</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="is_paid" checked={form.is_paid} onChange={(e) => setForm({ ...form, is_paid: e.target.checked })} className="w-4 h-4 rounded" />
+              <Label htmlFor="is_paid" className="!mt-0 cursor-pointer text-sm">Paguar</Label>
             </div>
           </div>
           <DialogFooter>
