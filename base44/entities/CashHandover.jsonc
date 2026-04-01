@@ -4,7 +4,32 @@
   "properties": {
     "amount": {
       "type": "number",
-      "description": "Amount being handed over in EUR"
+      "description": "Shuma q\u00eb dor\u00ebzohet n\u00eb EUR"
+    },
+    "invoices": {
+      "type": "array",
+      "description": "Faturat e p\u00ebrfshira n\u00eb dor\u00ebzim",
+      "items": {
+        "type": "object",
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "description": "ID e fatur\u00ebs"
+          },
+          "invoice_number": {
+            "type": "string",
+            "description": "Numri i fatur\u00ebs"
+          },
+          "client_name": {
+            "type": "string",
+            "description": "Emri i klientit"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Shuma e fatur\u00ebs"
+          }
+        }
+      }
     },
     "status": {
       "type": "string",
@@ -14,28 +39,32 @@
         "rejected"
       ],
       "default": "pending",
-      "description": "Status of the handover request"
+      "description": "Statusi i dor\u00ebzimit"
     },
     "note": {
       "type": "string",
-      "description": "Note about the handover"
+      "description": "Sh\u00ebnime rreth dor\u00ebzimit"
     },
     "user_email": {
       "type": "string",
-      "description": "Email of the staff member handing over cash"
+      "description": "Email i p\u00ebrdoruesit q\u00eb dor\u00ebzon"
     },
     "user_name": {
       "type": "string",
-      "description": "Name of the staff member"
+      "description": "Emri i p\u00ebrdoruesit"
     },
     "approved_by": {
       "type": "string",
-      "description": "Email of the manager/admin who approved"
+      "description": "Email i admin-it q\u00eb aprovoi"
     },
     "approved_date": {
       "type": "string",
       "format": "date-time",
-      "description": "Date when approved"
+      "description": "Data e aprovimit"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Arsyeja e refuzimit (n\u00ebse refuzohet)"
     }
   },
   "required": [

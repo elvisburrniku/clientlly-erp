@@ -15,6 +15,7 @@ import Clients from './pages/Clients';
 import Suppliers from './pages/Suppliers';
 import Cashbox from './pages/Cashbox';
 import CashHandover from './pages/CashHandover';
+import CashHandoverRequest from './pages/CashHandoverRequest';
 import Reports from './pages/Reports';
 import Inventory from './pages/Inventory';
 import Settings from './pages/Settings';
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
         <Route path="/suppliers" element={<Suppliers />} />
         <Route path="/cashbox" element={<Cashbox />} />
         <Route path="/cash-handover" element={<CashHandover />} />
+        <Route path="/cash-handover-request" element={<CashHandoverRequest />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/settings" element={<Settings />} />

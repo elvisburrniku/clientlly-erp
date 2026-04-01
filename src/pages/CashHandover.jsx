@@ -37,25 +37,7 @@ export default function CashHandover() {
 
   const isManager = currentUser?.role === "admin" || currentUser?.role === "manager";
 
-  const handleCreate = async () => {
-    if (!amount || parseFloat(amount) <= 0) return;
-    setSubmitting(true);
-    await base44.entities.CashHandover.create({
-      amount: parseFloat(amount),
-      note,
-      user_email: currentUser.email,
-      user_name: currentUser.full_name || currentUser.email,
-      status: "pending",
-    });
-    setDialogOpen(false);
-    setAmount("");
-    setNote("");
-    setSubmitting(false);
-    toast.success("Kërkesa u krijua me sukses");
-    loadData();
-  };
-
-  const handleApprove = async (handover) => {
+  const handleApproveWithInvoices = async (handover) => {
     await base44.entities.CashHandover.update(handover.id, {
       status: "approved",
       approved_by: currentUser.email,
@@ -71,69 +53,26 @@ export default function CashHandover() {
       reference_id: handover.id,
     });
 
-    // Subtract from user's cash on hand
-    const users = await base44.entities.User.filter({ email: handover.user_email });
-    if (users.length > 0) {
-      const user = users[0];
-      await base44.entities.User.update(user.id, {
-        cash_on_hand: Math.max(0, (user.cash_on_hand || 0) - handover.amount),
-      });
+    // Mark invoices as paid
+    if (handover.invoices && handover.invoices.length > 0) {
+      for (const inv of handover.invoices) {
+        await base44.entities.Invoice.update(inv.invoice_id, { status: "paid", is_open: false });
+      }
     }
 
-    toast.success("Kërkesa u aprovua");
+    toast.success("Dorëzimi u aprovua dhe faturat u shënuan si paguar");
     loadData();
   };
 
   const handleReject = async (handover) => {
-    await base44.entities.CashHandover.update(handover.id, { status: "rejected" });
-    toast.info("Kërkesa u refuzua");
+    const reason = prompt("Arsyeja e refuzimit:");
+    if (!reason) return;
+    await base44.entities.CashHandover.update(handover.id, {
+      status: "rejected",
+      rejection_reason: reason
+    });
+    toast.info("Dorëzimi u refuzua");
     loadData();
-  };
-
-  const handleGeneratePdf = async (handover) => {
-    setPdfLoading(handover.id);
-    const response = await base44.functions.invoke("generateHandoverPdf", {
-      handoverId: handover.id,
-      amount: handover.amount,
-      userName: handover.user_name,
-      approvedBy: handover.approved_by || "N/A",
-      date: handover.approved_date || handover.created_date,
-      note: handover.note,
-    });
-    
-    if (response.data?.file_url) {
-      window.open(response.data.file_url, "_blank");
-    }
-    setPdfLoading(null);
-  };
-
-  const handleSendEmail = async (handover) => {
-    setEmailLoading(handover.id);
-    await base44.integrations.Core.SendEmail({
-      to: handover.user_email,
-      subject: `Dorëzimi i Parave - €${handover.amount}`,
-      body: `
-        <div style="font-family: Inter, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
-          <div style="text-align: center; margin-bottom: 32px;">
-            <div style="width: 48px; height: 48px; background: #3b82f6; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;">
-              <span style="color: white; font-weight: bold; font-size: 20px;">E</span>
-            </div>
-            <h1 style="margin-top: 16px; font-size: 20px; color: #1e293b;">ERP Finance</h1>
-          </div>
-          <h2 style="font-size: 18px; color: #1e293b;">Konfirmim i Dorëzimit të Parave</h2>
-          <div style="background: #f8fafc; border-radius: 12px; padding: 20px; margin: 20px 0;">
-            <p><strong>Shuma:</strong> €${handover.amount.toLocaleString()}</p>
-            <p><strong>Data:</strong> ${moment(handover.approved_date || handover.created_date).format("DD MMMM YYYY")}</p>
-            <p><strong>Dorëzuar nga:</strong> ${handover.user_name}</p>
-            <p><strong>Pranuar nga:</strong> ${handover.approved_by || "N/A"}</p>
-            ${handover.note ? `<p><strong>Shënim:</strong> ${handover.note}</p>` : ""}
-          </div>
-          <p style="color: #64748b; font-size: 13px;">Ky email u dërgua automatikisht nga sistemi ERP Finance.</p>
-        </div>
-      `,
-    });
-    toast.success("Email u dërgua me sukses");
-    setEmailLoading(null);
   };
 
   const statusBadge = (status) => {
@@ -212,15 +151,15 @@ export default function CashHandover() {
                       <div className="flex items-center gap-1.5">
                         {h.status === "pending" && isManager && (
                           <>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-success hover:text-success" onClick={() => handleApprove(h)}>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-success hover:text-success" onClick={() => handleApproveWithInvoices(h)}>
                               <Check className="w-4 h-4" />
                             </Button>
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive" onClick={() => handleReject(h)}>
                               <X className="w-4 h-4" />
                             </Button>
-                          </>
-                        )}
-                        {h.status === "approved" && (
+                            </>
+                            )}
+                            {h.status === "approved" && (
                           <>
                             <Button
                               size="sm"
