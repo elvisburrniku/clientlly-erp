@@ -15,6 +15,8 @@ const emptyItem = () => ({
   vat_rate: 20,
   price_inc_vat: 0,
   line_total: 0,
+  discount_type: "none",
+  discount_value: 0,
 });
 
 export default function InvoiceLineItems({ items, onChange, onDiscountChange, discountInfo = { type: "none", value: 0, amount: 0 } }) {
@@ -29,14 +31,21 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
       if (i !== index) return item;
       const next = { ...item, [field]: value };
       // Recalculate price_inc_vat and line_total when relevant fields change
-      if (["price_ex_vat", "vat_rate", "quantity"].includes(field) || field === "price_inc_vat") {
+      if (["price_ex_vat", "vat_rate", "quantity", "discount_type", "discount_value"].includes(field) || field === "price_inc_vat") {
         if (field !== "price_inc_vat") {
           next.price_inc_vat = parseFloat((next.price_ex_vat * (1 + next.vat_rate / 100)).toFixed(2));
         } else {
           // back-calculate ex vat
           next.price_ex_vat = parseFloat((next.price_inc_vat / (1 + next.vat_rate / 100)).toFixed(2));
         }
-        next.line_total = parseFloat((next.quantity * next.price_inc_vat).toFixed(2));
+        const baseTotal = parseFloat((next.quantity * next.price_inc_vat).toFixed(2));
+        let discountAmount = 0;
+        if (next.discount_type === "percentage") {
+          discountAmount = parseFloat((baseTotal * (next.discount_value || 0) / 100).toFixed(2));
+        } else if (next.discount_type === "fixed") {
+          discountAmount = Math.min(parseFloat(next.discount_value || 0), baseTotal);
+        }
+        next.line_total = parseFloat((baseTotal - discountAmount).toFixed(2));
       }
       return next;
     });
@@ -74,6 +83,16 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
     return 0;
   };
 
+  const getItemDiscount = (item) => {
+    const baseTotal = parseFloat((item.quantity * item.price_inc_vat).toFixed(2));
+    if (item.discount_type === "percentage") {
+      return parseFloat((baseTotal * (item.discount_value || 0) / 100).toFixed(2));
+    } else if (item.discount_type === "fixed") {
+      return Math.min(parseFloat(item.discount_value || 0), baseTotal);
+    }
+    return 0;
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-3">
@@ -82,68 +101,104 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
           <div className="col-span-3">Përshkrimi</div>
           <div className="col-span-1">Sasia</div>
           <div className="col-span-1">Njësia</div>
-          <div className="col-span-2">Çm. pa TVSH</div>
+          <div className="col-span-1">Çm. pa TVSH</div>
           <div className="col-span-1">TVSH %</div>
           <div className="col-span-2">Çm. me TVSH</div>
+          <div className="col-span-1">Zbritje</div>
           <div className="col-span-1">Total</div>
         </div>
 
         {items.map((item, i) => (
-          <div key={i} className="grid grid-cols-12 gap-2 items-center bg-muted/30 rounded-xl p-2">
-            <div className="col-span-1">
-              <Select value={item.type} onValueChange={(v) => update(i, "type", v)}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="product">Produkt</SelectItem>
-                  <SelectItem value="service">Shërbim</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-3">
-              {products.length > 0 ? (
-                <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Zgjedh..." /></SelectTrigger>
+          <div key={i}>
+            <div className="grid grid-cols-12 gap-2 items-center bg-muted/30 rounded-xl p-2">
+              <div className="col-span-1">
+                <Select value={item.type} onValueChange={(v) => update(i, "type", v)}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
-                    {products.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
+                    <SelectItem value="product">Produkt</SelectItem>
+                    <SelectItem value="service">Shërbim</SelectItem>
                   </SelectContent>
                 </Select>
-              ) : (
-                <Input className="h-8 text-xs" placeholder="Emri..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+              </div>
+              <div className="col-span-3">
+                {products.length > 0 ? (
+                  <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
+                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Zgjedh..." /></SelectTrigger>
+                    <SelectContent>
+                      {products.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input className="h-8 text-xs" placeholder="Emri..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+                )}
+              </div>
+              <div className="col-span-1">
+                <Input className="h-8 text-xs" type="number" min="0" value={item.quantity} onChange={(e) => update(i, "quantity", parseFloat(e.target.value) || 0)} />
+              </div>
+              <div className="col-span-1">
+                <Input className="h-8 text-xs" placeholder="cope" value={item.unit} onChange={(e) => update(i, "unit", e.target.value)} />
+              </div>
+              <div className="col-span-1">
+                <Input className="h-8 text-xs" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_ex_vat} onChange={(e) => update(i, "price_ex_vat", parseFloat(e.target.value) || 0)} />
+              </div>
+              <div className="col-span-1">
+                <Select value={String(item.vat_rate)} onValueChange={(v) => update(i, "vat_rate", parseFloat(v))}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">0%</SelectItem>
+                    <SelectItem value="10">10%</SelectItem>
+                    <SelectItem value="20">20%</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <Input className="h-8 text-xs" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_inc_vat} onChange={(e) => update(i, "price_inc_vat", parseFloat(e.target.value) || 0)} />
+              </div>
+              <div className="col-span-1">
+                <div className="text-xs font-semibold text-foreground">−€{getItemDiscount(item).toFixed(2)}</div>
+              </div>
+              <div className="col-span-1 flex items-center justify-between gap-1">
+                <span className="text-xs font-semibold text-foreground">€{(item.line_total || 0).toFixed(2)}</span>
+                <button onClick={() => removeItem(i)} className="text-destructive/60 hover:text-destructive">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+            {/* Item Discount Section */}
+            <div className="grid grid-cols-12 gap-2 px-2 mt-2 mb-3 text-xs">
+              <div className="col-span-1 text-muted-foreground font-medium">Zbritje:</div>
+              <div className="col-span-2">
+                <Select value={item.discount_type || "none"} onValueChange={(v) => update(i, "discount_type", v)}>
+                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Pa zbritje</SelectItem>
+                    <SelectItem value="percentage">%</SelectItem>
+                    <SelectItem value="fixed">€ Fikse</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {item.discount_type !== "none" && (
+                <>
+                  <div className="col-span-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Vlera"
+                      value={item.discount_value || 0}
+                      onChange={(e) => update(i, "discount_value", parseFloat(e.target.value) || 0)}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div className="col-span-2 text-xs font-semibold bg-red-50 text-red-700 rounded px-2 py-1">−€{getItemDiscount(item).toFixed(2)}</div>
+                </>
               )}
-            </div>
-            <div className="col-span-1">
-              <Input className="h-8 text-xs" type="number" min="0" value={item.quantity} onChange={(e) => update(i, "quantity", parseFloat(e.target.value) || 0)} />
-            </div>
-            <div className="col-span-1">
-              <Input className="h-8 text-xs" placeholder="cope" value={item.unit} onChange={(e) => update(i, "unit", e.target.value)} />
-            </div>
-            <div className="col-span-2">
-              <Input className="h-8 text-xs" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_ex_vat} onChange={(e) => update(i, "price_ex_vat", parseFloat(e.target.value) || 0)} />
-            </div>
-            <div className="col-span-1">
-              <Select value={String(item.vat_rate)} onValueChange={(v) => update(i, "vat_rate", parseFloat(v))}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0">0%</SelectItem>
-                  <SelectItem value="10">10%</SelectItem>
-                  <SelectItem value="20">20%</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="col-span-2">
-              <Input className="h-8 text-xs" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_inc_vat} onChange={(e) => update(i, "price_inc_vat", parseFloat(e.target.value) || 0)} />
-            </div>
-            <div className="col-span-1 flex items-center justify-between gap-1">
-              <span className="text-xs font-semibold text-foreground">€{(item.line_total || 0).toFixed(2)}</span>
-              <button onClick={() => removeItem(i)} className="text-destructive/60 hover:text-destructive">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
         ))}
@@ -155,14 +210,14 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
 
       {onDiscountChange && (
         <div className="border-t pt-4 space-y-3">
-          <div className="text-sm font-semibold">Zbritje (Opsionale)</div>
+          <div className="text-sm font-semibold">Zbritje në Total (Opsionale)</div>
           <div className="grid grid-cols-3 gap-3">
             <Select value={discountInfo.type} onValueChange={(v) => onDiscountChange({ ...discountInfo, type: v, value: 0 })}>
               <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Pa zbritje</SelectItem>
                 <SelectItem value="percentage">%</SelectItem>
-                <SelectItem value="fixed">Shumë fikse</SelectItem>
+                <SelectItem value="fixed">€ Fikse</SelectItem>
               </SelectContent>
             </Select>
             {discountInfo.type !== "none" && (
