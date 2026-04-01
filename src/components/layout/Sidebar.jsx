@@ -25,7 +25,7 @@ export default function Sidebar() {
     <aside
       className={cn(
         "h-screen sticky top-0 flex flex-col text-[hsl(230,40%,90%)] transition-all duration-300 ease-in-out z-30",
-        "bg-gradient-to-b from-[hsl(244,60%,25%)] to-[hsl(250,60%,18%)]",
+        "bg-gradient-to-b from-slate-900 to-slate-800",
         collapsed ? "w-[68px]" : "w-[250px]"
       )}
     >

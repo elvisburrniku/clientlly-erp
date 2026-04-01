@@ -64,12 +64,12 @@ export default function Dashboard() {
   }
 
   const cards = [
-    { icon: FileText, title: "Total Faturat", value: `€${stats.totalInvoices.toLocaleString()}`, description: "Totali i faturave të krijuara" },
-    { icon: TrendingDown, title: "Shpenzimet", value: `€${stats.totalExpenses.toLocaleString()}`, description: "Totali i shpenzimeve" },
-    { icon: CreditCard, title: "Borxhi", value: `€${stats.totalDebt.toLocaleString()}`, description: "Borxhi i mbetur" },
-    { icon: Users, title: "Klientët", value: stats.clientCount.toString(), description: "Numri i klientëve" },
-    { icon: BarChart3, title: "Performanca", value: `€${(stats.totalInvoices - stats.totalExpenses).toLocaleString()}`, description: "Fitimi bruto" },
-    { icon: Wallet, title: "Arka", value: `€${stats.cashBalance.toLocaleString()}`, description: "Bilanci i arkës" },
+    { icon: FileText,   title: "Total Faturat",  value: `€${stats.totalInvoices.toLocaleString()}`,              description: "Totali i faturave të krijuara", color: "blue" },
+    { icon: TrendingDown, title: "Shpenzimet",  value: `€${stats.totalExpenses.toLocaleString()}`,              description: "Totali i shpenzimeve",          color: "rose" },
+    { icon: CreditCard, title: "Borxhi",        value: `€${stats.totalDebt.toLocaleString()}`,                  description: "Borxhi i mbetur",               color: "amber" },
+    { icon: Users,      title: "Klientët",       value: stats.clientCount.toString(),                            description: "Numri i klientëve",             color: "violet" },
+    { icon: BarChart3,  title: "Performanca",   value: `€${(stats.totalInvoices - stats.totalExpenses).toLocaleString()}`, description: "Fitimi bruto", color: "teal" },
+    { icon: Wallet,     title: "Arka",           value: `€${stats.cashBalance.toLocaleString()}`,               description: "Bilanci i arkës",               color: "green" },
   ];
 
   return (

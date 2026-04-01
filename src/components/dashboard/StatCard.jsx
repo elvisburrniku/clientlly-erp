@@ -1,50 +1,45 @@
 import { cn } from "@/lib/utils";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
-export default function StatCard({ icon: Icon, title, value, description, variant = "default", trend }) {
+export default function StatCard({ icon: Icon, title, value, description, variant = "default", color = "blue", trend }) {
+  const colorMap = {
+    blue:   { bg: "bg-blue-50",   icon: "bg-blue-500",   text: "text-blue-600",   ring: "ring-blue-100" },
+    violet: { bg: "bg-violet-50", icon: "bg-violet-500", text: "text-violet-600", ring: "ring-violet-100" },
+    rose:   { bg: "bg-rose-50",   icon: "bg-rose-500",   text: "text-rose-600",   ring: "ring-rose-100" },
+    teal:   { bg: "bg-teal-50",   icon: "bg-teal-500",   text: "text-teal-600",   ring: "ring-teal-100" },
+    amber:  { bg: "bg-amber-50",  icon: "bg-amber-500",  text: "text-amber-600",  ring: "ring-amber-100" },
+    green:  { bg: "bg-emerald-50",icon: "bg-emerald-500",text: "text-emerald-600",ring: "ring-emerald-100" },
+  };
+
+  const c = variant === "warning" ? colorMap.amber : (colorMap[color] || colorMap.blue);
+
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5",
-      variant === "warning"
-        ? "bg-amber-50 border-amber-200/70"
-        : "bg-white border-border shadow-sm"
+      "group relative overflow-hidden rounded-2xl border bg-white p-6 transition-all duration-300",
+      "hover:shadow-lg hover:-translate-y-0.5 shadow-sm border-border/60"
     )}>
-      {/* Subtle background accent */}
-      <div className={cn(
-        "absolute top-0 right-0 w-32 h-32 rounded-full -translate-y-1/2 translate-x-1/2 opacity-5",
-        variant === "warning" ? "bg-amber-500" : "bg-primary"
-      )} />
+      {/* Top accent line */}
+      <div className={cn("absolute top-0 left-0 right-0 h-0.5", c.icon)} />
 
-      <div className="relative flex items-start justify-between">
-        <div className="space-y-1">
-          <p className={cn(
-            "text-xs font-semibold uppercase tracking-widest",
-            variant === "warning" ? "text-amber-600" : "text-muted-foreground"
-          )}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
             {title}
           </p>
-          <p className={cn(
-            "text-3xl font-bold tracking-tight mt-2",
-            variant === "warning" ? "text-amber-700" : "text-foreground"
-          )}>
+          <p className="text-2xl font-bold tracking-tight text-foreground leading-none">
             {value}
           </p>
           {description && (
-            <p className={cn(
-              "text-xs mt-1",
-              variant === "warning" ? "text-amber-500" : "text-muted-foreground"
-            )}>
+            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
               {description}
             </p>
           )}
         </div>
         <div className={cn(
-          "w-11 h-11 rounded-xl flex items-center justify-center shrink-0",
-          variant === "warning"
-            ? "bg-amber-100 text-amber-600"
-            : "bg-primary/10 text-primary"
+          "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ring-4",
+          c.icon, c.ring
         )}>
-          <Icon className="w-5 h-5" />
+          <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
     </div>
