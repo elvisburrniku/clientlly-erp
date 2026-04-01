@@ -28,6 +28,8 @@ const emptyForm = () => ({
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 50;
   const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sendDialog, setSendDialog] = useState(null); // invoice to send
@@ -137,6 +139,8 @@ export default function Invoices() {
 
   const openCount = invoices.filter(i => i.is_open !== false).length;
   const totalRevenue = invoices.reduce((s, i) => s + (i.amount || 0), 0);
+  const totalPages = Math.ceil(invoices.length / PAGE_SIZE);
+  const paginated = invoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -206,7 +210,7 @@ export default function Invoices() {
                   </td>
                 </tr>
               ) : (
-                invoices.map((inv) => (
+                paginated.map((inv) => (
                   <tr key={inv.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</span>
@@ -320,6 +324,33 @@ export default function Invoices() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Duke shfaqur {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, invoices.length)} nga {invoices.length} fatura
+          </p>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >← Prapa</button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+              <button key={n} onClick={() => setPage(n)}
+                className={cn("w-8 h-8 text-sm font-medium rounded-lg border transition",
+                  page === n ? "bg-primary text-white border-primary" : "bg-white border-border hover:bg-muted"
+                )}>{n}</button>
+            ))}
+            <button
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >Para →</button>
+          </div>
+        </div>
+      )}
 
       {/* Send Dialog */}
       <SendInvoiceDialog invoice={sendDialog} open={!!sendDialog} onClose={() => setSendDialog(null)} />
