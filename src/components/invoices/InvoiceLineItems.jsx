@@ -93,68 +93,55 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
     return 0;
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="space-y-3">
-        <div className="hidden lg:block bg-muted/50 rounded-lg p-3 mb-2">
-          <div className="grid grid-cols-12 gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            <div className="col-span-1.5">Lloji</div>
-            <div className="col-span-3">Përshkrimi</div>
-            <div className="col-span-1">Sasia</div>
-            <div className="col-span-1">Njësia</div>
-            <div className="col-span-1.5">Çm. pa TVSH</div>
-            <div className="col-span-1">TVSH %</div>
-            <div className="col-span-1.5">Çm. me TVSH</div>
-            <div className="col-span-0.5">Zb.</div>
-            <div className="col-span-1">Total</div>
-          </div>
-        </div>
-
+      <div className="space-y-4">
         {items.map((item, i) => (
-          <div key={i}>
-            <div className="grid grid-cols-12 gap-2 items-center bg-white border border-border rounded-lg p-3 hover:border-primary/30 transition">
-              <div className="col-span-1">
+          <div key={i} className="bg-white border border-border rounded-xl p-4 hover:border-primary/30 transition">
+            {/* Row 1: Type & Name */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Lloji</label>
                 <Select value={item.type} onValueChange={(v) => update(i, "type", v)}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="product">Produkt</SelectItem>
                     <SelectItem value="service">Shërbim</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="col-span-3">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Përshkrimi / Emri *</label>
                 {products.length > 0 ? (
-                  <>
+                  <div className="space-y-1.5">
                     <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Zgjedh produktin..." /></SelectTrigger>
+                      <SelectTrigger className="text-sm"><SelectValue placeholder="Zgjedh produktin..." /></SelectTrigger>
                       <SelectContent>
                         {products.map(p => (
                           <SelectItem key={p.id} value={p.id}>{p.name} (€{(p.price_ex_vat || 0).toFixed(2)})</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <Input className="h-8 text-xs mt-1" placeholder="Ose shkruaj emrin..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
-                  </>
+                    <Input className="text-sm" placeholder="Ose shkruaj emrin..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+                  </div>
                 ) : (
-                  <Input className="h-8 text-xs" placeholder="Emri..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+                  <Input className="text-sm" placeholder="Emri i artikullit..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
                 )}
               </div>
-              <div className="col-span-1">
-                <Input className="h-8 text-xs" type="number" min="0" value={item.quantity} onChange={(e) => update(i, "quantity", parseFloat(e.target.value) || 0)} />
+            </div>
+
+            {/* Row 2: Quantity & Unit & VAT */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Sasia</label>
+                <Input className="text-sm" type="number" min="0" step="0.01" value={item.quantity} onChange={(e) => update(i, "quantity", parseFloat(e.target.value) || 0)} />
               </div>
-              <div className="col-span-1">
-                <Input className="h-8 text-xs" placeholder="cope" value={item.unit} onChange={(e) => update(i, "unit", e.target.value)} />
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Njësia</label>
+                <Input className="text-sm" placeholder="cope, kg, ore..." value={item.unit} onChange={(e) => update(i, "unit", e.target.value)} />
               </div>
-              <div className="col-span-1">
-                <Input className="h-8 text-xs" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_ex_vat} onChange={(e) => update(i, "price_ex_vat", parseFloat(e.target.value) || 0)} />
-              </div>
-              <div className="col-span-1">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">TVSH %</label>
                 <Select value={String(item.vat_rate)} onValueChange={(v) => update(i, "vat_rate", parseFloat(v))}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">0%</SelectItem>
                     <SelectItem value="10">10%</SelectItem>
@@ -162,86 +149,54 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
                   </SelectContent>
                 </Select>
               </div>
-              <div className="col-span-2">
-                <Input className="h-8 text-xs" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_inc_vat} onChange={(e) => update(i, "price_inc_vat", parseFloat(e.target.value) || 0)} />
+            </div>
+
+            {/* Row 3: Prices */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Çmim pa TVSH</label>
+                <Input className="text-sm" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_ex_vat} onChange={(e) => update(i, "price_ex_vat", parseFloat(e.target.value) || 0)} />
               </div>
-              <div className="col-span-1">
-                <div className="text-xs font-semibold text-foreground">−€{getItemDiscount(item).toFixed(2)}</div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Çmim me TVSH</label>
+                <Input className="text-sm" type="number" min="0" step="0.01" placeholder="0.00" value={item.price_inc_vat} onChange={(e) => update(i, "price_inc_vat", parseFloat(e.target.value) || 0)} />
               </div>
-              <div className="col-span-1 flex items-center justify-between gap-1">
-                <span className="text-xs font-semibold text-foreground">€{(item.line_total || 0).toFixed(2)}</span>
-                <button onClick={() => removeItem(i)} className="text-destructive/60 hover:text-destructive">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Total</label>
+                <div className="bg-primary/10 rounded-lg p-2.5 text-sm font-bold text-primary border border-primary/20 flex justify-between items-center">
+                  €{(item.line_total || 0).toFixed(2)}
+                  <button onClick={() => removeItem(i)} className="text-destructive/60 hover:text-destructive ml-2">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-            {/* Item Discount Section */}
-            <div className="grid grid-cols-12 gap-2 px-2 mt-2 mb-3 text-xs">
-              <div className="col-span-1 text-muted-foreground font-medium">Zbritje:</div>
-              <div className="col-span-2">
+
+            {/* Row 4: Discount */}
+            <div className="bg-muted/30 rounded-lg p-3 border border-border">
+              <label className="text-xs font-semibold text-muted-foreground block mb-2">Zbritje (Opsionale)</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <Select value={item.discount_type || "none"} onValueChange={(v) => update(i, "discount_type", v)}>
-                  <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Pa zbritje</SelectItem>
-                    <SelectItem value="percentage">%</SelectItem>
+                    <SelectItem value="percentage">% Përqindje</SelectItem>
                     <SelectItem value="fixed">€ Fikse</SelectItem>
                   </SelectContent>
                 </Select>
+                {item.discount_type !== "none" && (
+                  <>
+                    <Input type="number" min="0" step="0.01" placeholder="Vlera" value={item.discount_value || 0} onChange={(e) => update(i, "discount_value", parseFloat(e.target.value) || 0)} className="text-sm" />
+                    <div className="text-sm font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2 flex items-center justify-center">−€{getItemDiscount(item).toFixed(2)}</div>
+                  </>
+                )}
               </div>
-              {item.discount_type !== "none" && (
-                <>
-                  <div className="col-span-2">
-                    <Input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="Vlera"
-                      value={item.discount_value || 0}
-                      onChange={(e) => update(i, "discount_value", parseFloat(e.target.value) || 0)}
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                  <div className="col-span-2 text-xs font-semibold bg-red-50 text-red-700 rounded px-2 py-1">−€{getItemDiscount(item).toFixed(2)}</div>
-                </>
-              )}
             </div>
           </div>
         ))}
 
         <Button type="button" variant="outline" size="sm" onClick={addItem} className="gap-2 w-full border-dashed">
-          <Plus className="w-4 h-4" /> Shto Artikull
+          <Plus className="w-4 h-4" /> Shto Artikull të Ri
         </Button>
       </div>
-
-      {onDiscountChange && (
-        <div className="border-t pt-4 space-y-3">
-          <div className="text-sm font-semibold">Zbritje në Total (Opsionale)</div>
-          <div className="grid grid-cols-3 gap-3">
-            <Select value={discountInfo.type} onValueChange={(v) => onDiscountChange({ ...discountInfo, type: v, value: 0 })}>
-              <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Pa zbritje</SelectItem>
-                <SelectItem value="percentage">%</SelectItem>
-                <SelectItem value="fixed">€ Fikse</SelectItem>
-              </SelectContent>
-            </Select>
-            {discountInfo.type !== "none" && (
-              <>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="Vlera"
-                  value={discountInfo.value || 0}
-                  onChange={(e) => onDiscountChange({ ...discountInfo, value: parseFloat(e.target.value) || 0 })}
-                  className="text-xs"
-                />
-                <div className="text-xs font-semibold bg-muted/40 rounded px-2 py-1.5 flex items-center">−€{getDiscountAmount().toFixed(2)}</div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
