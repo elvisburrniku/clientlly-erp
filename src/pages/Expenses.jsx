@@ -42,6 +42,10 @@ export default function Expenses() {
   const [categories, setCategories] = useState([]);
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => { loadData(); loadCategories(); }, []);
 
@@ -98,6 +102,19 @@ export default function Expenses() {
     }
   };
 
+  const filtered = expenses.filter(exp => {
+    if (dateFrom && new Date(exp.expense_date) < new Date(dateFrom)) return false;
+    if (dateTo && new Date(exp.expense_date) > new Date(dateTo)) return false;
+    if (categoryFilter && exp.category !== categoryFilter) return false;
+    return true;
+  });
+
+  const clearFilters = () => {
+    setDateFrom("");
+    setDateTo("");
+    setCategoryFilter("");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -106,10 +123,10 @@ export default function Expenses() {
     );
   }
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const totalExpenses = filtered.reduce((sum, e) => sum + (e.amount || 0), 0);
   const byCategory = categories.map(cat => ({
     category: cat,
-    total: expenses.filter(e => e.category === cat.id).reduce((sum, e) => sum + (e.amount || 0), 0),
+    total: filtered.filter(e => e.category === cat.id).reduce((sum, e) => sum + (e.amount || 0), 0),
   })).filter(x => x.total > 0);
 
   return (
@@ -139,6 +156,43 @@ export default function Expenses() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <p className="text-sm font-semibold">Filtrat</p>
+          <Button variant="ghost" size="sm" onClick={() => setFilterOpen(!filterOpen)} className="text-xs">
+            {filterOpen ? "Fsheh" : "Shfaq"}
+          </Button>
+        </div>
+        {filterOpen && (
+          <div className="p-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-xs mb-1.5 block">Nga Data</Label>
+                <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Deri më Data</Label>
+                <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="text-sm" />
+              </div>
+              <div>
+                <Label className="text-xs mb-1.5 block">Kategoria</Label>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="text-sm"><SelectValue placeholder="Të gjitha" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>Të gjitha</SelectItem>
+                    {categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {(dateFrom || dateTo || categoryFilter) && (
+              <Button variant="outline" size="sm" onClick={clearFilters} className="w-full">Pastro Filtrat</Button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* By Category */}
       {byCategory.length > 0 && (
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
@@ -157,7 +211,7 @@ export default function Expenses() {
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
-          <p className="font-semibold text-sm">{expenses.length} shpenzimesh</p>
+          <p className="font-semibold text-sm">{filtered.length} shpenzimesh{(dateFrom || dateTo || categoryFilter) && " (filtruara)"}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -179,7 +233,7 @@ export default function Expenses() {
                   </td>
                 </tr>
               ) : (
-                expenses.map(exp => (
+                filtered.map(exp => (
                   <tr key={exp.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold">{categories.find(c => c.id === exp.category)?.name || exp.category}</span>
