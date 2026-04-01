@@ -1,4 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,6 +18,12 @@ const emptyItem = () => ({
 });
 
 export default function InvoiceLineItems({ items, onChange }) {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    base44.entities.Product.list('-created_date', 100).then(setProducts).catch(() => {});
+  }, []);
+
   const update = (index, field, value) => {
     const updated = items.map((item, i) => {
       if (i !== index) return item;
@@ -37,6 +45,23 @@ export default function InvoiceLineItems({ items, onChange }) {
 
   const addItem = () => onChange([...items, emptyItem()]);
   const removeItem = (index) => onChange(items.filter((_, i) => i !== index));
+
+  const handleProductSelect = (itemIndex, productId) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    const updated = [...items];
+    updated[itemIndex] = {
+      ...updated[itemIndex],
+      name: product.name,
+      type: product.type,
+      price_ex_vat: product.price_ex_vat,
+      vat_rate: product.vat_rate,
+      unit: product.unit,
+      price_inc_vat: product.price_ex_vat * (1 + (product.vat_rate || 20) / 100),
+      line_total: (updated[itemIndex].quantity || 1) * product.price_ex_vat * (1 + (product.vat_rate || 20) / 100),
+    };
+    onChange(updated);
+  };
 
   return (
     <div className="space-y-3">
@@ -65,7 +90,18 @@ export default function InvoiceLineItems({ items, onChange }) {
             </Select>
           </div>
           <div className="col-span-3">
-            <Input className="h-8 text-xs" placeholder="Emri..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+            {products.length > 0 ? (
+              <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Zgjedh..." /></SelectTrigger>
+                <SelectContent>
+                  {products.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input className="h-8 text-xs" placeholder="Emri..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+            )}
           </div>
           <div className="col-span-1">
             <Input className="h-8 text-xs" type="number" min="0" value={item.quantity} onChange={(e) => update(i, "quantity", parseFloat(e.target.value) || 0)} />

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
-  ChevronLeft, ChevronRight, DollarSign
+  ChevronLeft, ChevronRight, DollarSign, Package
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Faturat", icon: FileText, path: "/invoices" },
+  { label: "Produktet", icon: Package, path: "/products" },
   { label: "Klientët", icon: Users, path: "/clients" },
   { label: "Furnitorët", icon: Truck, path: "/suppliers" },
   { label: "Arka", icon: Wallet, path: "/cashbox" },

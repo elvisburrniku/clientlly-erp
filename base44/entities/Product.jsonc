@@ -1,0 +1,46 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i produktit ose sh\u00ebrbimit"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "product",
+        "service"
+      ],
+      "description": "Lloji: produkt ose sh\u00ebrbim"
+    },
+    "description": {
+      "type": "string",
+      "description": "P\u00ebrshkrimi detajuar"
+    },
+    "price_ex_vat": {
+      "type": "number",
+      "description": "\u00c7mim p\u00ebr nj\u00ebsi pa TVSH"
+    },
+    "vat_rate": {
+      "type": "number",
+      "description": "TVSH % (p.sh. 20)",
+      "default": 20
+    },
+    "unit": {
+      "type": "string",
+      "description": "Nj\u00ebsia mat\u00ebse (cope, kg, ore, m2, etj.)",
+      "default": "cope"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb produkti aktiv",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "price_ex_vat"
+  ]
+}
