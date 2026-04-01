@@ -26,6 +26,8 @@ const emptyForm = () => ({
   payment_method: "cash",
   due_date: "",
   description: "",
+  is_recurring: false,
+  recurring_interval: "monthly",
   items: [{ type: "service", name: "", quantity: 1, unit: "cope", price_ex_vat: 0, vat_rate: 20, price_inc_vat: 0, line_total: 0 }],
 });
 
@@ -97,6 +99,8 @@ export default function Invoices() {
       payment_method: form.payment_method,
       due_date: form.due_date || undefined,
       description: form.description,
+      is_recurring: form.is_recurring || false,
+      recurring_interval: form.is_recurring ? form.recurring_interval : undefined,
       status: "draft",
       is_open: true,
       issued_by: currentUser.email,
@@ -239,6 +243,8 @@ export default function Invoices() {
       payment_method: form.payment_method,
       due_date: form.due_date || undefined,
       description: form.description,
+      is_recurring: form.is_recurring || false,
+      recurring_interval: form.is_recurring ? form.recurring_interval : undefined,
     });
     toast.success(inv.is_open ? "Fatura u mbyll" : "Fatura u hap");
     loadData();
@@ -689,6 +695,28 @@ export default function Invoices() {
               <Label>Shënime</Label>
               <Textarea placeholder="Shënime opsionale..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} />
             </div>
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
+                <div>
+                  <Label className="mb-1">Fatura Automatike</Label>
+                  <p className="text-xs text-muted-foreground">Krijoni fatura të reja në mënyrë automatike në intervalin e zgjedhur</p>
+                </div>
+                <input type="checkbox" checked={form.is_recurring} onChange={(e) => setForm({ ...form, is_recurring: e.target.checked })} className="h-4 w-4 cursor-pointer" />
+              </div>
+              {form.is_recurring && (
+                <div className="mt-3">
+                  <Label>Intervali</Label>
+                  <Select value={form.recurring_interval} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
+                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Çdo muaj</SelectItem>
+                      <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
+                      <SelectItem value="yearly">Çdo vit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter className="pt-4 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
@@ -761,6 +789,28 @@ export default function Invoices() {
               <div className="flex justify-between border-t border-border pt-2"><span className="font-semibold">Total me TVSH</span><span className="font-bold text-base">€{calcTotals(form.items).amount.toFixed(2)}</span></div>
             </div>
             <div><Label>Shënime</Label><Textarea placeholder="Shënime opsionale..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} /></div>
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
+                <div>
+                  <Label className="mb-1">Fatura Automatike</Label>
+                  <p className="text-xs text-muted-foreground">Krijoni fatura të reja në mënyrë automatike në intervalin e zgjedhur</p>
+                </div>
+                <input type="checkbox" checked={form.is_recurring} onChange={(e) => setForm({ ...form, is_recurring: e.target.checked })} className="h-4 w-4 cursor-pointer" />
+              </div>
+              {form.is_recurring && (
+                <div className="mt-3">
+                  <Label>Intervali</Label>
+                  <Select value={form.recurring_interval} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
+                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Çdo muaj</SelectItem>
+                      <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
+                      <SelectItem value="yearly">Çdo vit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setEditInvoice(null); setForm(emptyForm()); }}>Anulo</Button>
