@@ -222,11 +222,12 @@ export default function Expenses() {
               <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                     {categories.map(cat => (
+                  {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                   ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex gap-2 mt-2">
               <Button size="sm" variant="outline" onClick={() => setShowNewCategory(true)} className="w-full" disabled={showNewCategory}>
                 + Kategori e Re
