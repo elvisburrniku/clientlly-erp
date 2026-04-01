@@ -393,8 +393,8 @@ export default function Invoices() {
             </div>
           </div>
           {searchOpen && (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              <div className="lg:col-span-2">
+            <div className="mt-4 flex flex-col gap-3 max-w-sm">
+              <div>
                 <label className="text-xs font-medium text-muted-foreground block mb-1">Klienti / Nr. Faturës</label>
                 <input
                   type="text"
@@ -430,7 +430,7 @@ export default function Invoices() {
                   ))}
                 </select>
               </div>
-              <div className="sm:col-span-2 lg:col-span-1">
+              <div>
                 <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
                 <input
                   type="date"
@@ -439,7 +439,7 @@ export default function Invoices() {
                   className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
                 />
               </div>
-              <div className="sm:col-span-2 lg:col-span-1">
+              <div>
                 <label className="text-xs font-medium text-muted-foreground block mb-1">Deri më Date</label>
                 <input
                   type="date"
