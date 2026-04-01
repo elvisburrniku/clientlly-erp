@@ -409,26 +409,46 @@ export default function Invoices() {
                         className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "invoice" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
                       >Nr. Faturës</button>
                     </div>
-                    <input
-                      type="text"
-                      placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
-                      value={filterClient}
-                      onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
-                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Viti</label>
-                    <select
-                      value={filterYear}
-                      onChange={(e) => { setFilterYear(e.target.value); setPage(1); }}
-                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                    >
-                      <option value="">Të gjithë</option>
-                      {[2024, 2025, 2026, 2027].map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
+                        value={filterClient}
+                        onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
+                        className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                      />
+                      {filterClient && (
+                        <div className="absolute top-full mt-1 w-full bg-white border border-border rounded-lg shadow-md max-h-40 overflow-y-auto">
+                          {filterSearchType === "client" ? (
+                            (() => {
+                              const clients = Array.from(new Set(invoices.map(i => i.client_name))).filter(c => c?.toLowerCase().includes(filterClient.toLowerCase())).sort();
+                              return clients.length > 0 ? clients.map(c => (
+                                <button
+                                  key={c}
+                                  onClick={() => { setFilterClient(c); setPage(1); }}
+                                  className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition"
+                                >{c}</button>
+                              )) : (
+                                <div className="px-3 py-2 text-xs text-muted-foreground">Asnjë rezultat</div>
+                              );
+                            })()
+                          ) : (
+                            (() => {
+                              const invoiceNums = Array.from(new Set(invoices.map(i => i.invoice_number))).filter(n => n?.toLowerCase().includes(filterClient.toLowerCase())).sort();
+                              return invoiceNums.length > 0 ? invoiceNums.map(n => (
+                                <button
+                                  key={n}
+                                  onClick={() => { setFilterClient(n); setPage(1); }}
+                                  className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition"
+                                >{n}</button>
+                              )) : (
+                                <div className="px-3 py-2 text-xs text-muted-foreground">Asnjë rezultat</div>
+                              );
+                            })()
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
