@@ -75,6 +75,50 @@ export default function CashHandover() {
     loadData();
   };
 
+  const handleCreate = async () => {
+    if (!amount) {
+      toast.error("Fut shuma");
+      return;
+    }
+    setSubmitting(true);
+    await base44.entities.CashHandover.create({
+      amount: parseFloat(amount),
+      user_email: currentUser.email,
+      user_name: currentUser.full_name,
+      note,
+      status: "pending",
+      invoices: [],
+    });
+    toast.success("Kërkesa u krijua");
+    setAmount("");
+    setNote("");
+    setDialogOpen(false);
+    setSubmitting(false);
+    loadData();
+  };
+
+  const handleGeneratePdf = async (handover) => {
+    setPdfLoading(handover.id);
+    try {
+      await base44.functions.invoke("generateHandoverPdf", { handoverId: handover.id });
+      toast.success("PDF u gjenru");
+    } catch (error) {
+      toast.error("Gabim gjatë gjenrimit të PDF");
+    }
+    setPdfLoading(null);
+  };
+
+  const handleSendEmail = async (handover) => {
+    setEmailLoading(handover.id);
+    try {
+      await base44.functions.invoke("sendHandoverEmail", { handoverId: handover.id });
+      toast.success("Email u dërgua");
+    } catch (error) {
+      toast.error("Gabim gjatë dërgimit të emailit");
+    }
+    setEmailLoading(null);
+  };
+
   const statusBadge = (status) => {
     const styles = {
       pending: "bg-warning/10 text-warning",
