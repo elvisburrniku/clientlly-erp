@@ -96,21 +96,23 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
   return (
     <div className="space-y-4">
       <div className="space-y-3">
-        <div className="hidden lg:grid grid-cols-12 gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
-          <div className="col-span-1">Lloji</div>
-          <div className="col-span-3">Përshkrimi</div>
-          <div className="col-span-1">Sasia</div>
-          <div className="col-span-1">Njësia</div>
-          <div className="col-span-1">Çm. pa TVSH</div>
-          <div className="col-span-1">TVSH %</div>
-          <div className="col-span-2">Çm. me TVSH</div>
-          <div className="col-span-1">Zbritje</div>
-          <div className="col-span-1">Total</div>
+        <div className="hidden lg:block bg-muted/50 rounded-lg p-3 mb-2">
+          <div className="grid grid-cols-12 gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="col-span-1.5">Lloji</div>
+            <div className="col-span-3">Përshkrimi</div>
+            <div className="col-span-1">Sasia</div>
+            <div className="col-span-1">Njësia</div>
+            <div className="col-span-1.5">Çm. pa TVSH</div>
+            <div className="col-span-1">TVSH %</div>
+            <div className="col-span-1.5">Çm. me TVSH</div>
+            <div className="col-span-0.5">Zb.</div>
+            <div className="col-span-1">Total</div>
+          </div>
         </div>
 
         {items.map((item, i) => (
           <div key={i}>
-            <div className="grid grid-cols-12 gap-2 items-center bg-muted/30 rounded-xl p-2">
+            <div className="grid grid-cols-12 gap-2 items-center bg-white border border-border rounded-lg p-3 hover:border-primary/30 transition">
               <div className="col-span-1">
                 <Select value={item.type} onValueChange={(v) => update(i, "type", v)}>
                   <SelectTrigger className="h-8 text-xs">
