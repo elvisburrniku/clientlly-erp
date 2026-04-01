@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Plus, FileText, Send, ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const emptyForm = () => ({
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sendDialog, setSendDialog] = useState(null); // invoice to send
   const [currentUser, setCurrentUser] = useState(null);
@@ -175,7 +177,7 @@ export default function Invoices() {
               ) : (
                 invoices.map((inv) => (
                   <tr key={inv.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="px-5 py-3.5 text-sm font-semibold text-primary">{inv.invoice_number}</td>
+                    <td className="px-5 py-3.5 text-sm font-semibold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</td>
                     <td className="px-5 py-3.5">
                       <div className="text-sm font-medium">{inv.client_name}</div>
                       {inv.client_email && <div className="text-xs text-muted-foreground">{inv.client_email}</div>}

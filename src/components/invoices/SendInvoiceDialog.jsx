@@ -6,11 +6,14 @@ import { Mail, MessageCircle, Phone, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+const BUSINESS_WHATSAPP = "38349221223"; // business number without +
+const BUSINESS_EMAIL_NAME = "ScentLinq Pro - info@scentlinqpro-ks.com";
+
 const buildMessage = (inv) => {
   const items = (inv.items || []).map(it =>
-    `  - ${it.name}: ${it.quantity} ${it.unit} x €${it.price_inc_vat} = €${it.line_total}`
+    `  - ${it.name}: ${it.quantity} ${it.unit} x E${it.price_inc_vat} = E${it.line_total}`
   ).join("\n");
-  return `Fatura ${inv.invoice_number}\nKlienti: ${inv.client_name}\n${items}\nSubtotal: €${(inv.subtotal||0).toFixed(2)}\nTVSH: €${(inv.vat_amount||0).toFixed(2)}\nTotal: €${(inv.amount||0).toFixed(2)}\nAfati: ${inv.due_date || "—"}`;
+  return `Fatura ${inv.invoice_number}\nKlienti: ${inv.client_name}\n${items}\nSubtotal: E${(inv.subtotal||0).toFixed(2)}\nTVSH: E${(inv.vat_amount||0).toFixed(2)}\nTotal: E${(inv.amount||0).toFixed(2)}\nAfati: ${inv.due_date || "-"}`;
 };
 
 export default function SendInvoiceDialog({ invoice, open, onClose }) {
@@ -26,9 +29,22 @@ export default function SendInvoiceDialog({ invoice, open, onClose }) {
     if (!invoice.client_email) { toast.error("Klienti nuk ka email!"); return; }
     setSending("email");
     await base44.integrations.Core.SendEmail({
+      from_name: BUSINESS_EMAIL_NAME,
       to: invoice.client_email,
-      subject: `Fatura ${invoice.invoice_number}`,
-      body: `<pre style="font-family:sans-serif">${message}</pre>`,
+      subject: `Fatura ${invoice.invoice_number} - ScentLinq Pro`,
+      body: `<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:linear-gradient(135deg,#4338ca,#7c3aed);padding:32px;border-radius:12px 12px 0 0">
+          <h1 style="color:white;margin:0;font-size:24px">ScentLinq Pro</h1>
+          <p style="color:#c7d2fe;margin:4px 0 0">info@scentlinqpro-ks.com | +383 49 221 223</p>
+        </div>
+        <div style="background:#f9fafb;padding:24px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+          <h2 style="color:#1e1b4b">Fatura ${invoice.invoice_number}</h2>
+          <p>I nderuar/e <strong>${invoice.client_name}</strong>,</p>
+          <p>Ju lutem gjeni bashkëngjitur detajet e faturës suaj:</p>
+          <pre style="background:#fff;padding:16px;border-radius:8px;border:1px solid #e5e7eb;font-family:monospace;font-size:13px">${message}</pre>
+          <p style="color:#6b7280;font-size:13px">Faleminderit për besimin tuaj!</p>
+        </div>
+      </div>`,
     });
     toast.success("Email u dërgua!");
     setSending(null);
@@ -48,8 +64,8 @@ export default function SendInvoiceDialog({ invoice, open, onClose }) {
       label: "WhatsApp",
       icon: MessageCircle,
       color: "bg-green-500",
-      href: phone ? `https://wa.me/${phone}?text=${encodedMsg}` : null,
-      disabled: !phone,
+      href: `https://wa.me/${BUSINESS_WHATSAPP}?text=${encodedMsg}`,
+      disabled: false,
     },
     {
       key: "viber",

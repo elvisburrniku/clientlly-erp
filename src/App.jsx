@@ -14,6 +14,7 @@ import Cashbox from './pages/Cashbox';
 import CashHandover from './pages/CashHandover';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import InvoiceDetail from './pages/InvoiceDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -44,6 +45,7 @@ const AuthenticatedApp = () => {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/invoices" element={<Invoices />} />
+        <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/clients" element={<Clients />} />
         <Route path="/suppliers" element={<Suppliers />} />
         <Route path="/cashbox" element={<Cashbox />} />
