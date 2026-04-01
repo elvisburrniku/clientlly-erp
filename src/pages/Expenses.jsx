@@ -1,0 +1,246 @@
+import { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { Plus, Trash2, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import moment from "moment";
+
+const EXPENSE_CATEGORIES = {
+  qira: "Qira",
+  paga: "Paga",
+  furnizime: "Furnizime",
+  transport: "Transport",
+  komunikim: "Komunikim",
+  energji: "Energji",
+  sigurimi: "Sigurimi",
+  mirëmbajtje: "Mirëmbajtje",
+  reklamim: "Reklamim",
+  tjeter: "Tjeter",
+};
+
+const emptyForm = () => ({
+  category: "",
+  description: "",
+  amount: 0,
+  expense_date: new Date().toISOString().split("T")[0],
+  payment_method: "cash",
+});
+
+export default function Expenses() {
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm());
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    try {
+      const data = await base44.entities.Expense.list("-created_date", 100);
+      setExpenses(data);
+    } catch (err) {
+      console.error("Load error:", err);
+    }
+    setLoading(false);
+  };
+
+  const handleCreate = async () => {
+    if (!form.category || form.amount <= 0 || !form.expense_date) {
+      toast.error("Plotësoni të gjitha fushat e detyrueshme");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await base44.entities.Expense.create(form);
+      toast.success("Shpenzimi u shtua");
+      setForm(emptyForm());
+      setDialogOpen(false);
+      loadData();
+    } catch (err) {
+      toast.error("Gabim në ruajtje");
+    }
+    setSubmitting(false);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Fshi këtë shpenzim?")) return;
+    try {
+      await base44.entities.Expense.delete(id);
+      toast.success("Shpenzimi u fshi");
+      loadData();
+    } catch (err) {
+      toast.error("Gabim në fshirje");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const byCategory = Object.keys(EXPENSE_CATEGORIES).map(cat => ({
+    category: cat,
+    total: expenses.filter(e => e.category === cat).reduce((sum, e) => sum + (e.amount || 0), 0),
+  })).filter(x => x.total > 0);
+
+  return (
+    <div className="p-6 lg:p-10 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
+          <h1 className="text-3xl font-bold tracking-tight">Shpenzimet</h1>
+        </div>
+        <Button onClick={() => setDialogOpen(true)} className="gap-2">
+          <Plus className="w-4 h-4" /> Shto Shpenzim
+        </Button>
+      </div>
+
+      {/* Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Shpenzimesh</p>
+          <p className="text-2xl font-bold mt-1 text-destructive">€{totalExpenses.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">këtë muaj</p>
+        </div>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Numri i Shpenzimeve</p>
+          <p className="text-2xl font-bold mt-1">{expenses.length}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">regjistrime</p>
+        </div>
+      </div>
+
+      {/* By Category */}
+      {byCategory.length > 0 && (
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+          <h3 className="text-base font-semibold mb-4">Sipas Kategorive</h3>
+          <div className="space-y-3">
+            {byCategory.map(({ category, total }) => (
+              <div key={category} className="flex justify-between items-center py-2">
+                <span className="text-sm text-muted-foreground">{EXPENSE_CATEGORIES[category]}</span>
+                <span className="font-medium">€{total.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <p className="font-semibold text-sm">{expenses.length} shpenzimesh</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Kategoria</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Përshkrimi</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shuma</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Metoda</th>
+                <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {expenses.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">Asnjë shpenzim të regjistruar</p>
+                  </td>
+                </tr>
+              ) : (
+                expenses.map(exp => (
+                  <tr key={exp.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-semibold">{EXPENSE_CATEGORIES[exp.category]}</span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{exp.description || "—"}</td>
+                    <td className="px-6 py-4"><span className="text-sm font-bold">€{(exp.amount || 0).toFixed(2)}</span></td>
+                    <td className="px-6 py-4 text-xs text-muted-foreground">{moment(exp.expense_date).format("DD MMM YY")}</td>
+                    <td className="px-6 py-4"><span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{exp.payment_method || "—"}</span></td>
+                    <td className="px-6 py-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-7 w-7">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleDelete(exp.id)} className="text-destructive focus:text-destructive">
+                            <Trash2 className="w-4 h-4 mr-2" /> Fshi
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Shto Shpenzim të Ri</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Kategoria *</Label>
+              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(EXPENSE_CATEGORIES).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Përshkrimi</Label>
+              <Textarea placeholder="P.sh. Qira për muajin prill..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} />
+            </div>
+            <div>
+              <Label>Shuma (EUR) *</Label>
+              <Input type="number" placeholder="0.00" value={form.amount} onChange={(e) => setForm({ ...form, amount: parseFloat(e.target.value) || 0 })} className="mt-1.5" step="0.01" />
+            </div>
+            <div>
+              <Label>Data e Shpenzimit *</Label>
+              <Input type="date" value={form.expense_date} onChange={(e) => setForm({ ...form, expense_date: e.target.value })} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Metoda e Pagesës</Label>
+              <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="bank_transfer">Transfer Bankar</SelectItem>
+                  <SelectItem value="card">Kartë</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
+            <Button onClick={handleCreate} disabled={submitting}>{submitting ? "Duke ruajtur..." : "Shto Shpenzim"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

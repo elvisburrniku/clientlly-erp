@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle } from "lucide-react";
+import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle, TrendingUp } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import MonthlyRevenueBar from "../components/dashboard/MonthlyRevenueBar";
 import RevenueChart from "../components/dashboard/RevenueChart";
@@ -17,6 +17,7 @@ export default function Dashboard() {
     clientCount: 0,
     cashBalance: 0,
     undeliveredCash: 0,
+    netProfit: 0,
   });
   const [undeliveredUsers, setUndeliveredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,10 +26,11 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const [invoices, transactions, users] = await Promise.all([
+      const [invoices, transactions, users, expenses] = await Promise.all([
         base44.entities.Invoice.list(),
         base44.entities.CashTransaction.list(),
         base44.entities.User.list(),
+        base44.entities.Expense.list(),
       ]);
 
       // Filter invoices by period
@@ -46,6 +48,8 @@ export default function Dashboard() {
       const cashIn = transactions.filter(t => t.type === "cash_in").reduce((sum, t) => sum + (t.amount || 0), 0);
       const cashOut = transactions.filter(t => t.type === "cash_out").reduce((sum, t) => sum + (t.amount || 0), 0);
       const cashBalance = cashIn - cashOut;
+      const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const netProfit = totalInvoices - totalExpenses;
 
       const usersWithCash = users.filter(u => (u.cash_on_hand || 0) > 0);
       const totalUndelivered = usersWithCash.reduce((sum, u) => sum + (u.cash_on_hand || 0), 0);
@@ -53,11 +57,12 @@ export default function Dashboard() {
 
       setStats({
         totalInvoices,
-        totalExpenses: cashOut,
+        totalExpenses,
         totalDebt: totalInvoices - cashIn,
         clientCount: uniqueClients,
         cashBalance,
         undeliveredCash: totalUndelivered,
+        netProfit,
       });
       setUndeliveredUsers(usersWithCash);
     } catch (err) {
@@ -80,7 +85,7 @@ export default function Dashboard() {
     { icon: TrendingDown, title: "Shpenzimet",  value: `€${stats.totalExpenses.toLocaleString()}`,              description: "Totali i shpenzimeve",          color: "rose" },
     { icon: CreditCard, title: "Borxhi",        value: `€${stats.totalDebt.toLocaleString()}`,                  description: "Borxhi i mbetur",               color: "amber" },
     { icon: Users,      title: "Klientët",       value: stats.clientCount.toString(),                            description: "Numri i klientëve",             color: "violet" },
-    { icon: BarChart3,  title: "Performanca",   value: `€${(stats.totalInvoices - stats.totalExpenses).toLocaleString()}`, description: "Fitimi bruto", color: "teal" },
+    { icon: TrendingUp,  title: "Fitim Neto",   value: `€${stats.netProfit.toLocaleString()}`,                 description: "Fitim pas shpenzimeve",         color: stats.netProfit >= 0 ? "teal" : "rose" },
     { icon: Wallet,     title: "Arka",           value: `€${stats.cashBalance.toLocaleString()}`,               description: "Bilanci i arkës",               color: "green" },
   ];
 

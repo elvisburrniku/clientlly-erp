@@ -12,6 +12,7 @@ const menuItems = [
   { label: "Klientët", icon: Users, path: "/clients" },
   { label: "Furnitorët", icon: Truck, path: "/suppliers" },
   { label: "Arka", icon: Wallet, path: "/cashbox" },
+  { label: "Shpenzimet", icon: DollarSign, path: "/expenses" },
   { label: "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover" },
   { label: "Raportet", icon: BarChart3, path: "/reports" },
   { label: "Settings", icon: Settings, path: "/settings" },

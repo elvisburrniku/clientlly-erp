@@ -1,0 +1,49 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "qira",
+        "paga",
+        "furnizime",
+        "transport",
+        "komunikim",
+        "energji",
+        "sigurimi",
+        "mir\u00ebmbajtje",
+        "reklamim",
+        "tjeter"
+      ],
+      "description": "Kategoria e shpenzimit"
+    },
+    "description": {
+      "type": "string",
+      "description": "P\u00ebrshkrimi i shpenzimit"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Shuma e shpenzimit n\u00eb EUR"
+    },
+    "expense_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data e shpenzimit"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "bank_transfer",
+        "card"
+      ],
+      "description": "Metoda e pages\u00ebs"
+    }
+  },
+  "required": [
+    "category",
+    "amount",
+    "expense_date"
+  ]
+}
