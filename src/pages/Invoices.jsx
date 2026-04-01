@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ const emptyForm = () => ({
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 50;
   const navigate = useNavigate();
@@ -137,10 +138,14 @@ export default function Invoices() {
     );
   }
 
+  const filtered = invoices.filter(inv =>
+    inv.client_name?.toLowerCase().includes(search.toLowerCase()) ||
+    inv.invoice_number?.toLowerCase().includes(search.toLowerCase())
+  );
   const openCount = invoices.filter(i => i.is_open !== false).length;
   const totalRevenue = invoices.reduce((s, i) => s + (i.amount || 0), 0);
-  const totalPages = Math.ceil(invoices.length / PAGE_SIZE);
-  const paginated = invoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -176,8 +181,18 @@ export default function Invoices() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <p className="font-semibold text-sm">{invoices.length} fatura gjithsej</p>
+        <div className="px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <p className="font-semibold text-sm">{filtered.length} fatura{search && ` (filtruara nga ${invoices.length})`}</p>
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Kërko sipas klientit ose numrit..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-border rounded-xl bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+            />
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
