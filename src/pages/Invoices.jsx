@@ -853,14 +853,36 @@ export default function Invoices() {
                 <input type="checkbox" checked={form.is_recurring} onChange={(e) => setForm({ ...form, is_recurring: e.target.checked })} className="h-4 w-4 cursor-pointer" />
               </div>
               {form.is_recurring && (
-                <Select value={form.recurring_interval} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
-                  <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Çdo muaj</SelectItem>
-                    <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
-                    <SelectItem value="yearly">Çdo vit</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <div className="flex gap-2 items-end">
+                    <div className="flex-1">
+                      <Label className="text-xs">Intervali</Label>
+                      <Select value={form.recurring_interval || "custom"} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
+                        <SelectTrigger className="text-sm mt-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">Çdo muaj</SelectItem>
+                          <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
+                          <SelectItem value="yearly">Çdo vit</SelectItem>
+                          <SelectItem value="custom">Custom muaj</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {form.recurring_interval === "custom" && (
+                      <div className="flex-1">
+                        <Label className="text-xs">Çdo muajsh</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="12"
+                          value={form.recurring_custom_months || 1}
+                          onChange={(e) => setForm({ ...form, recurring_custom_months: parseInt(e.target.value) || 1 })}
+                          className="text-sm mt-1"
+                          placeholder="2"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
