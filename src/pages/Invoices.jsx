@@ -17,6 +17,7 @@ import InvoiceLineItems from "../components/invoices/InvoiceLineItems";
 import SendInvoiceDialog from "../components/invoices/SendInvoiceDialog";
 import InvoicePDFButton from "../components/invoices/InvoicePDFButton";
 import MergePDFDialog from "../components/invoices/MergePDFDialog";
+import QuickInvoiceBuilder from "../components/invoices/QuickInvoiceBuilder";
 
 const emptyForm = () => ({
   client_name: "",
@@ -44,6 +45,7 @@ export default function Invoices() {
   const [editInvoice, setEditInvoice] = useState(null);
   const [reminderDialog, setReminderDialog] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [quickInvoiceOpen, setQuickInvoiceOpen] = useState(false);
   const [filterSearchType, setFilterSearchType] = useState("client"); // "client" | "invoice"
   const [filterClient, setFilterClient] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
@@ -74,6 +76,21 @@ export default function Invoices() {
       vat_amount: parseFloat(vat_amount.toFixed(2)),
       amount: parseFloat((subtotal + vat_amount).toFixed(2)),
     };
+  };
+
+  const handleQuickCreateInvoice = async (invoice) => {
+    await base44.entities.Invoice.create(invoice);
+    if (invoice.payment_method === "cash") {
+      const users = await base44.entities.User.filter({ email: currentUser.email });
+      if (users.length > 0) {
+        const u = users[0];
+        await base44.entities.User.update(u.id, {
+          cash_on_hand: (u.cash_on_hand || 0) + invoice.amount,
+        });
+      }
+    }
+    toast.success("Fatura u krijua me sukses");
+    loadData();
   };
 
   const handleCreate = async () => {
@@ -362,6 +379,9 @@ export default function Invoices() {
           </Button>
           <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2">
             <Layers className="w-4 h-4" /> Merge PDF
+          </Button>
+          <Button onClick={() => setQuickInvoiceOpen(true)} variant="outline" className="gap-2">
+            <Plus className="w-4 h-4" /> Krijo të Shpejtë
           </Button>
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" /> Krijo Faturë
@@ -733,6 +753,12 @@ export default function Invoices() {
       {/* Send Dialog */}
       <SendInvoiceDialog invoice={sendDialog} open={!!sendDialog} onClose={() => setSendDialog(null)} />
       <MergePDFDialog invoices={invoices} open={mergePDFOpen} onClose={() => setMergePDFOpen(false)} />
+      <QuickInvoiceBuilder
+        open={quickInvoiceOpen}
+        onClose={() => setQuickInvoiceOpen(false)}
+        onCreateInvoice={handleQuickCreateInvoice}
+        currentUser={currentUser}
+      />
     </div>
   );
 }
