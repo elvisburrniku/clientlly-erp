@@ -387,8 +387,8 @@ export default function Invoices() {
               {hasActiveFilters && (
                 <button onClick={clearFilters} className="text-xs text-destructive hover:underline">Pastro filtrat</button>
               )}
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => setSearchOpen(o => !o)}>
-                <Search className="w-4 h-4" /> Kërko / Filtro
+              <Button variant="ghost" size="icon" className={cn("h-8 w-8", searchOpen && "bg-muted")} onClick={() => setSearchOpen(o => !o)}>
+                <Search className="w-4 h-4" />
               </Button>
             </div>
           </div>
