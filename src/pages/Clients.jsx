@@ -15,6 +15,8 @@ const emptyForm = () => ({
   name: "",
   email: "",
   phone: "",
+  nipt: "",
+  address: "",
   classification: "new",
   notes: "",
 });
@@ -72,6 +74,8 @@ export default function Clients() {
       name: client.name || "",
       email: client.email || "",
       phone: client.phone || "",
+      nipt: client.nipt || "",
+      address: client.address || "",
       classification: client.classification || "new",
       notes: client.notes || "",
     });
@@ -152,8 +156,9 @@ export default function Clients() {
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Emri</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Email</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Telefon</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">NIPT</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Adresë</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klasifikimi</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shpenzuar</th>
                 <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
               </tr>
             </thead>
@@ -177,8 +182,9 @@ export default function Clients() {
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{client.email}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{client.phone || "—"}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{client.nipt || "—"}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground text-xs">{client.address || "—"}</td>
                     <td className="px-6 py-4">{classificationBadge(client.classification)}</td>
-                    <td className="px-6 py-4 text-sm font-medium">€{(client.total_spent || 0).toFixed(2)}</td>
                     <td className="px-6 py-4">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -219,9 +225,19 @@ export default function Clients() {
               <Label>Email *</Label>
               <Input type="email" placeholder="email@domain.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Telefon</Label>
+                <Input placeholder="+355 6X XXX XXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>NIPT</Label>
+                <Input placeholder="L XXXX XXXXX K XX" value={form.nipt} onChange={(e) => setForm({ ...form, nipt: e.target.value })} className="mt-1.5" />
+              </div>
+            </div>
             <div>
-              <Label>Telefon</Label>
-              <Input placeholder="+355 6X XXX XXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1.5" />
+              <Label>Adresë</Label>
+              <Input placeholder="Adresa e klientit" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="mt-1.5" />
             </div>
             <div>
               <Label>Klasifikimi</Label>
@@ -263,9 +279,19 @@ export default function Clients() {
               <Label>Email *</Label>
               <Input type="email" placeholder="email@domain.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1.5" />
             </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Telefon</Label>
+                <Input placeholder="+355 6X XXX XXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>NIPT</Label>
+                <Input placeholder="L XXXX XXXXX K XX" value={form.nipt} onChange={(e) => setForm({ ...form, nipt: e.target.value })} className="mt-1.5" />
+              </div>
+            </div>
             <div>
-              <Label>Telefon</Label>
-              <Input placeholder="+355 6X XXX XXXX" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1.5" />
+              <Label>Adresë</Label>
+              <Input placeholder="Adresa e klientit" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="mt-1.5" />
             </div>
             <div>
               <Label>Klasifikimi</Label>
@@ -289,8 +315,8 @@ export default function Clients() {
               {submitting ? "Duke ruajtur..." : "Ruaj"}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+          </Dialog>
     </div>
   );
 }

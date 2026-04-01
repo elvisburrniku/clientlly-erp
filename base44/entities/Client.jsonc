@@ -14,6 +14,14 @@
       "type": "string",
       "description": "Numri i telefonit i klientit (me prefiks +355)"
     },
+    "nipt": {
+      "type": "string",
+      "description": "NIPT (Numri i Identifikimit p\u00ebr Tatimin mbi Vler\u00ebn e Shtuar)"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adresa e klientit"
+    },
     "classification": {
       "type": "string",
       "enum": [
