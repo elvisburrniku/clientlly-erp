@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download } from "lucide-react";
+import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import moment from "moment";
+import { jsPDF } from "jspdf";
 import InvoiceLineItems from "../components/invoices/InvoiceLineItems";
 import SendInvoiceDialog from "../components/invoices/SendInvoiceDialog";
 import InvoicePDFButton from "../components/invoices/InvoicePDFButton";
+import MergePDFDialog from "../components/invoices/MergePDFDialog";
 
 const emptyForm = () => ({
   client_name: "",
@@ -37,6 +39,7 @@ export default function Invoices() {
   const [currentUser, setCurrentUser] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
+  const [mergePDFOpen, setMergePDFOpen] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -106,8 +109,8 @@ export default function Invoices() {
     loadData();
   };
 
-  const exportCSV = () => {
-    const headers = ["Nr. Faturës", "Klienti", "Email", "Telefon", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Afati", "Data"];
+  const exportExcel = () => {
+    const headers = ["Nr. Fatures", "Klienti", "Email", "Telefon", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Afati", "Data"];
     const rows = filtered.map(inv => [
       inv.invoice_number,
       inv.client_name,
@@ -122,14 +125,62 @@ export default function Invoices() {
       inv.due_date || "",
       inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
     ]);
-    const csvContent = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    // Build HTML table that Excel can open natively
+    const tableRows = rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("");
+    const html = `<html><head><meta charset="UTF-8"></head><body><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `faturat_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `faturat_${new Date().toISOString().slice(0,10)}.xls`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const exportPDFList = () => {
+    (() => {
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const W = 297; const margin = 14;
+      doc.setFillColor(67, 56, 202);
+      doc.rect(0, 0, W, 22, "F");
+      doc.setTextColor(255,255,255);
+      doc.setFontSize(14); doc.setFont("helvetica", "bold");
+      doc.text("Lista e Faturave", margin, 14);
+      doc.setFontSize(9); doc.setFont("helvetica", "normal");
+      doc.text(`Gjeneruar: ${new Date().toLocaleDateString("sq-AL")}  |  Total: ${filtered.length} fatura`, W - margin, 14, { align: "right" });
+      const headers = ["Nr.", "Klienti", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Data"];
+      const colW = [28, 60, 22, 18, 24, 18, 18, 20, 20];
+      let x = margin; let y = 32;
+      doc.setFillColor(243,244,246);
+      doc.rect(margin, y - 5, W - margin*2, 8, "F");
+      doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(100,100,100);
+      headers.forEach((h, i) => { doc.text(h, x + 2, y); x += colW[i]; });
+      y += 5;
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+      filtered.forEach((inv, ri) => {
+        if (y > 185) { doc.addPage(); y = 20; }
+        if (ri % 2 === 0) { doc.setFillColor(249,250,251); doc.rect(margin, y - 4, W - margin*2, 8, "F"); }
+        doc.setTextColor(30,30,30);
+        const row = [
+          inv.invoice_number || "",
+          inv.client_name || "",
+          `E${(inv.subtotal||0).toFixed(2)}`,
+          `E${(inv.vat_amount||0).toFixed(2)}`,
+          `E${(inv.amount||0).toFixed(2)}`,
+          inv.status || "",
+          inv.is_open !== false ? "Hapur" : "Mbyllur",
+          inv.payment_method || "",
+          inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
+        ];
+        x = margin;
+        row.forEach((v, i) => { doc.text(String(v).slice(0, Math.floor(colW[i]/2) + 2), x + 2, y); x += colW[i]; });
+        y += 8;
+      });
+      doc.setFillColor(67,56,202); doc.rect(0, 195, W, 10, "F");
+      doc.setTextColor(255,255,255); doc.setFontSize(7);
+      doc.text(`Totali: E${filtered.reduce((s,i) => s+(i.amount||0), 0).toFixed(2)}`, W - margin, 201, { align: "right" });
+      doc.save(`lista_faturat_${new Date().toISOString().slice(0,10)}.pdf`);
+    })();
   };
 
   const toggleOpen = async (inv) => {
@@ -181,9 +232,15 @@ export default function Invoices() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
           <h1 className="text-3xl font-bold tracking-tight">Faturat</h1>
         </div>
-        <div className="flex gap-2 self-start sm:self-auto">
-          <Button variant="outline" onClick={exportCSV} className="gap-2">
-            <Download className="w-4 h-4" /> Eksporto CSV
+        <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+          <Button variant="outline" onClick={exportExcel} className="gap-2">
+            <Sheet className="w-4 h-4" /> Excel
+          </Button>
+          <Button variant="outline" onClick={exportPDFList} className="gap-2">
+            <Download className="w-4 h-4" /> PDF Listë
+          </Button>
+          <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2">
+            <Layers className="w-4 h-4" /> Merge PDF
           </Button>
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" /> Krijo Faturë
@@ -401,6 +458,7 @@ export default function Invoices() {
 
       {/* Send Dialog */}
       <SendInvoiceDialog invoice={sendDialog} open={!!sendDialog} onClose={() => setSendDialog(null)} />
+      <MergePDFDialog invoices={invoices} open={mergePDFOpen} onClose={() => setMergePDFOpen(false)} />
     </div>
   );
 }
