@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, MoreHorizontal, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -281,12 +281,13 @@ export default function Expenses() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Shto Shpenzim të Ri</DialogTitle>
+            <DialogDescription>Plotëso të dhënat e shpenzimit</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label>Kategoria *</Label>
+              <Label className="text-xs">Kategoria *</Label>
               <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh kategorinë" /></SelectTrigger>
+                <SelectTrigger className="mt-1.5 text-sm"><SelectValue placeholder="Zgjedh kategorinë" /></SelectTrigger>
                 <SelectContent>
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
