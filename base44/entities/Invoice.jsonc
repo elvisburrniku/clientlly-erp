@@ -6,6 +6,16 @@
       "type": "string",
       "description": "Invoice number"
     },
+    "invoice_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "proforma",
+        "credit_note"
+      ],
+      "default": "standard",
+      "description": "Type of invoice"
+    },
     "client_name": {
       "type": "string",
       "description": "Client name"
@@ -65,6 +75,26 @@
       "type": "number",
       "description": "Total without VAT"
     },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "percentage",
+        "fixed"
+      ],
+      "default": "none",
+      "description": "Type of discount"
+    },
+    "discount_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Discount value (% or fixed amount)"
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0,
+      "description": "Calculated discount amount"
+    },
     "vat_amount": {
       "type": "number",
       "description": "Total VAT amount"
@@ -79,6 +109,7 @@
         "draft",
         "sent",
         "paid",
+        "partially_paid",
         "overdue",
         "cancelled"
       ],
@@ -94,7 +125,8 @@
       "enum": [
         "cash",
         "bank_transfer",
-        "card"
+        "card",
+        "other"
       ],
       "description": "How the invoice was paid"
     },
@@ -105,9 +137,31 @@
     "description": {
       "type": "string"
     },
+    "payment_notes": {
+      "type": "string",
+      "description": "Payment instructions or notes"
+    },
     "issued_by": {
       "type": "string",
       "description": "Email of staff who issued"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this a recurring invoice"
+    },
+    "recurring_interval": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "description": "Recurrence interval if recurring"
+    },
+    "parent_invoice_id": {
+      "type": "string",
+      "description": "ID of the invoice this was duplicated from"
     }
   },
   "required": [
