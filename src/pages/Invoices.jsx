@@ -44,6 +44,7 @@ export default function Invoices() {
   const [editInvoice, setEditInvoice] = useState(null);
   const [reminderDialog, setReminderDialog] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [filterSearchType, setFilterSearchType] = useState("client"); // "client" | "invoice"
   const [filterClient, setFilterClient] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
@@ -313,7 +314,11 @@ export default function Invoices() {
     const d = new Date(inv.created_date);
     if (filterClient) {
       const q = filterClient.toLowerCase();
-      if (!inv.client_name?.toLowerCase().includes(q) && !inv.invoice_number?.toLowerCase().includes(q)) return false;
+      if (filterSearchType === "client") {
+        if (!inv.client_name?.toLowerCase().includes(q)) return false;
+      } else {
+        if (!inv.invoice_number?.toLowerCase().includes(q)) return false;
+      }
     }
     if (filterMonth) {
       if ((d.getMonth() + 1) !== parseInt(filterMonth)) return false;
@@ -393,27 +398,24 @@ export default function Invoices() {
               {searchOpen && (
                 <div className="absolute right-0 top-10 z-50 w-64 bg-white border border-border rounded-2xl shadow-xl p-4 flex flex-col gap-3">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Klienti / Nr. Faturës</label>
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Kërko sipas</label>
+                    <div className="flex bg-muted rounded-lg p-0.5 mb-2">
+                      <button
+                        onClick={() => { setFilterSearchType("client"); setFilterClient(""); setPage(1); }}
+                        className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "client" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                      >Klienti</button>
+                      <button
+                        onClick={() => { setFilterSearchType("invoice"); setFilterClient(""); setPage(1); }}
+                        className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "invoice" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                      >Nr. Faturës</button>
+                    </div>
                     <input
                       type="text"
-                      placeholder="Kërko..."
+                      placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
                       value={filterClient}
                       onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
                       className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
                     />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Muaji</label>
-                    <select
-                      value={filterMonth}
-                      onChange={(e) => { setFilterMonth(e.target.value); setPage(1); }}
-                      className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30 transition"
-                    >
-                      <option value="">Të gjithë</option>
-                      {["Janar","Shkurt","Mars","Prill","Maj","Qershor","Korrik","Gusht","Shtator","Tetor","Nëntor","Dhjetor"].map((m,i) => (
-                        <option key={i+1} value={i+1}>{m}</option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground block mb-1">Viti</label>
