@@ -1,0 +1,56 @@
+{
+  "name": "Supplier",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i furnitorit"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email i furnitorit"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Numri i telefonit (me prefiks)"
+    },
+    "address": {
+      "type": "string",
+      "description": "Adresa e furnitorit"
+    },
+    "nipt": {
+      "type": "string",
+      "description": "NIPT i furnitorit"
+    },
+    "contact_person": {
+      "type": "string",
+      "description": "Personi i kontaktit"
+    },
+    "payment_terms": {
+      "type": "string",
+      "description": "Termat e pages\u00ebs (p.sh. 30 dit\u00eb)"
+    },
+    "category": {
+      "type": "string",
+      "description": "Kategoria e produkteve/sh\u00ebrbimeve"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Sh\u00ebnime rreth furnitorit"
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb furnitori aktiv",
+      "default": true
+    },
+    "total_spent": {
+      "type": "number",
+      "description": "Shuma totale e blerjeve",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ]
+}
