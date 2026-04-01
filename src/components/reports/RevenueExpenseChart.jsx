@@ -13,15 +13,16 @@ export default function RevenueExpenseChart({ categoryFilter, onDataChange }) {
 
   useEffect(() => {
     if (onDataChange) onDataChange(data);
-  }, [data, onDataChange]);
+  }, [data]);
 
   const loadChartData = async () => {
     setLoading(true);
     try {
-      const [invoices, expenses, products] = await Promise.all([
+      const [invoices, expenses, products, clients] = await Promise.all([
         base44.entities.Invoice.list("-created_date", 500),
         base44.entities.Expense.list("-created_date", 500),
         base44.entities.Product.list("-created_date", 100),
+        base44.entities.Client.list("-created_date", 100),
       ]);
 
       const months = {};
@@ -32,16 +33,24 @@ export default function RevenueExpenseChart({ categoryFilter, onDataChange }) {
         const month = moment(inv.created_date).format("YYYY-MM");
         if (!months[month]) months[month] = { revenue: 0, expenses: 0, month };
         
-        if (categoryFilter === "all") {
-          months[month].revenue += inv.amount || 0;
-        } else {
-          const hasProduct = inv.items?.some(item => {
+        // Filter by category
+        let passesCategory = categoryFilter === "all";
+        if (!passesCategory) {
+          passesCategory = inv.items?.some(item => {
             const product = products.find(p => p.name === item.name);
             return product && product.type === categoryFilter;
           });
-          if (hasProduct) {
-            months[month].revenue += inv.amount || 0;
-          }
+        }
+
+        // Filter by client segment
+        let passesSegment = clientSegment === "all";
+        if (!passesSegment && inv.client_name) {
+          const client = clients.find(c => c.name === inv.client_name);
+          passesSegment = client && client.classification === clientSegment;
+        }
+
+        if (passesCategory && passesSegment) {
+          months[month].revenue += inv.amount || 0;
         }
       });
 
@@ -123,12 +132,12 @@ export default function RevenueExpenseChart({ categoryFilter, onDataChange }) {
       {/* Summary Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total 12 Muaj</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total (Filtru)</p>
           <p className="text-2xl font-bold mt-2 text-primary">€{data.reduce((s, m) => s + m.revenue, 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
           <p className="text-xs text-muted-foreground mt-0.5">të ardhura</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total 12 Muaj</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total (Filtru)</p>
           <p className="text-2xl font-bold mt-2 text-destructive">€{data.reduce((s, m) => s + m.expenses, 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
           <p className="text-xs text-muted-foreground mt-0.5">shpenzime</p>
         </div>

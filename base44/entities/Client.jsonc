@@ -1,0 +1,41 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i klientit"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email i klientit"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Numri i telefonit i klientit (me prefiks +355)"
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "regular",
+        "vip",
+        "new"
+      ],
+      "description": "Klasifikimi i klientit",
+      "default": "new"
+    },
+    "total_spent": {
+      "type": "number",
+      "description": "Shuma totale e shpenzuar",
+      "default": 0
+    },
+    "notes": {
+      "type": "string",
+      "description": "Sh\u00ebnime rreth klientit"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ]
+}
