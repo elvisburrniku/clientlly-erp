@@ -28,21 +28,201 @@ const emptyForm = () => ({
   description: "",
   items: [{ type: "service", name: "", quantity: 1, unit: "cope", price_ex_vat: 0, vat_rate: 20, price_inc_vat: 0, line_total: 0 }],
 });
-    toast.success("Kujtesa u dërgua");
+
+export default function Invoices() {
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 50;
+  const navigate = useNavigate();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [sendDialog, setSendDialog] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [form, setForm] = useState(emptyForm());
+  const [submitting, setSubmitting] = useState(false);
+  const [mergePDFOpen, setMergePDFOpen] = useState(false);
+  const [editInvoice, setEditInvoice] = useState(null);
+  const [reminderDialog, setReminderDialog] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterSearchType, setFilterSearchType] = useState("client");
+  const [filterClient, setFilterClient] = useState("");
+  const [filterMonth, setFilterMonth] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    const [user, data] = await Promise.all([
+      base44.auth.me(),
+      base44.entities.Invoice.list("-created_date", 100),
+    ]);
+    setCurrentUser(user);
+    setInvoices(data);
+    setLoading(false);
   };
 
-  const openEdit = (inv) => {
-    setForm({
-      invoice_type: inv.invoice_type || "standard",
-      client_name: inv.client_name || "",
-      client_email: inv.client_email || "",
-      client_phone: inv.client_phone || "",
-      payment_method: inv.payment_method || "cash",
-      due_date: inv.due_date || "",
-      description: inv.description || "",
-      items: inv.items || [],
+  const calcTotals = (items) => {
+    const subtotal = items.reduce((s, it) => s + (it.price_ex_vat || 0) * (it.quantity || 0), 0);
+    const vat_amount = items.reduce((s, it) => {
+      const exVat = (it.price_ex_vat || 0) * (it.quantity || 0);
+      return s + exVat * ((it.vat_rate || 0) / 100);
+    }, 0);
+    return {
+      subtotal: parseFloat(subtotal.toFixed(2)),
+      vat_amount: parseFloat(vat_amount.toFixed(2)),
+      amount: parseFloat((subtotal + vat_amount).toFixed(2)),
+    };
+  };
+
+  const handleCreate = async () => {
+    if (!form.client_name || form.items.length === 0) return;
+    setSubmitting(true);
+
+    const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
+    const { subtotal, vat_amount, amount } = calcTotals(form.items);
+
+    const newInvoice = {
+      invoice_type: form.invoice_type || "standard",
+      invoice_number: invoiceNumber,
+      client_name: form.client_name,
+      client_email: form.client_email,
+      client_phone: form.client_phone,
+      items: form.items,
+      subtotal,
+      vat_amount,
+      amount,
+      payment_method: form.payment_method,
+      due_date: form.due_date || undefined,
+      description: form.description,
+      status: "draft",
+      is_open: true,
+      issued_by: currentUser.email,
+    };
+
+    await base44.entities.Invoice.create(newInvoice);
+
+    if (form.payment_method === "cash") {
+      const users = await base44.entities.User.filter({ email: currentUser.email });
+      if (users.length > 0) {
+        const u = users[0];
+        await base44.entities.User.update(u.id, {
+          cash_on_hand: (u.cash_on_hand || 0) + amount,
+        });
+      }
+    }
+
+    setDialogOpen(false);
+    setForm(emptyForm());
+    setSubmitting(false);
+    toast.success("Fatura u krijua me sukses");
+    loadData();
+  };
+
+  const exportExcel = () => {
+    const headers = ["Nr. Fatures", "Klienti", "Email", "Telefon", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Afati", "Data"];
+    const rows = filtered.map(inv => [
+      inv.invoice_number,
+      inv.client_name,
+      inv.client_email || "",
+      inv.client_phone || "",
+      (inv.subtotal || 0).toFixed(2),
+      (inv.vat_amount || 0).toFixed(2),
+      (inv.amount || 0).toFixed(2),
+      inv.status || "",
+      inv.is_open !== false ? "Hapur" : "Mbyllur",
+      inv.payment_method || "",
+      inv.due_date || "",
+      inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
+    ]);
+    const tableRows = rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("");
+    const html = `<html><head><meta charset="UTF-8"></head><body><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `faturat_${new Date().toISOString().slice(0,10)}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDFList = () => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const W = 297; const margin = 14;
+    doc.setFillColor(67, 56, 202);
+    doc.rect(0, 0, W, 22, "F");
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(14); doc.setFont("helvetica", "bold");
+    doc.text("Lista e Faturave", margin, 14);
+    doc.setFontSize(9); doc.setFont("helvetica", "normal");
+    doc.text(`Gjeneruar: ${new Date().toLocaleDateString("sq-AL")}  |  Total: ${filtered.length} fatura`, W - margin, 14, { align: "right" });
+    const headers = ["Nr.", "Klienti", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Data"];
+    const colW = [28, 60, 22, 18, 24, 18, 18, 20, 20];
+    let x = margin; let y = 32;
+    doc.setFillColor(243,244,246);
+    doc.rect(margin, y - 5, W - margin*2, 8, "F");
+    doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(100,100,100);
+    headers.forEach((h, i) => { doc.text(h, x + 2, y); x += colW[i]; });
+    y += 5;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+    filtered.forEach((inv, ri) => {
+      if (y > 185) { doc.addPage(); y = 20; }
+      if (ri % 2 === 0) { doc.setFillColor(249,250,251); doc.rect(margin, y - 4, W - margin*2, 8, "F"); }
+      doc.setTextColor(30,30,30);
+      const row = [
+        inv.invoice_number || "",
+        inv.client_name || "",
+        `€${(inv.subtotal||0).toFixed(2)}`,
+        `€${(inv.vat_amount||0).toFixed(2)}`,
+        `€${(inv.amount||0).toFixed(2)}`,
+        inv.status || "",
+        inv.is_open !== false ? "Hapur" : "Mbyllur",
+        inv.payment_method || "",
+        inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
+      ];
+      x = margin;
+      row.forEach((v, i) => { doc.text(String(v).slice(0, Math.floor(colW[i]/2) + 2), x + 2, y); x += colW[i]; });
+      y += 8;
     });
-    setEditInvoice(inv);
+    doc.setFillColor(67,56,202); doc.rect(0, 195, W, 10, "F");
+    doc.setTextColor(255,255,255); doc.setFontSize(7);
+    doc.text(`Totali: €${filtered.reduce((s,i) => s+(i.amount||0), 0).toFixed(2)}`, W - margin, 201, { align: "right" });
+    doc.save(`lista_faturat_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
+  const handleDuplicate = async (inv) => {
+    const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
+    const copy = {
+      invoice_number: invoiceNumber,
+      client_name: inv.client_name,
+      client_email: inv.client_email,
+      client_phone: inv.client_phone,
+      items: inv.items,
+      subtotal: inv.subtotal,
+      vat_amount: inv.vat_amount,
+      amount: inv.amount,
+      payment_method: inv.payment_method,
+      due_date: inv.due_date,
+      description: inv.description,
+      status: "draft",
+      is_open: true,
+      issued_by: currentUser?.email,
+    };
+    await base44.entities.Invoice.create(copy);
+    toast.success("Fatura u dyfishua");
+    loadData();
+  };
+
+  const handleSendReminder = async (inv) => {
+    if (!inv.client_email) { toast.error("Klienti nuk ka email"); return; }
+    await base44.integrations.Core.SendEmail({
+      to: inv.client_email,
+      subject: `Kujtesë: Fatura ${inv.invoice_number} pret pagesën`,
+      body: `<p>Pershendetje ${inv.client_name},</p><p>Ju kujtojmë se fatura <b>${inv.invoice_number}</b> me vlerë <b>€${(inv.amount||0).toFixed(2)}</b>${inv.due_date ? ` me afat ${inv.due_date}` : ""} është ende e papaguar.</p><p>Ju lutem kryeni pagesën sa më parë.</p><p>Faleminderit!</p>`,
+    });
+    toast.success("Kujtesa u dërgua");
   };
 
   const handleUpdate = async () => {
@@ -463,6 +643,13 @@ const emptyForm = () => ({
               </div>
               <div>
                 <Label>Email Klientit</Label>
+                <Input type="email" placeholder="email@domain.com" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="mt-1.5" />
+              </div>
+              <div>
+                <Label>Telefon (me prefiks +355...)</Label>
+                <Input placeholder="+355 6X XXX XXXX" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="mt-1.5" />
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label>Metoda e Pagesës</Label>
