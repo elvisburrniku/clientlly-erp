@@ -4,10 +4,10 @@ import { TrendingUp } from "lucide-react";
 export default function StatCard({ icon: Icon, title, value, description, variant = "default", trend }) {
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+      "relative overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5",
       variant === "warning"
         ? "bg-amber-50 border-amber-200/70"
-        : "bg-card border-border"
+        : "bg-white border-border shadow-sm"
     )}>
       {/* Subtle background accent */}
       <div className={cn(
