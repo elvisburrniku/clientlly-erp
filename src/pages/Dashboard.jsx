@@ -73,15 +73,18 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Pasqyra e përgjithshme e biznesit</p>
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {cards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
@@ -103,9 +106,9 @@ export default function Dashboard() {
         </div>
         <div className="space-y-4">
           <UndeliveredCashAlert users={undeliveredUsers} />
-          <div className="bg-card rounded-xl border border-border p-5">
-            <h4 className="text-sm font-semibold text-foreground mb-3">Aktiviteti i fundit</h4>
-            <p className="text-xs text-muted-foreground">Nuk ka aktivitet të ri.</p>
+          <div className="bg-card rounded-2xl border border-border p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Aktiviteti i fundit</p>
+            <p className="text-sm text-muted-foreground">Nuk ka aktivitet të ri.</p>
           </div>
         </div>
       </div>
