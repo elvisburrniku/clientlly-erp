@@ -88,33 +88,35 @@ export default function Dashboard() {
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+        <div className="flex flex-wrap gap-3">
           {/* Period filter */}
-          <div className="flex bg-white border border-border rounded-xl p-1 shadow-sm">
+          <div className="flex bg-muted rounded-xl p-1">
             {["today","month","year"].map(p => (
               <button key={p} onClick={() => setPeriod(p)}
-                className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                  period === p ? "bg-primary text-white shadow" : "text-muted-foreground hover:text-foreground"
+                className={cn("px-4 py-1.5 text-sm font-medium rounded-lg transition-all",
+                  period === p ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}>{periodLabels[p]}</button>
             ))}
           </div>
           {/* VAT toggle */}
-          <div className="flex bg-white border border-border rounded-xl p-1 shadow-sm">
+          <div className="flex bg-muted rounded-xl p-1">
             <button onClick={() => setVatMode("inc")}
-              className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                vatMode === "inc" ? "bg-emerald-500 text-white shadow" : "text-muted-foreground hover:text-foreground"
+              className={cn("px-4 py-1.5 text-sm font-medium rounded-lg transition-all",
+                vatMode === "inc" ? "bg-emerald-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
               )}>Me TVSH</button>
             <button onClick={() => setVatMode("exc")}
-              className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                vatMode === "exc" ? "bg-slate-700 text-white shadow" : "text-muted-foreground hover:text-foreground"
+              className={cn("px-4 py-1.5 text-sm font-medium rounded-lg transition-all",
+                vatMode === "exc" ? "bg-slate-700 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
               )}>Pa TVSH</button>
           </div>
-          <p className="text-xs text-muted-foreground hidden sm:block">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
       </div>
 
