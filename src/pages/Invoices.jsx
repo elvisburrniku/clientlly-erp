@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers } from "lucide-react";
+import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, RotateCcw, Bell, Copy, Pencil, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,6 +41,8 @@ export default function Invoices() {
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
   const [mergePDFOpen, setMergePDFOpen] = useState(false);
+  const [editInvoice, setEditInvoice] = useState(null); // invoice being edited
+  const [reminderDialog, setReminderDialog] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -181,6 +184,73 @@ export default function Invoices() {
       doc.text(`Totali: E${filtered.reduce((s,i) => s+(i.amount||0), 0).toFixed(2)}`, W - margin, 201, { align: "right" });
       doc.save(`lista_faturat_${new Date().toISOString().slice(0,10)}.pdf`);
     })();
+  };
+
+  const handleDuplicate = async (inv) => {
+    const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
+    const copy = {
+      invoice_number: invoiceNumber,
+      client_name: inv.client_name,
+      client_email: inv.client_email,
+      client_phone: inv.client_phone,
+      items: inv.items,
+      subtotal: inv.subtotal,
+      vat_amount: inv.vat_amount,
+      amount: inv.amount,
+      payment_method: inv.payment_method,
+      due_date: inv.due_date,
+      description: inv.description,
+      status: "draft",
+      is_open: true,
+      issued_by: currentUser?.email,
+    };
+    await base44.entities.Invoice.create(copy);
+    toast.success("Fatura u dyfishua");
+    loadData();
+  };
+
+  const handleSendReminder = async (inv) => {
+    if (!inv.client_email) { toast.error("Klienti nuk ka email"); return; }
+    await base44.integrations.Core.SendEmail({
+      to: inv.client_email,
+      subject: `Kujtesë: Fatura ${inv.invoice_number} pret pagesën`,
+      body: `<p>Pershendetje ${inv.client_name},</p><p>Ju kujtojmë se fatura <b>${inv.invoice_number}</b> me vlerë <b>€${(inv.amount||0).toFixed(2)}</b>${inv.due_date ? ` me afat ${inv.due_date}` : ""} është ende e papaguar.</p><p>Ju lutem kryeni pagesën sa më parë.</p><p>Faleminderit!</p>`,
+    });
+    toast.success("Kujtesa u dërgua");
+  };
+
+  const openEdit = (inv) => {
+    setForm({
+      client_name: inv.client_name || "",
+      client_email: inv.client_email || "",
+      client_phone: inv.client_phone || "",
+      payment_method: inv.payment_method || "cash",
+      due_date: inv.due_date || "",
+      description: inv.description || "",
+      items: inv.items || [],
+    });
+    setEditInvoice(inv);
+  };
+
+  const handleUpdate = async () => {
+    if (!editInvoice) return;
+    setSubmitting(true);
+    const { subtotal, vat_amount, amount } = calcTotals(form.items);
+    await base44.entities.Invoice.update(editInvoice.id, {
+      client_name: form.client_name,
+      client_email: form.client_email,
+      client_phone: form.client_phone,
+      items: form.items,
+      subtotal, vat_amount, amount,
+      payment_method: form.payment_method,
+      due_date: form.due_date || undefined,
+      description: form.description,
+    });
+    setEditInvoice(null);
+    setForm(emptyForm());
+    setSubmitting(false);
+    toast.success("Fatura u ndryshua");
+    loadData();
   };
 
   const toggleOpen = async (inv) => {
@@ -344,11 +414,37 @@ export default function Invoices() {
                     <td className="px-6 py-4 text-sm text-muted-foreground">{inv.due_date || "—"}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{moment(inv.created_date).format("DD MMM YY")}</td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-1.5 justify-end">
+                      <div className="flex gap-1.5 justify-end items-center">
                         <InvoicePDFButton invoice={inv} />
-                        <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs" onClick={() => setSendDialog(inv)}>
-                          <Send className="w-3 h-3" /> Dërgo
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-7 w-7">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}>
+                              <Eye className="w-4 h-4 mr-2" /> Shiko Faturën
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}>
+                              <Info className="w-4 h-4 mr-2" /> Detaje
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openEdit(inv)}>
+                              <Pencil className="w-4 h-4 mr-2" /> Modifiko
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setSendDialog(inv)}>
+                              <Send className="w-4 h-4 mr-2" /> Ridërgo Faturën
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleSendReminder(inv)}>
+                              <Bell className="w-4 h-4 mr-2" /> Kujtesë për Faturën
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleDuplicate(inv)}>
+                              <Copy className="w-4 h-4 mr-2" /> Dyfisho
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>
@@ -455,6 +551,49 @@ export default function Invoices() {
           </div>
         </div>
       )}
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editInvoice} onOpenChange={(o) => { if (!o) { setEditInvoice(null); setForm(emptyForm()); } }}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifiko Faturën — {editInvoice?.invoice_number}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-5 py-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div><Label>Klienti *</Label><Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="mt-1.5" /></div>
+              <div><Label>Email Klientit</Label><Input type="email" placeholder="email@domain.com" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="mt-1.5" /></div>
+              <div><Label>Telefon</Label><Input placeholder="+355 6X XXX XXXX" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="mt-1.5" /></div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><Label>Metoda e Pagesës</Label>
+                <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="bank_transfer">Transfer Bankar</SelectItem>
+                    <SelectItem value="card">Kartë</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div><Label>Afati i Pagesës</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" /></div>
+            </div>
+            <div>
+              <Label className="mb-2 block">Artikujt / Shërbimet</Label>
+              <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
+            </div>
+            <div className="bg-muted/40 rounded-xl p-4 space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-medium">€{calcTotals(form.items).subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">TVSH</span><span className="font-medium">€{calcTotals(form.items).vat_amount.toFixed(2)}</span></div>
+              <div className="flex justify-between border-t border-border pt-2"><span className="font-semibold">Total me TVSH</span><span className="font-bold text-base">€{calcTotals(form.items).amount.toFixed(2)}</span></div>
+            </div>
+            <div><Label>Shënime</Label><Textarea placeholder="Shënime opsionale..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditInvoice(null); setForm(emptyForm()); }}>Anulo</Button>
+            <Button onClick={handleUpdate} disabled={submitting || !form.client_name}>{ submitting ? "Duke ruajtur..." : "Ruaj Ndryshimet" }</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Send Dialog */}
       <SendInvoiceDialog invoice={sendDialog} open={!!sendDialog} onClose={() => setSendDialog(null)} />
