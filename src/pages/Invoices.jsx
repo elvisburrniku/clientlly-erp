@@ -717,138 +717,156 @@ export default function Invoices() {
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Krijo Faturë të Re</DialogTitle>
-            <DialogDescription>Zgjedh llojin e faturës dhe plotëso informacionet</DialogDescription>
+            <DialogDescription>Plotëso të dhënat e faturës hap pas hapi</DialogDescription>
           </DialogHeader>
-          <div className="space-y-5 py-2">
-            <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-4">
-              <Label className="block mb-2 font-semibold">Lloji i Faturës</Label>
-              <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-6 py-4">
+            {/* Step 1: Invoice Type */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</div>
+                <h3 className="font-semibold text-sm">Lloji i Faturës</h3>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pl-8">
                 {[
-                  { value: "standard", label: "Fatura Standard", desc: "Fatura normale" },
-                  { value: "proforma", label: "Proforma", desc: "Fatura paraprake" },
+                  { value: "standard", label: "Standard", desc: "Fatura normale" },
+                  { value: "proforma", label: "Proforma", desc: "Paraprake" },
                   { value: "credit_note", label: "Kredit Note", desc: "Zbritje/kthim" },
                 ].map(type => (
                   <button
                     key={type.value}
                     onClick={() => setForm({ ...form, invoice_type: type.value })}
                     className={cn(
-                      "p-3 rounded-lg border-2 transition text-left",
+                      "p-2.5 rounded-lg border-2 transition text-left text-xs",
                       form.invoice_type === type.value
-                        ? "bg-primary text-white border-primary shadow-lg"
+                        ? "bg-primary text-white border-primary"
                         : "bg-white border-border hover:border-primary/40"
                     )}
                   >
-                    <div className="font-medium text-sm">{type.label}</div>
-                    <div className={cn("text-xs mt-1", form.invoice_type === type.value ? "text-primary/80" : "text-muted-foreground")}>
-                      {type.desc}
-                    </div>
+                    <div className="font-semibold">{type.label}</div>
+                    <div className="text-[10px] mt-0.5 opacity-75">{type.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <Label>Klienti *</Label>
-                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
-                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh klientin ose shkruaj" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="mt-1.5" />
+
+            {/* Step 2: Client Details */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</div>
+                <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
               </div>
-              <div>
-                <Label>Email Klientit</Label>
-                <Input type="email" placeholder="email@domain.com" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="mt-1.5" />
-              </div>
-              <div>
-                <Label>Telefon</Label>
-                <Input placeholder="+355 6X XXX XXXX" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="mt-1.5" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>NIPT</Label>
-                <Input placeholder="L XXXX XXXXX K XX" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="mt-1.5" />
-              </div>
-              <div>
-                <Label>Adresa</Label>
-                <Input placeholder="Adresa e klientit" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="mt-1.5" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <Label>Metoda e Pagesës</Label>
-                <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="bank_transfer">Transfer Bankar</SelectItem>
-                    <SelectItem value="card">Kartë</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Afati i Pagesës</Label>
-                <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" />
-              </div>
-              <div>
-                <Label>Shënime Pagese</Label>
-                <Input placeholder="Llogarinë, termin e pagesës, etj..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1.5" />
-              </div>
-            </div>
-            <div>
-              <Label>Shënime të Brendshme (vetëm për ekipin)</Label>
-              <Textarea placeholder="Shënime të fshehura nga klienti..." value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1.5" rows={2} />
-            </div>
-            <div className="border-t pt-4">
-              <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
-              <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
-            </div>
-            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 space-y-3 text-sm border border-primary/10">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">Subtotal (pa TVSH)</span>
-                <span className="font-semibold text-foreground text-base">€{formTotals.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground font-medium">TVSH</span>
-                <span className="font-semibold text-foreground text-base">€{formTotals.vat_amount.toFixed(2)}</span>
-              </div>
-              <div className="border-t border-primary/20 pt-3 flex justify-between">
-                <span className="font-bold text-foreground">Total me TVSH</span>
-                <span className="font-bold text-lg text-primary">€{formTotals.amount.toFixed(2)}</span>
-              </div>
-            </div>
-            <div>
-              <Label>Shënime</Label>
-              <Textarea placeholder="Shënime opsionale..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} />
-            </div>
-            <div className="border-t pt-4">
-              <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
+              <div className="space-y-3 pl-8">
                 <div>
-                  <Label className="mb-1">Fatura Automatike</Label>
-                  <p className="text-xs text-muted-foreground">Krijoni fatura të reja në mënyrë automatike në intervalin e zgjedhur</p>
+                  <Label>Klienti *</Label>
+                  <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
+                    <SelectTrigger className="mt-1"><SelectValue placeholder="Zgjedh klientin" /></SelectTrigger>
+                    <SelectContent>
+                      {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Input placeholder="ose shkruaj emrin" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="text-sm" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input type="email" placeholder="Email" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="text-sm" />
+                  <Input placeholder="Telefon" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="text-sm" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Input placeholder="NIPT" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="text-sm" />
+                  <Input placeholder="Adresa" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="text-sm" />
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3: Line Items */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
+                <h3 className="font-semibold text-sm">Artikujt / Shërbimet *</h3>
+              </div>
+              <div className="pl-8">
+                <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
+              </div>
+            </div>
+
+            {/* Step 4: Payment & Notes */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</div>
+                <h3 className="font-semibold text-sm">Pagesa dhe Shënime</h3>
+              </div>
+              <div className="space-y-3 pl-8">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label className="text-xs">Metoda</Label>
+                    <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                      <SelectTrigger className="mt-1 text-sm"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="bank_transfer">Transfer</SelectItem>
+                        <SelectItem value="card">Kartë</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Afat Pagese</Label>
+                    <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1 text-sm" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Shënime Pagese</Label>
+                    <Input placeholder="Llogaria..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1 text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Shënime Brendshme (vetëm për ekipin)</Label>
+                  <Textarea placeholder="Shënime të fshehura nga klienti" value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1 text-sm" rows={2} />
+                </div>
+                <div>
+                  <Label className="text-xs">Shënime Shtesë</Label>
+                  <Textarea placeholder="Shënime opsionale" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1 text-sm" rows={2} />
+                </div>
+              </div>
+            </div>
+
+            {/* Totals Summary */}
+            <div className="bg-gradient-to-br from-primary/8 to-primary/4 rounded-xl p-4 space-y-2.5 text-sm border border-primary/15 pl-8">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Subtotal (pa TVSH)</span>
+                <span className="font-semibold">€{formTotals.subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">TVSH</span>
+                <span className="font-semibold">€{formTotals.vat_amount.toFixed(2)}</span>
+              </div>
+              <div className="border-t border-primary/20 pt-2 flex justify-between">
+                <span className="font-bold">Total me TVSH</span>
+                <span className="text-lg font-bold text-primary">€{formTotals.amount.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Recurring */}
+            <div className="space-y-3 pl-8">
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
+                <div>
+                  <p className="text-sm font-medium">Fatura Automatike</p>
+                  <p className="text-xs text-muted-foreground">Krijoni në mënyrë automatike në secilin interval</p>
                 </div>
                 <input type="checkbox" checked={form.is_recurring} onChange={(e) => setForm({ ...form, is_recurring: e.target.checked })} className="h-4 w-4 cursor-pointer" />
               </div>
               {form.is_recurring && (
-                <div className="mt-3">
-                  <Label>Intervali</Label>
-                  <Select value={form.recurring_interval} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
-                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monthly">Çdo muaj</SelectItem>
-                      <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
-                      <SelectItem value="yearly">Çdo vit</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={form.recurring_interval} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
+                  <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Çdo muaj</SelectItem>
+                    <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
+                    <SelectItem value="yearly">Çdo vit</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
             </div>
           </div>
           <DialogFooter className="pt-4 border-t">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
-            <Button onClick={handleCreate} disabled={submitting || !form.client_name || form.items.length === 0}>
+            <Button onClick={handleCreate} disabled={submitting || !form.client_name || form.items.length === 0} className="gap-2">
               {submitting ? "Duke krijuar..." : "Krijo Faturë"}
             </Button>
           </DialogFooter>
