@@ -126,14 +126,17 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
               <div className="col-span-3">
                 {products.length > 0 ? (
-                  <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Zgjedh..." /></SelectTrigger>
-                    <SelectContent>
-                      {products.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Zgjedh produktin..." /></SelectTrigger>
+                      <SelectContent>
+                        {products.map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.name} (€{(p.price_ex_vat || 0).toFixed(2)})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input className="h-8 text-xs mt-1" placeholder="Ose shkruaj emrin..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+                  </>
                 ) : (
                   <Input className="h-8 text-xs" placeholder="Emri..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
                 )}

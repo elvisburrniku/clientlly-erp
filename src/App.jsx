@@ -20,7 +20,7 @@ import Inventory from './pages/Inventory';
 import Settings from './pages/Settings';
 import InvoiceDetail from './pages/InvoiceDetail';
 import ClientPortal from './pages/ClientPortal';
-import ProductCatalog from './pages/ProductCatalog';
+import ProductCatalog from './pages/ProductCatalog.jsx';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/catalog" element={<ProductCatalog />} />
+        <Route path="/products" element={<ProductCatalog />} />
         <Route path="/client" element={<ClientPortal />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
