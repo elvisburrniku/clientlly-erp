@@ -10,9 +10,68 @@
       "type": "string",
       "description": "Client name"
     },
+    "client_email": {
+      "type": "string",
+      "description": "Client email"
+    },
+    "client_phone": {
+      "type": "string",
+      "description": "Client phone (with country code)"
+    },
+    "items": {
+      "type": "array",
+      "description": "Invoice line items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "product",
+              "service"
+            ],
+            "description": "Product or service"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "description": "e.g. cope, kg, ore, m2"
+          },
+          "price_ex_vat": {
+            "type": "number",
+            "description": "Unit price without VAT"
+          },
+          "vat_rate": {
+            "type": "number",
+            "description": "VAT % e.g. 20"
+          },
+          "price_inc_vat": {
+            "type": "number",
+            "description": "Unit price with VAT"
+          },
+          "line_total": {
+            "type": "number",
+            "description": "Qty * price_inc_vat"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Total without VAT"
+    },
+    "vat_amount": {
+      "type": "number",
+      "description": "Total VAT amount"
+    },
     "amount": {
       "type": "number",
-      "description": "Invoice total in EUR"
+      "description": "Invoice total with VAT in EUR"
     },
     "status": {
       "type": "string",
@@ -25,6 +84,11 @@
       ],
       "default": "draft"
     },
+    "is_open": {
+      "type": "boolean",
+      "description": "Is the invoice open (unpaid)",
+      "default": true
+    },
     "payment_method": {
       "type": "string",
       "enum": [
@@ -36,12 +100,10 @@
     },
     "due_date": {
       "type": "string",
-      "format": "date",
-      "description": "Due date"
+      "format": "date"
     },
     "description": {
-      "type": "string",
-      "description": "Invoice description"
+      "type": "string"
     },
     "issued_by": {
       "type": "string",
