@@ -92,9 +92,8 @@ export default function Dashboard() {
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-baseline gap-2">
-              <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Mirë se vjen,</h1>
-              <span className="font-marker text-4xl text-primary">Finance! ✦</span>
+            <div>
+              <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Mirë se vjen <span className="text-muted-foreground font-light">👋</span></h1>
             </div>
             <p className="text-muted-foreground mt-1 text-sm">Ja çfarë po ndodh sot me biznesin tënd.</p>
           </div>
