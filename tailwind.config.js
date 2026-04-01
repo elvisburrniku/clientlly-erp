@@ -5,7 +5,8 @@ module.exports = {
   theme: {
   	extend: {
   		fontFamily: {
-  			inter: ['var(--font-inter)']
+  			inter: ['var(--font-inter)'],
+  			marker: ['var(--font-marker)']
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

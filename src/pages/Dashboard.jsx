@@ -90,9 +90,13 @@ export default function Dashboard() {
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <div className="flex items-end gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            </div>
+            {/* Handwritten accent */}
+            <span className="font-marker text-2xl text-primary/70 pb-1 rotate-[-3deg] inline-block">kaap 🖊</span>
           </div>
           <p className="text-sm text-muted-foreground">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
