@@ -93,7 +93,7 @@ export default function Dashboard() {
         <div className="flex items-start justify-between">
           <div>
             <div>
-              <h1 className="font-script text-5xl text-foreground">Mirë se vjen</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-foreground">Mirë se vjen</h1>
             </div>
             <p className="text-muted-foreground mt-1 text-sm">Ja çfarë po ndodh sot me biznesin tënd.</p>
           </div>
