@@ -7,6 +7,14 @@ import { Input } from "@/components/ui/input";
 import { FileText, Calendar, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const PDF_COLORS = {
+  header: [55, 65, 81],
+  darkText: [30, 41, 59],
+  grayText: [71, 85, 105],
+  lightRow: [249, 250, 251],
+  headerRow: [243, 244, 246],
+};
+
 const safe = (str) =>
   String(str || "")
     .replace(/ë/g, "e").replace(/Ë/g, "E")
@@ -18,7 +26,7 @@ function buildInvoicePage(doc, inv, isFirst) {
   const W = 210;
   const margin = 18;
 
-  doc.setFillColor(55, 65, 81);
+  doc.setFillColor(...PDF_COLORS.header);
   doc.rect(0, 0, W, 48, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
@@ -69,11 +77,11 @@ function buildInvoicePage(doc, inv, isFirst) {
   y += 34;
   const colX = [margin, 58, 90, 112, 136, 162, W - margin];
   const headers = ["Pershkrimi", "Lloji", "Sasi", "Njesia", "Cm. pa TVSH", "TVSH%", "Total"];
-  doc.setFillColor(243, 244, 246);
+  doc.setFillColor(...PDF_COLORS.headerRow);
   doc.rect(margin, y, W - margin * 2, 8, "F");
   doc.setFontSize(8);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(100, 100, 100);
+  doc.setTextColor(...PDF_COLORS.grayText);
   const hPos = [colX[0]+2, colX[1]+2, colX[2]+20, colX[3]+18, colX[4]+20, colX[5]+14, W - margin - 2];
   const hAligns = ["left","left","right","right","right","right","right"];
   headers.forEach((h, i) => doc.text(h, hPos[i], y + 5.5, { align: hAligns[i] }));
@@ -84,7 +92,7 @@ function buildInvoicePage(doc, inv, isFirst) {
   doc.setFontSize(9);
   items.forEach((item, idx) => {
     if (idx % 2 === 0) {
-      doc.setFillColor(249, 250, 251);
+      doc.setFillColor(...PDF_COLORS.lightRow);
       doc.rect(margin, y - 2, W - margin * 2, 8, "F");
     }
     doc.setTextColor(30, 30, 30);
@@ -109,7 +117,7 @@ function buildInvoicePage(doc, inv, isFirst) {
     doc.text(val, W - margin, y + i * 8, { align: "right" });
   });
   y += 18;
-  doc.setFillColor(55, 65, 81);
+  doc.setFillColor(...PDF_COLORS.header);
   doc.rect(boxX, y, boxW, 10, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
@@ -117,7 +125,7 @@ function buildInvoicePage(doc, inv, isFirst) {
   doc.text("TOTAL ME TVSH", boxX + 3, y + 6.8);
   doc.text(`E${(inv.amount || 0).toFixed(2)}`, W - margin - 2, y + 6.8, { align: "right" });
 
-  doc.setFillColor(243, 244, 246);
+  doc.setFillColor(...PDF_COLORS.headerRow);
   doc.rect(0, 282, W, 15, "F");
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");

@@ -3,17 +3,19 @@ import { Button } from "@/components/ui/button";
 import { jsPDF } from "jspdf";
 import { base44 } from "@/api/base44Client";
 
-// jsPDF built-in fonts don't support Albanian chars - use ASCII-safe versions
+const PDF_COLORS = {
+  header: [55, 65, 81],
+  darkText: [30, 41, 59],
+  grayText: [71, 85, 105],
+  lightRow: [249, 250, 251],
+  headerRow: [243, 244, 246],
+};
+
 const safe = (str) =>
   String(str || "")
     .replace(/ë/g, "e").replace(/Ë/g, "E")
     .replace(/ç/g, "c").replace(/Ç/g, "C")
     .replace(/—/g, "-");
-
-const hexToRgb = (hex) => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [67, 56, 202];
-};
 
 export default function InvoicePDFButton({ invoice }) {
   const generate = async () => {
@@ -25,7 +27,7 @@ export default function InvoicePDFButton({ invoice }) {
     const margin = 18;
 
     // Header band with custom color
-    doc.setFillColor(55, 65, 81);
+    doc.setFillColor(...PDF_COLORS.header);
     doc.rect(0, 0, W, 48, "F");
 
     // Logo if exists
@@ -94,11 +96,11 @@ export default function InvoicePDFButton({ invoice }) {
     const colX = [margin, 58, 90, 112, 136, 162, W - margin];
     const headers = ["Pershkrimi", "Lloji", "Sasi", "Njesia", "Cm. pa TVSH", "TVSH%", "Total"];
 
-    doc.setFillColor(243, 244, 246);
+    doc.setFillColor(...PDF_COLORS.headerRow);
     doc.rect(margin, y, W - margin * 2, 8, "F");
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(...PDF_COLORS.grayText);
     // left-aligned: 0,1 | right-aligned: 2,3,4,5,6
     const hAligns = ["left","left","right","right","right","right","right"];
     const hPositions = [colX[0]+2, colX[1]+2, colX[2]+20, colX[3]+18, colX[4]+20, colX[5]+14, W - margin - 2];
@@ -113,7 +115,7 @@ export default function InvoicePDFButton({ invoice }) {
 
     items.forEach((item, idx) => {
       if (idx % 2 === 0) {
-        doc.setFillColor(249, 250, 251);
+        doc.setFillColor(...PDF_COLORS.lightRow);
         doc.rect(margin, y - 2, W - margin * 2, 8, "F");
       }
       doc.setTextColor(30, 30, 30);
@@ -144,7 +146,7 @@ export default function InvoicePDFButton({ invoice }) {
     });
 
     y += 18;
-    doc.setFillColor(55, 65, 81);
+    doc.setFillColor(...PDF_COLORS.header);
     doc.rect(boxX, y, boxW, 10, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
@@ -164,7 +166,7 @@ export default function InvoicePDFButton({ invoice }) {
       doc.text(lines, margin, y + 6);
     }
 
-    doc.setFillColor(243, 244, 246);
+    doc.setFillColor(...PDF_COLORS.headerRow);
     doc.rect(0, 282, W, 15, "F");
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");

@@ -1,6 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { jsPDF } from 'npm:jspdf@4.0.0';
 
+const PDF_COLORS = {
+  header: [55, 65, 81],
+  darkText: [30, 41, 59],
+  grayText: [71, 85, 105],
+  lightGray: [226, 232, 240],
+  lightBg: [245, 248, 255],
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -19,10 +27,10 @@ Deno.serve(async (req) => {
     const contentWidth = pageWidth - 2 * margin;
 
     // Color scheme
-    const primaryColor = [55, 65, 81];
-    const lightGray = [226, 232, 240];
-    const darkText = [30, 41, 59];
-    const grayText = [71, 85, 105];
+    const primaryColor = PDF_COLORS.header;
+    const lightGray = PDF_COLORS.lightGray;
+    const darkText = PDF_COLORS.darkText;
+    const grayText = PDF_COLORS.grayText;
 
     // Header background
     doc.setFillColor(...primaryColor);
@@ -119,7 +127,7 @@ Deno.serve(async (req) => {
       let rowNum = 0;
       for (const inv of handover.invoices) {
         if (rowNum % 2 === 0) {
-          doc.setFillColor(245, 248, 255);
+          doc.setFillColor(...PDF_COLORS.lightBg);
           doc.rect(margin, y - 4, contentWidth, 6, 'F');
         }
         doc.setTextColor(...grayText);
