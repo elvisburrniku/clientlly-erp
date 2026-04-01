@@ -330,6 +330,26 @@ export default function Invoices() {
     );
   }
 
+  const openEdit = async (inv) => {
+    setEditInvoice(inv);
+    setForm({
+      invoice_type: inv.invoice_type || "standard",
+      client_name: inv.client_name,
+      client_email: inv.client_email,
+      client_phone: inv.client_phone,
+      client_nipt: inv.client_nipt,
+      client_address: inv.client_address,
+      payment_method: inv.payment_method,
+      payment_notes: inv.payment_notes || "",
+      internal_notes: inv.internal_notes || "",
+      due_date: inv.due_date || "",
+      description: inv.description || "",
+      is_recurring: inv.is_recurring || false,
+      recurring_interval: inv.recurring_interval || "monthly",
+      items: inv.items || [],
+    });
+  };
+
   const handleDelete = async (inv) => {
     if (!window.confirm(`Fshi faturën ${inv.invoice_number}?`)) return;
     await base44.entities.Invoice.delete(inv.id);
@@ -765,11 +785,7 @@ export default function Invoices() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Input placeholder="ose shkruaj emrin" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="text-sm" />
-                <div className="grid grid-cols-2 gap-3">
-                  <Input type="email" placeholder="Email" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="text-sm" />
-                  <Input placeholder="Telefon" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} className="text-sm" />
-                </div>
+                <Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="text-sm" />
                 <div className="grid grid-cols-2 gap-3">
                   <Input placeholder="NIPT" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="text-sm" />
                   <Input placeholder="Adresa" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="text-sm" />
@@ -931,7 +947,7 @@ export default function Invoices() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><Label>Klienti *</Label>
-                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
+               <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
                   <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh klientin" /></SelectTrigger>
                   <SelectContent>
                     {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -946,17 +962,6 @@ export default function Invoices() {
               <div><Label>NIPT</Label><Input placeholder="L XXXX XXXXX K XX" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="mt-1.5" /></div>
               <div><Label>Adresa</Label><Input placeholder="Adresa e klientit" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="mt-1.5" /></div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div><Label>Metoda e Pagesës</Label>
-                <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="bank_transfer">Transfer Bankar</SelectItem>
-                    <SelectItem value="card">Kartë</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
               <div><Label>Afati i Pagesës</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" /></div>
               <div><Label>Shënime Pagese</Label><Input placeholder="Llogarinë, termin e pagesës..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1.5" /></div>
             </div>
