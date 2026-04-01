@@ -962,13 +962,19 @@ export default function Invoices() {
               <div><Label>NIPT</Label><Input placeholder="L XXXX XXXXX K XX" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="mt-1.5" /></div>
               <div><Label>Adresa</Label><Input placeholder="Adresa e klientit" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="mt-1.5" /></div>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div><Label>Metoda e Pagesës</Label>
+                <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cash">Cash</SelectItem>
+                    <SelectItem value="bank_transfer">Transfer Bankar</SelectItem>
+                    <SelectItem value="card">Kartë</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div><Label>Afati i Pagesës</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" /></div>
               <div><Label>Shënime Pagese</Label><Input placeholder="Llogarinë, termin e pagesës..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1.5" /></div>
-            </div>
-            <div><Label>Shënime të Brendshme (vetëm për ekipin)</Label><Textarea placeholder="Shënime të fshehura nga klienti..." value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1.5" rows={2} /></div>
-            <div className="border-t pt-4">
-              <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
-              <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
             </div>
             <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 space-y-3 text-sm border border-primary/10">
               <div className="flex justify-between items-center"><span className="text-muted-foreground font-medium">Subtotal (pa TVSH)</span><span className="font-semibold text-foreground text-base">€{calcTotals(form.items).subtotal.toFixed(2)}</span></div>
