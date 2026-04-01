@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -9,6 +10,7 @@
   :root {
     --font-inter: 'Inter', sans-serif;
     --font-marker: 'Permanent Marker', cursive;
+    --font-script: 'Dancing Script', cursive;
     --background: 230 40% 97%;
     --foreground: 235 45% 12%;
     --card: 0 0% 100%;
