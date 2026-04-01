@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search } from "lucide-react";
+import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -106,6 +106,32 @@ export default function Invoices() {
     loadData();
   };
 
+  const exportCSV = () => {
+    const headers = ["Nr. Faturës", "Klienti", "Email", "Telefon", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Afati", "Data"];
+    const rows = filtered.map(inv => [
+      inv.invoice_number,
+      inv.client_name,
+      inv.client_email || "",
+      inv.client_phone || "",
+      (inv.subtotal || 0).toFixed(2),
+      (inv.vat_amount || 0).toFixed(2),
+      (inv.amount || 0).toFixed(2),
+      inv.status || "",
+      inv.is_open !== false ? "Hapur" : "Mbyllur",
+      inv.payment_method || "",
+      inv.due_date || "",
+      inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `faturat_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const toggleOpen = async (inv) => {
     await base44.entities.Invoice.update(inv.id, { is_open: !inv.is_open });
     toast.success(inv.is_open ? "Fatura u mbyll" : "Fatura u hap");
@@ -155,9 +181,15 @@ export default function Invoices() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
           <h1 className="text-3xl font-bold tracking-tight">Faturat</h1>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2 self-start sm:self-auto">
-          <Plus className="w-4 h-4" /> Krijo Faturë
-        </Button>
+        <div className="flex gap-2 self-start sm:self-auto">
+          <Button variant="outline" onClick={exportCSV} className="gap-2">
+            <Download className="w-4 h-4" /> Eksporto CSV
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> Krijo Faturë
+          </Button>
+        </div>
+
       </div>
 
       {/* Summary strip */}
