@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Info, Trash2, DollarSign } from "lucide-react";
+import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Info, Trash2, DollarSign, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Sheet as SheetComponent, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -300,7 +301,7 @@ export default function Invoices() {
       is_recurring: form.is_recurring || false,
       recurring_interval: form.is_recurring ? form.recurring_interval : undefined,
     });
-    toast.success(inv.is_open ? "Fatura u mbyll" : "Fatura u hap");
+    toast.success("Fatura u përditësua");
     loadData();
   };
 
@@ -486,39 +487,56 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Search & Filters */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <p className="text-sm font-semibold">Filtrat & Kërkimi</p>
-          <Button variant="ghost" size="icon" className={cn("h-8 w-8", searchOpen && "bg-muted")} onClick={() => setSearchOpen(o => !o)}>
-            <Search className="w-4 h-4" />
-          </Button>
-        </div>
-        {searchOpen && (
-          <div className="p-4 flex flex-col gap-3">
+      {/* Filter Button */}
+      <Button variant="outline" size="sm" onClick={() => setSearchOpen(true)} className="gap-2 w-fit">
+        <Search className="w-4 h-4" /> Filtrat & Kërkimi
+        {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-primary"></span>}
+      </Button>
+
+      {/* Filters Side Panel */}
+      <SheetComponent open={searchOpen} onOpenChange={setSearchOpen}>
+        <SheetContent side="right" className="w-full sm:w-[420px] p-0 flex flex-col">
+          <SheetHeader className="px-6 py-4 border-b border-border">
+            <div className="flex items-center justify-between">
+              <SheetTitle>Kërkimi & Filtrat</SheetTitle>
+              <SheetClose className="h-6 w-6 rounded-lg hover:bg-muted flex items-center justify-center">
+                <X className="h-4 w-4" />
+              </SheetClose>
+            </div>
+          </SheetHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+            {/* Search Type */}
             <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-1">Kërko sipas</label>
-              <div className="flex bg-muted rounded-lg p-0.5 mb-2">
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-3">Kërkimi</label>
+              <div className="flex gap-2">
                 <button
                   onClick={() => { setFilterSearchType("client"); setFilterClient(""); setPage(1); }}
-                  className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "client" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                  className={cn("flex-1 py-2 px-3 text-sm font-medium rounded-lg border-2 transition", filterSearchType === "client" ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/40")}
                 >Klienti</button>
                 <button
                   onClick={() => { setFilterSearchType("invoice"); setFilterClient(""); setPage(1); }}
-                  className={cn("flex-1 py-1.5 text-xs font-medium rounded-md transition-all", filterSearchType === "invoice" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
+                  className={cn("flex-1 py-2 px-3 text-sm font-medium rounded-lg border-2 transition", filterSearchType === "invoice" ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/40")}
                 >Nr. Faturës</button>
               </div>
+            </div>
+
+            {/* Search Input */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-2">Teksti</label>
               <input
                 type="text"
                 placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
                 value={filterClient}
                 onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-transparent"
               />
             </div>
+
+            {/* Quick Periods */}
             <div>
-              <label className="text-xs font-medium text-muted-foreground block mb-2">Periudha</label>
-              <div className="grid grid-cols-3 gap-2 mb-3">
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-3">Periudhat e Shpejta</label>
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   onClick={() => {
                     const today = new Date().toISOString().split('T')[0];
@@ -526,7 +544,7 @@ export default function Invoices() {
                     setFilterDateTo(today);
                     setPage(1);
                   }}
-                  className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                  className="py-2 px-2 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-muted transition"
                 >Sot</button>
                 <button
                   onClick={() => {
@@ -537,7 +555,7 @@ export default function Invoices() {
                     setFilterDateTo(end);
                     setPage(1);
                   }}
-                  className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                  className="py-2 px-2 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-muted transition"
                 >Muaj</button>
                 <button
                   onClick={() => {
@@ -548,41 +566,58 @@ export default function Invoices() {
                     setFilterDateTo(end);
                     setPage(1);
                   }}
-                  className="text-xs px-2 py-1.5 rounded-lg border border-border bg-white hover:bg-muted transition font-medium"
+                  className="py-2 px-2 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-muted transition"
                 >Vit</button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Nga Data</label>
-                <input
-                  type="date"
-                  value={filterDateFrom}
-                  onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground block mb-1">Deri më Date</label>
-                <input
-                  type="date"
-                  value={filterDateTo}
-                  onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
-                  className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
+
+            {/* Date Range */}
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-3">Periudha e Plotë</label>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1.5 font-medium">Nga Data</label>
+                  <input
+                    type="date"
+                    value={filterDateFrom}
+                    onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
+                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground block mb-1.5 font-medium">Deri më Data</label>
+                  <input
+                    type="date"
+                    value={filterDateTo}
+                    onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
+                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
               </div>
             </div>
-            {hasActiveFilters && (
-              <Button variant="outline" size="sm" onClick={clearFilters}>Pastro filtrat</Button>
-            )}
           </div>
-        )}
-      </div>
+
+          {/* Footer Actions */}
+          <div className="border-t border-border px-6 py-4 space-y-2">
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={clearFilters} className="w-full">
+                Pastro Filtrat
+              </Button>
+            )}
+            <SheetClose asChild>
+              <Button className="w-full">Mbyllur</Button>
+            </SheetClose>
+          </div>
+        </SheetContent>
+      </SheetComponent>
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
+          {hasActiveFilters && (
+            <button onClick={() => setSearchOpen(true)} className="text-xs font-semibold text-primary hover:underline">Redakto Filtrat</button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -975,6 +1010,11 @@ export default function Invoices() {
               </div>
               <div><Label>Afati i Pagesës</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" /></div>
               <div><Label>Shënime Pagese</Label><Input placeholder="Llogarinë, termin e pagesës..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1.5" /></div>
+            </div>
+            <div><Label>Shënime të Brendshme (vetëm për ekipin)</Label><Textarea placeholder="Shënime të fshehura nga klienti..." value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1.5" rows={2} /></div>
+            <div className="border-t pt-4">
+              <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
+              <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
             </div>
             <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 space-y-3 text-sm border border-primary/10">
               <div className="flex justify-between items-center"><span className="text-muted-foreground font-medium">Subtotal (pa TVSH)</span><span className="font-semibold text-foreground text-base">€{calcTotals(form.items).subtotal.toFixed(2)}</span></div>
