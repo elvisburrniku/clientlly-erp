@@ -89,16 +89,15 @@ export default function Dashboard() {
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-end gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Pasqyra</p>
-              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-baseline gap-2">
+              <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Mirë se vjen,</h1>
+              <span className="font-marker text-4xl text-primary">Finance! ✦</span>
             </div>
-            {/* Handwritten accent */}
-            <span className="font-marker text-2xl text-primary/70 pb-1 rotate-[-3deg] inline-block">kaap 🖊</span>
+            <p className="text-muted-foreground mt-1 text-sm">Ja çfarë po ndodh sot me biznesin tënd.</p>
           </div>
-          <p className="text-sm text-muted-foreground">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
         <div className="flex flex-wrap gap-3">
           {/* Period filter */}
