@@ -205,30 +205,8 @@ export default function Products() {
         </div>
       </div>
 
-      {/* View Type Toggle & Filter */}
+      {/* Filter & View Type Toggle */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 bg-white rounded-2xl border border-border/60 shadow-sm p-2">
-          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-2">Shfaqi:</span>
-          <div className="flex bg-muted rounded-xl p-1">
-            {[
-              { value: "all", label: "Të Gjitha" },
-              { value: "products", label: "Produktet" },
-              { value: "services", label: "Shërbimet" }
-            ].map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setViewType(opt.value)}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap",
-                  viewType === opt.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
           <SheetTrigger asChild>
             <button className={cn(
@@ -313,6 +291,28 @@ export default function Products() {
             </div>
           </SheetContent>
         </Sheet>
+
+        <div className="flex items-center gap-2 bg-white rounded-2xl border border-border/60 shadow-sm p-2">
+          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-2">Shfaqi:</span>
+          <div className="flex bg-muted rounded-xl p-1">
+            {[
+              { value: "all", label: "Të Gjitha" },
+              { value: "products", label: "Produktet" },
+              { value: "services", label: "Shërbimet" }
+            ].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setViewType(opt.value)}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap",
+                  viewType === opt.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Table */}
