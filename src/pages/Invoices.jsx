@@ -376,31 +376,34 @@ export default function Invoices() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="p-6 lg:p-10 space-y-8">
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
-          <h1 className="text-3xl font-bold tracking-tight">Faturat</h1>
+      <div className="space-y-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
+            <h1 className="text-4xl font-bold tracking-tight">Faturat</h1>
+          </div>
+          <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
-        <div className="flex flex-wrap gap-2 self-start sm:self-auto">
-          <Button variant="outline" onClick={exportExcel} className="gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={exportExcel} className="gap-2 rounded-xl">
             <Sheet className="w-4 h-4" /> Excel
           </Button>
-          <Button variant="outline" onClick={exportPDFList} className="gap-2">
-            <Download className="w-4 h-4" /> PDF Listë
+          <Button variant="outline" onClick={exportPDFList} className="gap-2 rounded-xl">
+            <Download className="w-4 h-4" /> PDF
           </Button>
-          <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2">
-            <Layers className="w-4 h-4" /> Merge PDF
+          <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2 rounded-xl">
+            <Layers className="w-4 h-4" /> Merge
           </Button>
-          <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2">
-            <Plus className="w-4 h-4" /> Krijo Faturë
+          <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2 rounded-xl ml-auto">
+            <Plus className="w-4 h-4" /> Faturë e Re
           </Button>
         </div>
-      </div>
+        </div>
 
-      {/* Summary strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
           <p className="text-2xl font-bold mt-1">{invoices.length}</p>
@@ -437,13 +440,13 @@ export default function Invoices() {
        )}
       </button>
 
-      {/* Filters Side Drawer */}
+      {/* Filters Drawer */}
       <SheetComponent open={searchOpen} onOpenChange={setSearchOpen}>
-        <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
-          <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
+        <SheetContent side="right" className="w-full sm:w-[420px] p-0 flex flex-col bg-gradient-to-b from-white to-slate-50">
+          <div className="px-6 py-5 border-b border-slate-200 bg-white flex items-center justify-between shrink-0 rounded-b-2xl shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <SlidersHorizontal className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
+                <SlidersHorizontal className="w-5 h-5 text-white" />
               </div>
               <div>
                 <p className="font-bold text-[15px]">Filtrat & Kërkimi</p>
@@ -452,7 +455,7 @@ export default function Invoices() {
                 </p>
               </div>
             </div>
-            <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition">
+            <SheetClose className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-muted-foreground hover:text-foreground transition">
               <X className="h-4 w-4" />
             </SheetClose>
           </div>
@@ -596,7 +599,7 @@ export default function Invoices() {
       </SheetComponent>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
           <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
           <div className="flex items-center gap-1.5 ml-auto">
@@ -733,8 +736,9 @@ export default function Invoices() {
       </div>
 
       {/* Create Dialog */}
+      {/* Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle>Krijo Faturë të Re</DialogTitle>
             <DialogDescription>Plotëso të dhënat e faturës hap pas hapi</DialogDescription>
@@ -845,7 +849,7 @@ export default function Invoices() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editInvoice} onOpenChange={(o) => { if (!o) { setEditInvoice(null); setForm(emptyForm()); } }}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle>Modifiko Faturën — {editInvoice?.invoice_number}</DialogTitle>
             <DialogDescription>Përditëso të dhënat e faturës</DialogDescription>
