@@ -201,31 +201,29 @@ export default function ClientSelector({ selectedClient, onClientSelect }) {
                     onChange={(e) => setNewClient({ ...newClient, business_name: e.target.value })}
                   />
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">NUP</label>
-                    <Input
-                      placeholder="Nr. Unik Identifikues"
-                      value={newClient.business_nup}
-                      onChange={(e) => setNewClient({ ...newClient, business_nup: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">TVSH</label>
-                    <Input
-                      placeholder="Nr. i TVSH"
-                      value={newClient.business_tvsh}
-                      onChange={(e) => setNewClient({ ...newClient, business_tvsh: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Qyteti</label>
-                    <Input
-                      placeholder="Qyteti"
-                      value={newClient.business_city}
-                      onChange={(e) => setNewClient({ ...newClient, business_city: e.target.value })}
-                    />
-                  </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Nr. Unik Identifikues (NUP)</label>
+                  <Input
+                    placeholder="NUP"
+                    value={newClient.business_nup}
+                    onChange={(e) => setNewClient({ ...newClient, business_nup: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Nr. i TVSH</label>
+                  <Input
+                    placeholder="TVSH"
+                    value={newClient.business_tvsh}
+                    onChange={(e) => setNewClient({ ...newClient, business_tvsh: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Qyteti</label>
+                  <Input
+                    placeholder="Qyteti"
+                    value={newClient.business_city}
+                    onChange={(e) => setNewClient({ ...newClient, business_city: e.target.value })}
+                  />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1">Adresa</label>
@@ -236,42 +234,38 @@ export default function ClientSelector({ selectedClient, onClientSelect }) {
                     rows={2}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Numri Telefonit #1</label>
-                    <Input
-                      placeholder="Tel. #1"
-                      value={newClient.business_phone1}
-                      onChange={(e) => setNewClient({ ...newClient, business_phone1: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Numri Telefonit #2</label>
-                    <Input
-                      placeholder="Tel. #2"
-                      value={newClient.business_phone2}
-                      onChange={(e) => setNewClient({ ...newClient, business_phone2: e.target.value })}
-                    />
-                  </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Numri Telefonit #1</label>
+                  <Input
+                    placeholder="Tel. #1"
+                    value={newClient.business_phone1}
+                    onChange={(e) => setNewClient({ ...newClient, business_phone1: e.target.value })}
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Email</label>
-                    <Input
-                      type="email"
-                      placeholder="Email i biznesit"
-                      value={newClient.business_email}
-                      onChange={(e) => setNewClient({ ...newClient, business_email: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground block mb-1">Web</label>
-                    <Input
-                      placeholder="www.domain.com"
-                      value={newClient.business_website}
-                      onChange={(e) => setNewClient({ ...newClient, business_website: e.target.value })}
-                    />
-                  </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Numri Telefonit #2</label>
+                  <Input
+                    placeholder="Tel. #2"
+                    value={newClient.business_phone2}
+                    onChange={(e) => setNewClient({ ...newClient, business_phone2: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Email</label>
+                  <Input
+                    type="email"
+                    placeholder="Email i biznesit"
+                    value={newClient.business_email}
+                    onChange={(e) => setNewClient({ ...newClient, business_email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Web</label>
+                  <Input
+                    placeholder="www.domain.com"
+                    value={newClient.business_website}
+                    onChange={(e) => setNewClient({ ...newClient, business_website: e.target.value })}
+                  />
                 </div>
               </div>
             </div>
