@@ -423,21 +423,6 @@ export default function Expenses() {
         </SheetContent>
       </SheetComponent>
 
-      {/* By Category */}
-      {byCategory.length > 0 && (
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-          <h3 className="text-base font-semibold mb-4">Sipas Kategorive</h3>
-          <div className="space-y-3">
-            {byCategory.map(({ category, total }) => (
-              <div key={category.id} className="flex justify-between items-center py-2">
-                <span className="text-sm text-muted-foreground">{category.name}</span>
-                <span className="font-medium">€{total.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
