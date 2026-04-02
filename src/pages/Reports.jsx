@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import RevenueExpenseChart from "../components/reports/RevenueExpenseChart";
 import CategoryFilter from "../components/reports/CategoryFilter";
 import ClientSegmentFilter from "../components/reports/ClientSegmentFilter";
@@ -15,6 +16,153 @@ export default function Reports() {
   const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
   const [chartData, setChartData] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [debtors, setDebtors] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [cashTransactions, setCashTransactions] = useState([]);
+  const [loadingReport, setLoadingReport] = useState(null);
+
+  useEffect(() => {
+    loadReportData();
+  }, []);
+
+  const loadReportData = async () => {
+    const [invs, sups, cashTxns] = await Promise.all([
+      base44.entities.Invoice.list("-created_date", 500),
+      base44.entities.Supplier.list("-created_date", 500),
+      base44.entities.CashTransaction.list("-created_date", 500),
+    ]);
+    setInvoices(invs);
+    setSuppliers(sups);
+    setCashTransactions(cashTxns);
+
+    // Calculate debtors from invoices
+    const debtorMap = {};
+    invs.forEach((inv) => {
+      if (inv.is_open) {
+        if (!debtorMap[inv.client_name]) {
+          debtorMap[inv.client_name] = { name: inv.client_name, total: 0 };
+        }
+        debtorMap[inv.client_name].total += inv.amount;
+      }
+    });
+    setDebtors(Object.values(debtorMap));
+  };
+
+  const downloadInvoicesReport = () => {
+    downloadReport('invoices', 'Faturat', invoices);
+  };
+
+  const downloadDebtorsReport = () => {
+    downloadReport('debtors', 'Borxhet', debtors);
+  };
+
+  const downloadSuppliersReport = () => {
+    downloadReport('suppliers', 'Furnitorët', suppliers);
+  };
+
+  const downloadCashboxReport = () => {
+    downloadReport('cashbox', 'Arka', cashTransactions);
+  };
+
+  const downloadReport = async (type, title, data) => {
+    setLoadingReport(type);
+    try {
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
+      const W = 210;
+      const margin = 14;
+      const cw = W - margin * 2;
+      let y = 20;
+
+      // Header
+      doc.setFillColor(107, 114, 126);
+      doc.rect(0, 0, W, 25, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.text(title.toUpperCase(), margin, 15);
+
+      // Date
+      doc.setFontSize(8);
+      doc.text(`Data e Raportit: ${moment().format('DD MMM YYYY')}`, W - margin, 15, { align: 'right' });
+
+      y = 35;
+
+      // Table header
+      doc.setFillColor(107, 114, 126);
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+
+      if (type === 'invoices') {
+        doc.rect(margin, y - 4, cw, 7, 'F');
+        doc.text('Nr. Faturës', margin + 2, y);
+        doc.text('Klienti', margin + 40, y);
+        doc.text('Shuma', W - margin - 2, y, { align: 'right' });
+        y += 8;
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'normal');
+        invoices.slice(0, 100).forEach((inv, i) => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
+          doc.text(inv.invoice_number || '', margin + 2, y);
+          doc.text((inv.client_name || '').slice(0, 25), margin + 40, y);
+          doc.text(`€${inv.amount.toFixed(2)}`, W - margin - 2, y, { align: 'right' });
+          y += 5;
+        });
+      } else if (type === 'debtors') {
+        doc.rect(margin, y - 4, cw, 7, 'F');
+        doc.text('Debitori', margin + 2, y);
+        doc.text('Borxhi', W - margin - 2, y, { align: 'right' });
+        y += 8;
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'normal');
+        debtors.slice(0, 100).forEach((d, i) => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
+          doc.text(d.name || '', margin + 2, y);
+          doc.text(`€${d.total.toFixed(2)}`, W - margin - 2, y, { align: 'right' });
+          y += 5;
+        });
+      } else if (type === 'suppliers') {
+        doc.rect(margin, y - 4, cw, 7, 'F');
+        doc.text('Furnitori', margin + 2, y);
+        doc.text('Email', margin + 60, y);
+        y += 8;
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'normal');
+        suppliers.slice(0, 100).forEach((s, i) => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
+          doc.text(s.name || '', margin + 2, y);
+          doc.text((s.email || '').slice(0, 30), margin + 60, y);
+          y += 5;
+        });
+      } else if (type === 'cashbox') {
+        doc.rect(margin, y - 4, cw, 7, 'F');
+        doc.text('Data', margin + 2, y);
+        doc.text('Tipi', margin + 40, y);
+        doc.text('Shuma', W - margin - 2, y, { align: 'right' });
+        y += 8;
+        doc.setTextColor(40, 40, 40);
+        doc.setFont('helvetica', 'normal');
+        cashTransactions.slice(0, 100).forEach((t, i) => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
+          doc.text(moment(t.created_date).format('DD MMM'), margin + 2, y);
+          doc.text(t.type === 'cash_in' ? 'Hyrje' : 'Dalje', margin + 40, y);
+          doc.text(`€${t.amount.toFixed(2)}`, W - margin - 2, y, { align: 'right' });
+          y += 5;
+        });
+      }
+
+      doc.save(`${type}-raporti.pdf`);
+    } catch (error) {
+      console.error('Error generating report:', error);
+    }
+    setLoadingReport(null);
+  };
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -50,6 +198,25 @@ export default function Reports() {
             </div>
           </div>
           <ReportPDFExport dateFrom={dateFrom} dateTo={dateTo} categoryFilter={categoryFilter} chartData={chartData} />
+        </div>
+      </div>
+
+      {/* Quick Download Reports */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Button onClick={downloadInvoicesReport} disabled={loadingReport === 'invoices'} className="gap-2" variant="outline">
+            <Download className="w-4 h-4" /> {loadingReport === 'invoices' ? 'Duke shkarkuar...' : 'Faturat'}
+          </Button>
+          <Button onClick={downloadDebtorsReport} disabled={loadingReport === 'debtors'} className="gap-2" variant="outline">
+            <Download className="w-4 h-4" /> {loadingReport === 'debtors' ? 'Duke shkarkuar...' : 'Borxhet'}
+          </Button>
+          <Button onClick={downloadSuppliersReport} disabled={loadingReport === 'suppliers'} className="gap-2" variant="outline">
+            <Download className="w-4 h-4" /> {loadingReport === 'suppliers' ? 'Duke shkarkuar...' : 'Furnitorët'}
+          </Button>
+          <Button onClick={downloadCashboxReport} disabled={loadingReport === 'cashbox'} className="gap-2" variant="outline">
+            <Download className="w-4 h-4" /> {loadingReport === 'cashbox' ? 'Duke shkarkuar...' : 'Arka'}
+          </Button>
         </div>
       </div>
 
