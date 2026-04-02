@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Check, X, FileText, Send } from "lucide-react";
+import { Plus, Check, X, FileText, Send, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ export default function CashHandover() {
   const [emailLoading, setEmailLoading] = useState(null);
   const [cashInvoices, setCashInvoices] = useState([]);
   const [selectedInvoices, setSelectedInvoices] = useState([]);
+  const [detailHandover, setDetailHandover] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -223,6 +224,9 @@ export default function CashHandover() {
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{h.note || "—"}</td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1.5">
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setDetailHandover(h)}>
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
                         {h.status === "pending" && isManager && (
                           <>
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-success hover:text-success" onClick={() => handleApproveWithInvoices(h)}>
@@ -231,39 +235,69 @@ export default function CashHandover() {
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive" onClick={() => handleReject(h)}>
                               <X className="w-4 h-4" />
                             </Button>
-                            </>
-                            )}
-                            {h.status === "approved" && (
+                          </>
+                        )}
+                        {h.status === "approved" && (
                           <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleGeneratePdf(h)}
-                              disabled={pdfLoading === h.id}
-                            >
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleGeneratePdf(h)} disabled={pdfLoading === h.id}>
                               <FileText className="w-4 h-4" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 w-8 p-0"
-                              onClick={() => handleSendEmail(h)}
-                              disabled={emailLoading === h.id}
-                            >
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => handleSendEmail(h)} disabled={emailLoading === h.id}>
                               <Send className="w-4 h-4" />
                             </Button>
                           </>
                         )}
                       </div>
                     </td>
-                  </tr>
+                    </tr>
                 ))
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Detail Dialog */}
+      <Dialog open={!!detailHandover} onOpenChange={(o) => { if (!o) setDetailHandover(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Detajet e Kërkesës</DialogTitle>
+          </DialogHeader>
+          {detailHandover && (
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><p className="text-xs text-muted-foreground">Përdoruesi</p><p className="font-semibold mt-0.5">{detailHandover.user_name}</p></div>
+                <div><p className="text-xs text-muted-foreground">Data</p><p className="font-semibold mt-0.5">{moment(detailHandover.created_date).format("DD MMM YYYY HH:mm")}</p></div>
+                <div><p className="text-xs text-muted-foreground">Shuma</p><p className="font-bold text-lg text-primary mt-0.5">€{(detailHandover.amount || 0).toFixed(2)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Statusi</p><div className="mt-0.5">{statusBadge(detailHandover.status)}</div></div>
+              </div>
+              {detailHandover.note && <div className="bg-muted/30 rounded-lg p-3 text-sm"><p className="text-xs text-muted-foreground mb-1">Shënim</p><p>{detailHandover.note}</p></div>}
+              {detailHandover.invoices?.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Faturat e Përfshira</p>
+                  <div className="border border-border rounded-lg divide-y divide-border">
+                    {detailHandover.invoices.map((inv, i) => (
+                      <div key={i} className="flex justify-between items-center px-3 py-2.5 text-sm">
+                        <div><p className="font-medium">{inv.invoice_number}</p><p className="text-xs text-muted-foreground">{inv.client_name}</p></div>
+                        <span className="font-bold">€{(inv.amount || 0).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {detailHandover.rejection_reason && <div className="bg-destructive/10 rounded-lg p-3 text-sm"><p className="text-xs text-destructive font-semibold mb-1">Arsyeja e Refuzimit</p><p>{detailHandover.rejection_reason}</p></div>}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailHandover(null)}>Mbyll</Button>
+            {detailHandover?.status === 'pending' && isManager && (
+              <Button onClick={() => { handleApproveWithInvoices(detailHandover); setDetailHandover(null); }} className="gap-2">
+                <Check className="w-4 h-4" /> Aprovo
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
