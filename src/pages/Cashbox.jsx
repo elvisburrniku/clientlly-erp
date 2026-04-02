@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { useLanguage } from "@/lib/useLanguage";
 import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, FileSpreadsheet, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet as SheetDrawer, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -15,6 +16,7 @@ import moment from "moment";
 
 export default function Cashbox() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const tenantId = user?.tenant_id;
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -234,14 +236,14 @@ export default function Cashbox() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Arka</h1>
-          <p className="text-sm text-muted-foreground mt-1">Menaxhimi i parave të gatshme</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t('cashbox')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('cashManagement')}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
-          <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF Raport</Button>
-          <Button onClick={() => openDialog("cash_in")} className="gap-2"><Plus className="w-4 h-4" /> Shto Para</Button>
-          <Button onClick={() => openDialog("cash_out")} variant="outline" className="gap-2"><Minus className="w-4 h-4" /> Tërhiq Para</Button>
+           <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> {t('exportExcel')}</Button>
+           <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> {t('exportPDF')}</Button>
+           <Button onClick={() => openDialog("cash_in")} className="gap-2"><Plus className="w-4 h-4" /> {t('addCash')}</Button>
+           <Button onClick={() => openDialog("cash_out")} variant="outline" className="gap-2"><Minus className="w-4 h-4" /> {t('withdrawCash')}</Button>
           </div>
       </div>
 
@@ -253,7 +255,7 @@ export default function Cashbox() {
               <Wallet className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Bilanci</p>
+              <p className="text-sm text-muted-foreground">{t('balance')}</p>
               <p className="text-xl font-bold">€{balance.toLocaleString()}</p>
             </div>
           </div>
@@ -264,7 +266,7 @@ export default function Cashbox() {
               <ArrowDownCircle className="w-5 h-5 text-success" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Hyrjet (Kredi)</p>
+              <p className="text-sm text-muted-foreground">{t('cashIn')}</p>
               <p className="text-xl font-bold text-success">€{cashIn.toLocaleString()}</p>
             </div>
           </div>
@@ -275,7 +277,7 @@ export default function Cashbox() {
               <ArrowUpCircle className="w-5 h-5 text-destructive" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Daljet (Debi)</p>
+              <p className="text-sm text-muted-foreground">{t('cashOut')}</p>
               <p className="text-xl font-bold text-destructive">€{cashOut.toLocaleString()}</p>
             </div>
           </div>

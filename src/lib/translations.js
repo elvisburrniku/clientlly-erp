@@ -191,6 +191,7 @@ export const translations = {
     cardType: "Lloji i Kartës",
     cardLastFour: "4 Shifrat e Fundit",
     cashbox: "Arka",
+    cashManagement: "Menaxhimi i parave të gatshme",
     balance: "Bilanci",
     cashIn: "Hyrje (Kredi)",
     cashOut: "Dalje (Debi)",
@@ -383,6 +384,18 @@ export const translations = {
 
     // Multi-language
     selectLanguage: "Zgjidh Gjuhën",
+    manage: "Menaxhimi",
+    noData: "Nuk ka të dhëna",
+    empty: "Bosh",
+    loading: "Duke u ngarkuar...",
+    saving: "Duke ruajtur...",
+    processing: "Po përpunohet...",
+    done: "U plotësua",
+    failed: "Dështoi",
+    tryAgain: "Provo përsëri",
+    confirmDelete: "A jeni i sigurt?",
+    areYouSure: "A jeni i sigurt se dëshironi ta fshini?",
+    deleteForever: "Kjo nuk mund të prapakthehet",
   },
 
   en: {
@@ -577,6 +590,7 @@ export const translations = {
     cardType: "Card Type",
     cardLastFour: "Card Last Four",
     cashbox: "Cashbox",
+    cashManagement: "Cash Management",
     balance: "Balance",
     cashIn: "Cash In",
     cashOut: "Cash Out",
@@ -769,6 +783,18 @@ export const translations = {
 
     // Multi-language
     selectLanguage: "Select Language",
+    manage: "Management",
+    noData: "No data",
+    empty: "Empty",
+    loading: "Loading...",
+    saving: "Saving...",
+    processing: "Processing...",
+    done: "Complete",
+    failed: "Failed",
+    tryAgain: "Try again",
+    confirmDelete: "Are you sure?",
+    areYouSure: "Are you sure you want to delete?",
+    deleteForever: "This cannot be undone",
   },
 
   es: {
@@ -963,6 +989,7 @@ export const translations = {
     cardType: "Tipo de Tarjeta",
     cardLastFour: "Últimos Cuatro Dígitos",
     cashbox: "Caja",
+    cashManagement: "Gestión de Efectivo",
     balance: "Saldo",
     cashIn: "Entrada de Efectivo",
     cashOut: "Salida de Efectivo",
@@ -1349,6 +1376,7 @@ export const translations = {
     cardType: "Kartentyp",
     cardLastFour: "Letzte vier Ziffern",
     cashbox: "Kasse",
+    cashManagement: "Kassenverwaltung",
     balance: "Saldo",
     cashIn: "Bargeldeingänge",
     cashOut: "Bargelauszahlungen",
@@ -1541,6 +1569,18 @@ export const translations = {
 
     // Multi-language
     selectLanguage: "Sprache auswählen",
+    manage: "Verwaltung",
+    noData: "Keine Daten",
+    empty: "Leer",
+    loading: "Wird geladen...",
+    saving: "Wird gespeichert...",
+    processing: "Wird bearbeitet...",
+    done: "Abgeschlossen",
+    failed: "Fehlgeschlagen",
+    tryAgain: "Erneut versuchen",
+    confirmDelete: "Bist du sicher?",
+    areYouSure: "Bist du sicher, dass du löschen möchtest?",
+    deleteForever: "Dies kann nicht rückgängig gemacht werden",
   },
 
   mk: {
@@ -1735,6 +1775,7 @@ export const translations = {
     cardType: "Тип на Картичка",
     cardLastFour: "Последни Четири Цифри",
     cashbox: "Касичка",
+    cashManagement: "Управување со Готово",
     balance: "Салдо",
     cashIn: "Примена на Готово",
     cashOut: "Излез на Готово",
