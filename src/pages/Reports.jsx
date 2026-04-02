@@ -8,6 +8,7 @@ import ReportPDFExport from "../components/reports/ReportPDFExport";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import moment from "moment";
 
 export default function Reports() {
@@ -21,6 +22,7 @@ export default function Reports() {
   const [suppliers, setSuppliers] = useState([]);
   const [cashTransactions, setCashTransactions] = useState([]);
   const [loadingReport, setLoadingReport] = useState(null);
+  const [selectedReport, setSelectedReport] = useState('all');
 
   useEffect(() => {
     loadReportData();
@@ -49,20 +51,21 @@ export default function Reports() {
     setDebtors(Object.values(debtorMap));
   };
 
-  const downloadInvoicesReport = () => {
-    downloadReport('invoices', 'Faturat', invoices);
-  };
-
-  const downloadDebtorsReport = () => {
-    downloadReport('debtors', 'Borxhet', debtors);
-  };
-
-  const downloadSuppliersReport = () => {
-    downloadReport('suppliers', 'Furnitorët', suppliers);
-  };
-
-  const downloadCashboxReport = () => {
-    downloadReport('cashbox', 'Arka', cashTransactions);
+  const handleDownload = () => {
+    if (selectedReport === 'all') {
+      downloadReport('invoices', 'Faturat', invoices);
+      setTimeout(() => downloadReport('debtors', 'Borxhet', debtors), 500);
+      setTimeout(() => downloadReport('suppliers', 'Furnitorët', suppliers), 1000);
+      setTimeout(() => downloadReport('cashbox', 'Arka', cashTransactions), 1500);
+    } else if (selectedReport === 'invoices') {
+      downloadReport('invoices', 'Faturat', invoices);
+    } else if (selectedReport === 'debtors') {
+      downloadReport('debtors', 'Borxhet', debtors);
+    } else if (selectedReport === 'suppliers') {
+      downloadReport('suppliers', 'Furnitorët', suppliers);
+    } else if (selectedReport === 'cashbox') {
+      downloadReport('cashbox', 'Arka', cashTransactions);
+    }
   };
 
   const downloadReport = async (type, title, data) => {
@@ -204,18 +207,24 @@ export default function Reports() {
       {/* Quick Download Reports */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
         <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Button onClick={downloadInvoicesReport} disabled={loadingReport === 'invoices'} className="gap-2" variant="outline">
-            <Download className="w-4 h-4" /> {loadingReport === 'invoices' ? 'Duke shkarkuar...' : 'Faturat'}
-          </Button>
-          <Button onClick={downloadDebtorsReport} disabled={loadingReport === 'debtors'} className="gap-2" variant="outline">
-            <Download className="w-4 h-4" /> {loadingReport === 'debtors' ? 'Duke shkarkuar...' : 'Borxhet'}
-          </Button>
-          <Button onClick={downloadSuppliersReport} disabled={loadingReport === 'suppliers'} className="gap-2" variant="outline">
-            <Download className="w-4 h-4" /> {loadingReport === 'suppliers' ? 'Duke shkarkuar...' : 'Furnitorët'}
-          </Button>
-          <Button onClick={downloadCashboxReport} disabled={loadingReport === 'cashbox'} className="gap-2" variant="outline">
-            <Download className="w-4 h-4" /> {loadingReport === 'cashbox' ? 'Duke shkarkuar...' : 'Arka'}
+        <div className="flex flex-col sm:flex-row gap-3 items-end">
+          <div className="flex-1">
+            <Label className="text-xs font-semibold mb-2 block">Zgjidh Raportin</Label>
+            <Select value={selectedReport} onValueChange={setSelectedReport}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Të Gjitha Raportet</SelectItem>
+                <SelectItem value="invoices">Faturat</SelectItem>
+                <SelectItem value="debtors">Borxhet</SelectItem>
+                <SelectItem value="suppliers">Furnitorët</SelectItem>
+                <SelectItem value="cashbox">Arka</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleDownload} disabled={loadingReport !== null} className="gap-2" variant="default">
+            <Download className="w-4 h-4" /> {loadingReport ? 'Duke shkarkuar...' : 'Shkarko'}
           </Button>
         </div>
       </div>
