@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Pencil, MoreHorizontal } from "lucide-react";
+import { Plus, Trash2, Pencil, MoreHorizontal, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
+import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,10 @@ export default function Products() {
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
   const [editId, setEditId] = useState(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterType, setFilterType] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterSearch, setFilterSearch] = useState("");
 
   useEffect(() => { loadData(); }, []);
 
@@ -82,6 +88,73 @@ export default function Products() {
     }
   };
 
+  const filtered = products.filter(p => {
+    if (filterType && p.type !== filterType) return false;
+    if (filterStatus === "active" && !p.is_active) return false;
+    if (filterStatus === "inactive" && p.is_active) return false;
+    if (filterSearch && !p.name?.toLowerCase().includes(filterSearch.toLowerCase())) return false;
+    return true;
+  });
+
+  const hasFilters = filterType || filterStatus || filterSearch;
+  const activeFilterCount = [filterType, filterStatus, filterSearch].filter(Boolean).length;
+  const clearFilters = () => { setFilterType(""); setFilterStatus(""); setFilterSearch(""); };
+
+  const exportExcel = () => {
+    const headers = ["Emri", "Lloji", "Çmim pa TVSH", "TVSH %", "Çmim me TVSH", "Njësia", "Statusi"];
+    const rows = filtered.map(p => [
+      p.name, p.type === "product" ? "Produkt" : "Shërbim",
+      (p.price_ex_vat || 0).toFixed(2),
+      `${p.vat_rate || 20}%`,
+      ((p.price_ex_vat || 0) * (1 + (p.vat_rate || 20) / 100)).toFixed(2),
+      p.unit || "cope",
+      p.is_active ? "Aktiv" : "Joaktiv",
+    ]);
+    const html = `<html><head><meta charset="UTF-8"></head><body><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`;
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `produktet_${new Date().toISOString().slice(0,10)}.xls`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const W = 210; const H = 297; const margin = 14; const cw = W - margin * 2;
+    doc.setFillColor(67, 56, 202); doc.rect(0, 0, W, 38, "F");
+    doc.setTextColor(255, 255, 255); doc.setFontSize(18); doc.setFont("helvetica", "bold");
+    doc.text("LISTA E PRODUKTEVE", margin, 18);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+    doc.text("Gjeneruar: " + new Date().toLocaleDateString("sq-AL"), margin, 28);
+    let y = 50;
+    doc.setFillColor(67, 56, 202); doc.rect(margin, y - 4, cw, 8, "F");
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica", "bold");
+    doc.text("Emri", margin + 2, y + 1);
+    doc.text("Lloji", margin + 70, y + 1);
+    doc.text("Cmim", margin + 100, y + 1);
+    doc.text("TVSH", margin + 125, y + 1);
+    doc.text("Njesia", margin + 145, y + 1);
+    doc.text("Statusi", margin + 165, y + 1);
+    y += 10;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+    filtered.forEach((p, ri) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      if (ri % 2 === 0) { doc.setFillColor(245,247,255); doc.rect(margin, y - 4, cw, 7, "F"); }
+      doc.setTextColor(40,40,40);
+      doc.text((p.name || "").slice(0, 30), margin + 2, y);
+      doc.text(p.type === "product" ? "Produkt" : "Sherbim", margin + 70, y);
+      doc.text("\u20ac" + (p.price_ex_vat || 0).toFixed(2), margin + 100, y);
+      doc.text((p.vat_rate || 20) + "%", margin + 125, y);
+      doc.text(p.unit || "cope", margin + 145, y);
+      doc.setTextColor(p.is_active ? 22 : 150, p.is_active ? 163 : 150, p.is_active ? 74 : 150);
+      doc.text(p.is_active ? "Aktiv" : "Joaktiv", margin + 165, y);
+      y += 7;
+    });
+    doc.setFillColor(67, 56, 202); doc.rect(0, H - 14, W, 14, "F");
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont("helvetica", "normal");
+    doc.text("Ky dokument u gjenerua automatikisht.", W/2, H-6, { align: "center" });
+    doc.save(`produktet_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -98,9 +171,13 @@ export default function Products() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
           <h1 className="text-3xl font-bold tracking-tight">Produktet & Shërbimet</h1>
         </div>
-        <Button onClick={() => { setForm(emptyForm()); setEditId(null); setDialogOpen(true); }} className="gap-2">
-          <Plus className="w-4 h-4" /> Shto Produkt
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
+          <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+          <Button onClick={() => { setForm(emptyForm()); setEditId(null); setDialogOpen(true); }} className="gap-2">
+            <Plus className="w-4 h-4" /> Shto Produkt
+          </Button>
+        </div>
       </div>
 
       {/* Summary */}
@@ -119,10 +196,84 @@ export default function Products() {
         </div>
       </div>
 
+      {/* Filter button */}
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+        <SheetTrigger asChild>
+          <button className={cn(
+            "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
+            hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
+          )}>
+            <SlidersHorizontal className="w-4 h-4" />
+            Filtrat & Kërkimi
+            {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
+          </button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
+          <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <SlidersHorizontal className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-bold text-[15px]">Filtrat & Kërkimi</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{hasFilters ? `${activeFilterCount} filtr aktiv` : "Filtro produktet"}</p>
+              </div>
+            </div>
+            <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition">
+              <X className="h-4 w-4" />
+            </SheetClose>
+          </div>
+          <div className="flex-1 overflow-y-auto bg-background">
+            <div className="px-6 pt-6 pb-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Search className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Kërkim</span>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input type="text" placeholder="Emri i produktit..." value={filterSearch}
+                  onChange={e => setFilterSearch(e.target.value)}
+                  className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                {filterSearch && <button onClick={() => setFilterSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+              </div>
+            </div>
+            <div className="h-px bg-border mx-6" />
+            <div className="px-6 pt-5 pb-5">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Lloji</span>
+              <div className="flex bg-muted rounded-xl p-1">
+                {[["","Të gjitha"],["product","Produkte"],["service","Shëbime"]].map(([v,l]) => (
+                  <button key={v} onClick={() => setFilterType(v)}
+                    className={cn("flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                      filterType === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+                ))}
+              </div>
+            </div>
+            <div className="h-px bg-border mx-6" />
+            <div className="px-6 pt-5 pb-5">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Statusi</span>
+              <div className="flex bg-muted rounded-xl p-1">
+                {[["","Të gjitha"],["active","Aktiv"],["inactive","Joaktiv"]].map(([v,l]) => (
+                  <button key={v} onClick={() => setFilterStatus(v)}
+                    className={cn("flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                      filterStatus === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-border px-6 py-4 bg-white space-y-2 shrink-0">
+            {hasFilters && <button onClick={clearFilters} className="w-full py-2 text-sm font-semibold rounded-xl border border-border hover:bg-muted transition">Pastro të gjithë Filtrat</button>}
+            <SheetClose asChild>
+              <Button className="w-full rounded-xl">Apliko & Mbyll</Button>
+            </SheetClose>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <p className="font-semibold text-sm">{products.length} produktesh</p>
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
+          <p className="font-semibold text-sm">{filtered.length} produkte{hasFilters ? " (filtruara)" : ""}</p>
+          {hasFilters && <button onClick={clearFilters} className="px-3 py-1 text-xs font-semibold rounded-lg border border-destructive/40 text-destructive hover:bg-destructive hover:text-white transition-all">✕ Pastro</button>}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -138,14 +289,14 @@ export default function Products() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {products.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8">
-                    <p className="text-sm text-muted-foreground">Nuk ka produktesh të regjistruar</p>
+                    <p className="text-sm text-muted-foreground">Nuk ka produkte</p>
                   </td>
                 </tr>
               ) : (
-                products.map(prod => (
+                filtered.map(prod => (
                   <tr key={prod.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4"><span className="text-sm font-semibold">{prod.name}</span></td>
                     <td className="px-6 py-4">
