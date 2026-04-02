@@ -386,7 +386,7 @@ export default function Invoices() {
           </div>
           <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 ml-auto">
           <Button variant="outline" onClick={exportExcel} className="gap-2 rounded-xl">
             <Sheet className="w-4 h-4" /> Excel
           </Button>
@@ -396,7 +396,7 @@ export default function Invoices() {
           <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2 rounded-xl">
             <Layers className="w-4 h-4" /> Merge
           </Button>
-          <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2 rounded-xl ml-auto">
+          <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2 rounded-xl">
             <Plus className="w-4 h-4" /> Faturë e Re
           </Button>
         </div>
