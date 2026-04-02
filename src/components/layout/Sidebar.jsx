@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
-  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft
+  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -15,9 +15,11 @@ const menuItems = [
   { label: "Furnitorët", icon: Truck, path: "/suppliers" },
   { label: "Arka", icon: Wallet, path: "/cashbox" },
   { label: "Transfertat", icon: ArrowRightLeft, path: "/transfers" },
+  { label: "Debitorët", icon: AlertCircle, path: "/debtors" },
   { label: "Shpenzimet", icon: DollarSign, path: "/expenses" },
   { label: "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover" },
   { label: "Raportet", icon: BarChart3, path: "/reports" },
+  { label: "Analiza Faturave", icon: BarChart3, path: "/invoice-analytics" },
   { label: "Settings", icon: Settings, path: "/settings" },
 ];
 

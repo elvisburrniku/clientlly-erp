@@ -18,6 +18,7 @@ import InvoiceLineItems from "../components/invoices/InvoiceLineItems";
 import SendInvoiceDialog from "../components/invoices/SendInvoiceDialog";
 import InvoicePDFButton from "../components/invoices/InvoicePDFButton";
 import MergePDFDialog from "../components/invoices/MergePDFDialog";
+import PaymentDialog from "../components/invoices/PaymentDialog";
 
 const emptyForm = () => ({
   invoice_type: "standard",
@@ -59,7 +60,6 @@ export default function Invoices() {
   const [filterDateTo, setFilterDateTo] = useState("");
   const [settings, setSettings] = useState(null);
   const [paymentDialog, setPaymentDialog] = useState(null);
-  const [paymentForm, setPaymentForm] = useState({ amount: 0, method: "cash", date: new Date().toISOString().split('T')[0], notes: "" });
   const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => { loadData(); loadSettings(); loadClients(); }, []);
@@ -311,24 +311,7 @@ export default function Invoices() {
     loadData();
   };
 
-  const handleAddPayment = async () => {
-    if (!paymentDialog || paymentForm.amount <= 0) return;
-    setSubmitting(true);
-    const payments = paymentDialog.payment_records || [];
-    const newPayment = { amount: paymentForm.amount, payment_method: paymentForm.method, paid_date: paymentForm.date, notes: paymentForm.notes };
-    const totalPaid = payments.reduce((s, p) => s + p.amount, 0) + paymentForm.amount;
-    const remaining = paymentDialog.amount - totalPaid;
-    await base44.entities.Invoice.update(paymentDialog.id, {
-      payment_records: [...payments, newPayment],
-      status: remaining <= 0 ? "paid" : "partially_paid",
-      is_open: remaining > 0,
-    });
-    setPaymentDialog(null);
-    setPaymentForm({ amount: 0, method: "cash", date: new Date().toISOString().split('T')[0], notes: "" });
-    setSubmitting(false);
-    toast.success("Pagesa u regjistrua");
-    loadData();
-  };
+
 
   const handleConvertProforma = async (inv) => {
     if (inv.invoice_type !== "proforma") return;
@@ -927,47 +910,7 @@ export default function Invoices() {
       <MergePDFDialog invoices={invoices} open={mergePDFOpen} onClose={() => setMergePDFOpen(false)} />
 
       {/* Payment Dialog */}
-      <Dialog open={!!paymentDialog} onOpenChange={(o) => { if (!o) setPaymentDialog(null); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Shto Pagesë — {paymentDialog?.invoice_number}</DialogTitle>
-            <DialogDescription>Fatura origjinale: €{(paymentDialog?.amount || 0).toFixed(2)}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="bg-muted/40 rounded-lg p-3 text-sm">
-              <p className="text-muted-foreground">Paguar deri tani: <span className="font-semibold text-foreground">€{getTotalPaid(paymentDialog).toFixed(2)}</span></p>
-              <p className="text-muted-foreground mt-1">Mbetur: <span className="font-semibold text-foreground">€{(paymentDialog ? paymentDialog.amount - getTotalPaid(paymentDialog) : 0).toFixed(2)}</span></p>
-            </div>
-            <div>
-              <Label>Shuma *</Label>
-              <Input type="number" min="0" step="0.01" placeholder="0.00" value={paymentForm.amount} onChange={(e) => setPaymentForm({ ...paymentForm, amount: parseFloat(e.target.value) || 0 })} className="mt-1.5" />
-            </div>
-            <div>
-              <Label>Metoda e Pagesës</Label>
-              <Select value={paymentForm.method} onValueChange={(v) => setPaymentForm({ ...paymentForm, method: v })}>
-                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="bank_transfer">Transfer Bankar</SelectItem>
-                  <SelectItem value="card">Kartë</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Data e Pagesës</Label>
-              <Input type="date" value={paymentForm.date} onChange={(e) => setPaymentForm({ ...paymentForm, date: e.target.value })} className="mt-1.5" />
-            </div>
-            <div>
-              <Label>Shënime</Label>
-              <Textarea placeholder="Shënime opsionale..." value={paymentForm.notes} onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })} className="mt-1.5" rows={2} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPaymentDialog(null)}>Anulo</Button>
-            <Button onClick={handleAddPayment} disabled={submitting || paymentForm.amount <= 0}>Regjistro Pagesë</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <PaymentDialog invoice={paymentDialog} isOpen={!!paymentDialog} onOpenChange={(o) => { if (!o) setPaymentDialog(null); }} onPaymentAdded={loadData} />
     </div>
   );
 }
