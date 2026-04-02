@@ -1,0 +1,77 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "invoice_id": {
+      "type": "string",
+      "description": "ID e fatur\u00ebs"
+    },
+    "invoice_number": {
+      "type": "string",
+      "description": "Numri i fatur\u00ebs"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Emri i klientit"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Email i klientit"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Shuma e paguar n\u00eb EUR"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "cash",
+        "bank_transfer",
+        "card",
+        "other"
+      ],
+      "description": "Metoda e pages\u00ebs"
+    },
+    "card_last_four": {
+      "type": "string",
+      "description": "Kat\u00ebr shifrat e fundit t\u00eb kart\u00ebs (xxxx1234)"
+    },
+    "card_type": {
+      "type": "string",
+      "enum": [
+        "visa",
+        "mastercard",
+        "amex",
+        "other"
+      ],
+      "description": "Lloji i kart\u00ebs"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Sh\u00ebnime n\u00eb lidhje me pagesen"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data e pages\u00ebs"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "completed",
+        "failed"
+      ],
+      "default": "completed",
+      "description": "Statusi i pages\u00ebs"
+    }
+  },
+  "required": [
+    "invoice_id",
+    "invoice_number",
+    "client_name",
+    "amount",
+    "payment_method",
+    "payment_date"
+  ]
+}
