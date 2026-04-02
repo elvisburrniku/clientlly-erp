@@ -167,8 +167,23 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Financial Overview */}
-      <FinancialOverview />
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {cards.map((card) => (
+          <StatCard key={card.title} {...card} />
+        ))}
+        {stats.undeliveredCash > 0 && (
+          <StatCard
+            icon={AlertTriangle}
+            title="Kesh i pa dorëzuar"
+            value={`€${stats.undeliveredCash.toLocaleString()}`}
+            description="Para që duhet dorëzuar në arkë"
+            variant="warning"
+          />
+        )}
+      </div>
+
+
 
       {/* Chart + Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
