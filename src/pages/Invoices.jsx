@@ -386,7 +386,7 @@ export default function Invoices() {
           </div>
           <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 ml-auto">
+        <div className="flex flex-wrap items-center gap-2 justify-end">
           <Button variant="outline" onClick={exportExcel} className="gap-2 rounded-xl">
             <Sheet className="w-4 h-4" /> Excel
           </Button>
