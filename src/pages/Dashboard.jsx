@@ -102,39 +102,27 @@ export default function Dashboard() {
   }
 
   const cardRoutes = {
-    "Faturat": "/invoices",
+    "Total Faturat": "/invoices",
     "Shpenzimet": "/expenses",
     "Borxhi": "/debtors",
     "Klientët": "/clients",
-    "Stoqet & Prokurimi": "/inventory",
-    "Ofertat": "/products",
-    "Vertetimet": "/reminders",
-    "Kalendari": "/calendar",
-    "Kontratat": "/contracts",
-    "Prezenca": "/attendance",
-    "Burimet Njerëzore": "/hr",
-    "Performanca e Biznesit": "/invoice-analytics",
+    "Fitim Neto": "/invoice-analytics",
+    "Arka": "/cashbox",
   };
 
   const cards = [
-    { icon: FileText,   title: "Faturat",  value: `€${stats.totalInvoices.toLocaleString()}`,              description: "Totali i faturave të krijuara", color: "blue" },
+    { icon: FileText,   title: "Total Faturat",  value: `€${stats.totalInvoices.toLocaleString()}`,              description: "Totali i faturave të krijuara", color: "blue" },
     { icon: TrendingDown, title: "Shpenzimet",  value: `€${stats.totalExpenses.toLocaleString()}`,              description: "Totali i shpenzimeve",          color: "rose" },
     { icon: CreditCard, title: "Borxhi",        value: `€${stats.totalDebt.toLocaleString()}`,                  description: "Borxhi i mbetur",               color: "amber" },
     { icon: Users,      title: "Klientët",       value: stats.clientCount.toString(),                            description: "Numri i klientëve",             color: "violet" },
-    { icon: Wallet,     title: "Stoqet & Prokurimi", value: "–",                                                  description: "Menaxho stoqet",                 color: "indigo" },
-    { icon: FileText,   title: "Ofertat",        value: "–",                                                      description: "Administro ofertat",           color: "cyan" },
-    { icon: AlertTriangle, title: "Vertetimet",  value: "–",                                                      description: "Shiko njoftime",                 color: "orange" },
-    { icon: BarChart3,  title: "Kalendari",      value: "–",                                                      description: "Azhurno orarin",                color: "pink" },
-    { icon: FileText,   title: "Kontratat",      value: "–",                                                      description: "Përdit përmarrje",              color: "lime" },
-    { icon: Users,      title: "Prezenca",       value: "–",                                                      description: "Regjistro prezencë",           color: "sky" },
-    { icon: Users,      title: "Burimet Njerëzore", value: "–",                                                    description: "Menaxho punonjës",             color: "fuchsia" },
-    { icon: TrendingUp, title: "Performanca e Biznesit", value: `€${stats.netProfit.toLocaleString()}`, description: "Analiza e performancës", color: stats.netProfit >= 0 ? "teal" : "rose" },
+    { icon: TrendingUp,  title: "Fitim Neto",   value: `€${stats.netProfit.toLocaleString()}`,                 description: "Fitim pas shpenzimeve",         color: stats.netProfit >= 0 ? "teal" : "rose" },
+    { icon: Wallet,     title: "Arka",           value: `€${stats.cashBalance.toLocaleString()}`,               description: "Bilanci i arkës",               color: "green" },
   ];
 
   const periodLabels = { today: t("today"), month: t("month"), year: t("year") };
 
   return (
-    <div className="p-6 lg:p-10 w-full space-y-8 animate-fade-in">
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in">
       {/* Pending Handover Notification */}
       {pendingHandovers.length > 0 && (
         <button
@@ -192,7 +180,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {cards.map((card) => (
           <button
             key={card.title}
@@ -203,6 +191,8 @@ export default function Dashboard() {
           </button>
         ))}
       </div>
+
+
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
