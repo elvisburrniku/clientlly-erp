@@ -10,6 +10,7 @@ import { useAuth } from "@/lib/AuthContext";
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
   { label: "Faturat", icon: FileText, path: "/invoices" },
+  { label: "Ofertat", icon: FileText, path: "/quotes" },
   { label: "Produktet", icon: Package, path: "/products" },
   { label: "Kujtesat", icon: Bell, path: "/reminders" },
   { label: "Klientët", icon: Users, path: "/clients" },
