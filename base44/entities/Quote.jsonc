@@ -10,6 +10,42 @@
       "type": "string",
       "description": "Unique quote number"
     },
+    "company_name": {
+      "type": "string",
+      "description": "Emri i Biznesit"
+    },
+    "company_nup": {
+      "type": "string",
+      "description": "Nr. Unik Identifikues (NUP)"
+    },
+    "company_tvsh": {
+      "type": "string",
+      "description": "Nr. i TVSH"
+    },
+    "company_city": {
+      "type": "string",
+      "description": "Qyteti"
+    },
+    "company_address": {
+      "type": "string",
+      "description": "Adresa"
+    },
+    "company_phone1": {
+      "type": "string",
+      "description": "Numri Telefonit #1"
+    },
+    "company_phone2": {
+      "type": "string",
+      "description": "Numri Telefonit #2"
+    },
+    "company_email": {
+      "type": "string",
+      "description": "Email"
+    },
+    "company_website": {
+      "type": "string",
+      "description": "Web"
+    },
     "client_name": {
       "type": "string",
       "description": "Client name"

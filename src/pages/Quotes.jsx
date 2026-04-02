@@ -38,6 +38,15 @@ export default function Quotes() {
   const [showTemplateManager, setShowTemplateManager] = useState(false);
 
   const [formData, setFormData] = useState({
+    company_name: '',
+    company_nup: '',
+    company_tvsh: '',
+    company_city: '',
+    company_address: '',
+    company_phone1: '',
+    company_phone2: '',
+    company_email: '',
+    company_website: '',
     client_name: '',
     client_email: '',
     client_phone: '',
@@ -77,6 +86,15 @@ export default function Quotes() {
 
   const resetForm = () => {
     setFormData({
+      company_name: '',
+      company_nup: '',
+      company_tvsh: '',
+      company_city: '',
+      company_address: '',
+      company_phone1: '',
+      company_phone2: '',
+      company_email: '',
+      company_website: '',
       client_name: '',
       client_email: '',
       client_phone: '',
@@ -112,6 +130,15 @@ export default function Quotes() {
 
     const quote = {
       quote_number: `OFF-${Date.now().toString(36).toUpperCase()}`,
+      company_name: formData.company_name,
+      company_nup: formData.company_nup,
+      company_tvsh: formData.company_tvsh,
+      company_city: formData.company_city,
+      company_address: formData.company_address,
+      company_phone1: formData.company_phone1,
+      company_phone2: formData.company_phone2,
+      company_email: formData.company_email,
+      company_website: formData.company_website,
       client_name: formData.client_name,
       client_email: formData.client_email,
       client_phone: formData.client_phone,
@@ -637,10 +664,29 @@ export default function Quotes() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Section 1: Të dhënat e Klientit */}
+            {/* Section 1: Të dhënat e Biznesit */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</div>
+                <h3 className="font-semibold text-sm">Të dhënat e Biznesit</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pl-8">
+                <Input placeholder="Emri i Biznesit" value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} />
+                <Input placeholder="NUP" value={formData.company_nup} onChange={(e) => setFormData({ ...formData, company_nup: e.target.value })} />
+                <Input placeholder="TVSH" value={formData.company_tvsh} onChange={(e) => setFormData({ ...formData, company_tvsh: e.target.value })} />
+                <Input placeholder="Qyteti" value={formData.company_city} onChange={(e) => setFormData({ ...formData, company_city: e.target.value })} />
+                <Input placeholder="Adresa" value={formData.company_address} onChange={(e) => setFormData({ ...formData, company_address: e.target.value })} />
+                <Input placeholder="Tel. #1" value={formData.company_phone1} onChange={(e) => setFormData({ ...formData, company_phone1: e.target.value })} />
+                <Input placeholder="Tel. #2" value={formData.company_phone2} onChange={(e) => setFormData({ ...formData, company_phone2: e.target.value })} />
+                <Input placeholder="Email" type="email" value={formData.company_email} onChange={(e) => setFormData({ ...formData, company_email: e.target.value })} />
+              </div>
+              <Input placeholder="Web" value={formData.company_website} onChange={(e) => setFormData({ ...formData, company_website: e.target.value })} className="pl-8" />
+            </div>
+
+            {/* Section 2: Të dhënat e Klientit */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</div>
                 <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
               </div>
               <div className="grid grid-cols-2 gap-3 pl-8">
@@ -653,10 +699,10 @@ export default function Quotes() {
               {formData.client_name && <QuoteHistory clientName={formData.client_name} />}
             </div>
 
-            {/* Section 2: Logo/Imazh */}
+            {/* Section 3: Logo/Imazh */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
                 <h3 className="font-semibold text-sm">Logo / Imazh Kompanie</h3>
               </div>
               <div className="pl-8">
@@ -680,10 +726,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 3: Pershkrim i Punes */}
+            {/* Section 4: Pershkrim i Punes */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</div>
                 <h3 className="font-semibold text-sm">Përshkrimi i Punës / Detajet</h3>
               </div>
               <div className="pl-8 space-y-2">
@@ -717,10 +763,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 4: Artikuj/Shërbimet */}
+            {/* Section 5: Artikuj/Shërbimet */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">5</div>
                 <h3 className="font-semibold text-sm">Artikuj / Shërbimet</h3>
               </div>
               <div className="pl-8 space-y-2">
@@ -756,10 +802,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 5: Shënime dhe Përsonalizim */}
+            {/* Section 6: Shënime dhe Përsonalizim */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">5</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</div>
                 <h3 className="font-semibold text-sm">Shënime dhe Përsonalizim</h3>
               </div>
               <div className="pl-8 space-y-2">
@@ -768,10 +814,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 6: Nënshkrimi */}
+            {/* Section 7: Nënshkrimi */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</div>
                 <h3 className="font-semibold text-sm">Nënshkrimi Digjital</h3>
               </div>
               <div className="pl-8">
@@ -791,10 +837,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 7: Cilësime */}
+            {/* Section 8: Cilësime */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">8</div>
                 <h3 className="font-semibold text-sm">Cilësime të Ofertës</h3>
               </div>
               <div className="grid grid-cols-4 gap-3 pl-8">
