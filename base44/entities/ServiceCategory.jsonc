@@ -1,0 +1,51 @@
+{
+  "name": "ServiceCategory",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i sh\u00ebrbimit"
+    },
+    "category": {
+      "type": "string",
+      "description": "Kategoria kryesore (p.sh. IT & Software)"
+    },
+    "subcategory": {
+      "type": "string",
+      "description": "N\u00ebnkategoria (p.sh. Disinfection)"
+    },
+    "description": {
+      "type": "string",
+      "description": "P\u00ebrshkrimi i sh\u00ebrbimit"
+    },
+    "billing_type": {
+      "type": "string",
+      "enum": [
+        "one-time",
+        "recurring",
+        "hourly",
+        "project"
+      ],
+      "description": "Lloji i faturimit",
+      "default": "one-time"
+    },
+    "default_price": {
+      "type": "number",
+      "description": "\u00c7mimi i paracaktuar pa TVSH"
+    },
+    "is_default": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb sh\u00ebrbim i paracaktuar i sistemit",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb sh\u00ebrbimi aktiv",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

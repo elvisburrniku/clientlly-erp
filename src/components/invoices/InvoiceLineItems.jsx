@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import UnitSelector from "./UnitSelector";
+import ServiceSelector from "./ServiceSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,13 +25,17 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
   const [products, setProducts] = useState([]);
   const [units, setUnits] = useState([]);
 
+  const [services, setServices] = useState([]);
+
   useEffect(() => {
     Promise.all([
       base44.entities.Product.list('-created_date', 100).catch(() => []),
-      base44.entities.Unit.list('-created_date', 100).catch(() => [])
-    ]).then(([prods, unts]) => {
+      base44.entities.Unit.list('-created_date', 100).catch(() => []),
+      base44.entities.ServiceCategory.list('-created_date', 200).catch(() => []),
+    ]).then(([prods, unts, svcs]) => {
       setProducts(prods);
       setUnits(unts);
+      setServices(svcs);
     });
   }, []);
 
@@ -120,7 +125,21 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Përshkrimi / Emri *</label>
-                {products.length > 0 ? (
+                {item.type === "service" && services.length > 0 ? (
+                  <div className="space-y-1.5">
+                    <ServiceSelector
+                      value={item.service_id || ""}
+                      onChange={(id, name, svc) => {
+                        const updated = [...items];
+                        updated[i] = { ...updated[i], service_id: id, name };
+                        onChange(updated);
+                      }}
+                      services={services}
+                      onServicesChange={setServices}
+                    />
+                    <Input className="text-sm" placeholder="Ose shkruaj emrin..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
+                  </div>
+                ) : products.length > 0 && item.type === "product" ? (
                   <div className="space-y-1.5">
                     <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
                       <SelectTrigger className="text-sm"><SelectValue placeholder="Zgjedh produktin..." /></SelectTrigger>
