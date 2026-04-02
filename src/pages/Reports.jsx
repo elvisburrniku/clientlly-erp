@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { BarChart3, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import RevenueExpenseChart from "../components/reports/RevenueExpenseChart";
+import FinancialSummary from "../components/reports/FinancialSummary";
+import RecentActivities from "../components/reports/RecentActivities";
 import CategoryFilter from "../components/reports/CategoryFilter";
 import ClientSegmentFilter from "../components/reports/ClientSegmentFilter";
 import ReportPDFExport from "../components/reports/ReportPDFExport";
@@ -208,9 +209,15 @@ export default function Reports() {
 
 
 
-      {/* Quick Download Reports */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-        <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
+      {/* Financial Summary */}
+      <FinancialSummary />
+
+      {/* Layout: Recent Activities + Download */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          {/* Quick Download Reports */}
+          <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+            <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
         <div className="space-y-3">
           <div className="flex flex-wrap gap-6">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('invoices')}>
@@ -233,10 +240,11 @@ export default function Reports() {
           <Button onClick={handleDownload} disabled={loadingReport !== null || selectedReports.length === 0} className="gap-2" variant="default">
             <Download className="w-4 h-4" /> {loadingReport ? 'Duke shkarkuar...' : 'Shkarko Të Zgjedhurat'}
           </Button>
+            </div>
+          </div>
         </div>
+        <RecentActivities />
       </div>
-
-
     </div>
   );
 }
