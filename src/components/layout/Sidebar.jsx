@@ -24,6 +24,7 @@ const menuItems = [
 const performanceItems = [
   { label: "Performanca e Kompanisë", section: true },
   { label: "Raportet", icon: BarChart3, path: "/reports" },
+  { label: "Royalties", icon: DollarSign, path: "/royalties" },
   { label: "Template-e Raporteve", icon: FileBarChart, path: "/report-templates" },
 ];
 

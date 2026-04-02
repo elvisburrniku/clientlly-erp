@@ -19,6 +19,7 @@ import Cashbox from './pages/Cashbox';
 import CashHandover from './pages/CashHandover';
 import CashHandoverRequest from './pages/CashHandoverRequest';
 import Reports from './pages/Reports';
+import Royalties from './pages/Royalties';
 import Inventory from './pages/Inventory';
 import Settings from './pages/Settings';
 import InvoiceDetail from './pages/InvoiceDetail';
@@ -76,6 +77,7 @@ const AuthenticatedApp = () => {
         <Route path="/cash-handover" element={<CashHandover />} />
         <Route path="/cash-handover-request" element={<CashHandoverRequest />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/royalties" element={<Royalties />} />
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/catalog" element={<ProductCatalog />} />

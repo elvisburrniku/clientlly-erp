@@ -18,22 +18,10 @@ export default function Reports() {
   const [selectedReports, setSelectedReports] = useState(['invoices']);
   const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
-  const [royalties, setRoyalties] = useState({});
-  const [savingRoyalties, setSavingRoyalties] = useState(false);
 
   useEffect(() => {
     loadReportData();
   }, []);
-
-  useEffect(() => {
-    const royaltyMap = {};
-    invoices.forEach(inv => {
-      if (!royaltyMap[inv.id]) {
-        royaltyMap[inv.id] = inv.royalties !== undefined ? inv.royalties : (inv.subtotal || (inv.amount / 1.2)) * 0.06;
-      }
-    });
-    setRoyalties(royaltyMap);
-  }, [invoices]);
 
   const loadReportData = async () => {
     const [invs, exps, sups, cashTxns] = await Promise.all([
@@ -86,20 +74,7 @@ export default function Reports() {
     setRoyalties(prev => ({ ...prev, [invId]: royaltyAmount }));
   };
 
-  const saveRoyalties = async () => {
-    setSavingRoyalties(true);
-    try {
-      const updates = invoices
-        .filter(inv => royalties[inv.id] !== undefined)
-        .map(inv => base44.entities.Invoice.update(inv.id, { royalties: royalties[inv.id] }));
-      await Promise.all(updates);
-      alert('Royalties saved successfully!');
-    } catch (error) {
-      console.error('Error saving royalties:', error);
-      alert('Error saving royalties');
-    }
-    setSavingRoyalties(false);
-  };
+
 
   const downloadReport = async (type, title, data) => {
     setLoadingReport(type);
@@ -227,45 +202,7 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Royalties Section */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-        <h3 className="text-base font-semibold mb-4">Royalties (6% nga vlera pa TVSH)</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 px-2">Fatura</th>
-                <th className="text-left py-2 px-2">Klient</th>
-                <th className="text-right py-2 px-2">Pa TVSH (€)</th>
-                <th className="text-right py-2 px-2">Royalties (€)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filterDataByDate(invoices).map(inv => {
-                const subtotal = inv.subtotal || (inv.amount / 1.2);
-                return (
-                  <tr key={inv.id} className="border-b hover:bg-gray-50">
-                    <td className="py-2 px-2">{inv.invoice_number}</td>
-                    <td className="py-2 px-2">{inv.client_name}</td>
-                    <td className="text-right py-2 px-2">€{subtotal.toFixed(2)}</td>
-                    <td className="text-right py-2 px-2">€{(royalties[inv.id] || subtotal * 0.06).toFixed(2)}</td>
-                  </tr>
-                );
-              })}
-              <tr className="border-t-2 border-t-foreground font-semibold bg-gray-100">
-                <td colSpan="2" className="py-2 px-2">Totali</td>
-                <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (inv.subtotal || inv.amount / 1.2), 0).toFixed(2)}</td>
-                <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (royalties[inv.id] || (inv.subtotal || inv.amount / 1.2) * 0.06), 0).toFixed(2)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-4">
-          <Button onClick={saveRoyalties} disabled={savingRoyalties} variant="default">
-            {savingRoyalties ? 'Duke ruajtur...' : 'Ruaj Royalties'}
-          </Button>
-        </div>
-      </div>
+
 
       {/* Quick Download Reports */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
