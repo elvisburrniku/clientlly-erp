@@ -20,7 +20,6 @@ export default function Reports() {
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
   const [royalties, setRoyalties] = useState({});
   const [savingRoyalties, setSavingRoyalties] = useState(false);
-  const [selectedReportTab, setSelectedReportTab] = useState('invoices');
 
   useEffect(() => {
     loadReportData();
@@ -230,147 +229,42 @@ export default function Reports() {
 
       {/* Royalties Section */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setSelectedReportTab('invoices')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${selectedReportTab === 'invoices' ? 'bg-primary text-primary-foreground' : 'bg-gray-100'}`}
-          >
-            Faturat
-          </button>
-          <button
-            onClick={() => setSelectedReportTab('debtors')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${selectedReportTab === 'debtors' ? 'bg-primary text-primary-foreground' : 'bg-gray-100'}`}
-          >
-            Borxhet
-          </button>
-          <button
-            onClick={() => setSelectedReportTab('suppliers')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${selectedReportTab === 'suppliers' ? 'bg-primary text-primary-foreground' : 'bg-gray-100'}`}
-          >
-            Furnitorët
-          </button>
-          <button
-            onClick={() => setSelectedReportTab('cashbox')}
-            className={`px-4 py-2 rounded-lg font-medium transition ${selectedReportTab === 'cashbox' ? 'bg-primary text-primary-foreground' : 'bg-gray-100'}`}
-          >
-            Arka
-          </button>
+        <h3 className="text-base font-semibold mb-4">Royalties (6% nga vlera pa TVSH)</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 px-2">Fatura</th>
+                <th className="text-left py-2 px-2">Klient</th>
+                <th className="text-right py-2 px-2">Pa TVSH (€)</th>
+                <th className="text-right py-2 px-2">Royalties (€)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filterDataByDate(invoices).map(inv => {
+                const subtotal = inv.subtotal || (inv.amount / 1.2);
+                return (
+                  <tr key={inv.id} className="border-b hover:bg-gray-50">
+                    <td className="py-2 px-2">{inv.invoice_number}</td>
+                    <td className="py-2 px-2">{inv.client_name}</td>
+                    <td className="text-right py-2 px-2">€{subtotal.toFixed(2)}</td>
+                    <td className="text-right py-2 px-2">€{(royalties[inv.id] || subtotal * 0.06).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
+              <tr className="border-t-2 border-t-foreground font-semibold bg-gray-100">
+                <td colSpan="2" className="py-2 px-2">Totali</td>
+                <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (inv.subtotal || inv.amount / 1.2), 0).toFixed(2)}</td>
+                <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (royalties[inv.id] || (inv.subtotal || inv.amount / 1.2) * 0.06), 0).toFixed(2)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        {selectedReportTab === 'invoices' && (
-          <div>
-            <h3 className="text-base font-semibold mb-4">Royalties (6% nga vlera pa TVSH)</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-2">Fatura</th>
-                    <th className="text-left py-2 px-2">Klient</th>
-                    <th className="text-right py-2 px-2">Pa TVSH (€)</th>
-                    <th className="text-right py-2 px-2">Royalties (€)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filterDataByDate(invoices).map(inv => {
-                    const subtotal = inv.subtotal || (inv.amount / 1.2);
-                    return (
-                      <tr key={inv.id} className="border-b hover:bg-gray-50">
-                        <td className="py-2 px-2">{inv.invoice_number}</td>
-                        <td className="py-2 px-2">{inv.client_name}</td>
-                        <td className="text-right py-2 px-2">€{subtotal.toFixed(2)}</td>
-                        <td className="text-right py-2 px-2">€{(royalties[inv.id] || subtotal * 0.06).toFixed(2)}</td>
-                      </tr>
-                    );
-                  })}
-                  <tr className="border-t-2 border-t-foreground font-semibold bg-gray-100">
-                    <td colSpan="2" className="py-2 px-2">Totali</td>
-                    <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (inv.subtotal || inv.amount / 1.2), 0).toFixed(2)}</td>
-                    <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (royalties[inv.id] || (inv.subtotal || inv.amount / 1.2) * 0.06), 0).toFixed(2)}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4">
-              <Button onClick={saveRoyalties} disabled={savingRoyalties} variant="default">
-                {savingRoyalties ? 'Duke ruajtur...' : 'Ruaj Royalties'}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {selectedReportTab === 'debtors' && (
-          <div>
-            <h3 className="text-base font-semibold mb-4">Borxhet</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-2">Debitori</th>
-                    <th className="text-right py-2 px-2">Borxhi (€)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filterDataByDate(debtors).map(d => (
-                    <tr key={d.name} className="border-b hover:bg-gray-50">
-                      <td className="py-2 px-2">{d.name}</td>
-                      <td className="text-right py-2 px-2">€{d.total.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {selectedReportTab === 'suppliers' && (
-          <div>
-            <h3 className="text-base font-semibold mb-4">Furnitorët</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-2">Furnitori</th>
-                    <th className="text-left py-2 px-2">Email</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filterDataByDate(suppliers).map(s => (
-                    <tr key={s.id} className="border-b hover:bg-gray-50">
-                      <td className="py-2 px-2">{s.name}</td>
-                      <td className="py-2 px-2">{s.email}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {selectedReportTab === 'cashbox' && (
-          <div>
-            <h3 className="text-base font-semibold mb-4">Arka</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-2">Data</th>
-                    <th className="text-left py-2 px-2">Tipi</th>
-                    <th className="text-right py-2 px-2">Shuma (€)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filterDataByDate(cashTransactions).map(t => (
-                    <tr key={t.id} className="border-b hover:bg-gray-50">
-                      <td className="py-2 px-2">{moment(t.created_date).format('DD MMM')}</td>
-                      <td className="py-2 px-2">{t.type === 'cash_in' ? 'Hyrje' : 'Dalje'}</td>
-                      <td className="text-right py-2 px-2">€{t.amount.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        <div className="mt-4">
+          <Button onClick={saveRoyalties} disabled={savingRoyalties} variant="default">
+            {savingRoyalties ? 'Duke ruajtur...' : 'Ruaj Royalties'}
+          </Button>
+        </div>
       </div>
 
       {/* Quick Download Reports */}
