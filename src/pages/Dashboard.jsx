@@ -4,7 +4,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle, TrendingUp, BanknoteIcon, ChevronRight } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
-import MonthlyRevenueBar from "../components/dashboard/MonthlyRevenueBar";
 import RevenueChart from "../components/dashboard/RevenueChart";
 import RecentInvoices from "../components/dashboard/RecentInvoices";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
@@ -16,7 +15,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const tenantId = user?.tenant_id;
   const [period, setPeriod] = useState("today");
-  const [vatMode, setVatMode] = useState("inc"); // inc = me TVSH, exc = pa TVSH
+  const [vatMode, setVatMode] = useState("inc");
   const [stats, setStats] = useState({
     totalInvoices: 0,
     totalExpenses: 0,
@@ -121,18 +120,18 @@ export default function Dashboard() {
   const periodLabels = { today: "Sot", month: "Muaji", year: "Viti" };
 
   return (
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in">
       {/* Pending Handover Notification */}
       {pendingHandovers.length > 0 && (
         <button
           onClick={() => navigate('/cash-handover')}
-          className="w-full flex items-center gap-4 bg-amber-50 border-2 border-amber-300 rounded-2xl px-5 py-4 hover:bg-amber-100 transition-all group"
+          className="w-full flex items-center gap-4 bg-gradient-to-r from-amber-50 to-amber-100/50 border-2 border-amber-300/60 rounded-2xl px-6 py-4 hover:border-amber-400 hover:shadow-lg transition-all duration-300 group"
         >
-          <div className="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center shrink-0">
-            <BanknoteIcon className="w-5 h-5 text-white" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition-transform duration-300">
+            <BanknoteIcon className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1 text-left">
-            <p className="text-sm font-bold text-amber-900">
+            <p className="text-sm font-bold text-amber-900 group-hover:text-amber-950 transition-colors">
               {pendingHandovers.length === 1
                 ? `1 kërkesë dorëzimi kesh pret aprovimin`
                 : `${pendingHandovers.length} kërkesa dorëzimi kesh presin aprovimin`
@@ -142,47 +141,48 @@ export default function Dashboard() {
               {pendingHandovers.map(h => h.user_name || h.user_email?.split('@')[0]).filter(Boolean).join(', ')}
             </p>
           </div>
-          <ChevronRight className="w-5 h-5 text-amber-600 group-hover:translate-x-1 transition-transform" />
+          <ChevronRight className="w-5 h-5 text-amber-600 group-hover:translate-x-2 transition-transform duration-300" />
         </button>
       )}
 
       {/* Header */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex items-start justify-between">
-          <div>
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight text-foreground">Mirë se vjen</h1>
-            </div>
-            <p className="text-muted-foreground mt-1 text-sm">Ja çfarë po ndodh sot me biznesin tënd.</p>
+          <div className="space-y-1">
+            <h1 className="text-5xl font-bold tracking-tight text-foreground">Mirë se vjen</h1>
+            <p className="text-muted-foreground text-base">Ja çfarë po ndodh sot me biznesin tënd</p>
           </div>
-          <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+          <div className="text-right">
+            <p className="text-sm font-semibold text-primary">{new Date().toLocaleDateString('sq-AL', { weekday: 'long' })}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{new Date().toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           {/* Period filter */}
-          <div className="flex bg-muted rounded-xl p-1">
+          <div className="flex bg-white border border-border rounded-xl p-1.5 shadow-sm">
             {["today","month","year"].map(p => (
               <button key={p} onClick={() => setPeriod(p)}
-                className={cn("px-4 py-1.5 text-sm font-medium rounded-lg transition-all",
-                  period === p ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
+                  period === p ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 )}>{periodLabels[p]}</button>
             ))}
           </div>
           {/* VAT toggle */}
-          <div className="flex bg-muted rounded-xl p-1">
+          <div className="flex bg-white border border-border rounded-xl p-1.5 shadow-sm">
             <button onClick={() => setVatMode("inc")}
-              className={cn("px-4 py-1.5 text-sm font-medium rounded-lg transition-all",
-                vatMode === "inc" ? "bg-emerald-500 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
+                vatMode === "inc" ? "bg-success text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}>Me TVSH</button>
             <button onClick={() => setVatMode("exc")}
-              className={cn("px-4 py-1.5 text-sm font-medium rounded-lg transition-all",
-                vatMode === "exc" ? "bg-slate-700 text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+              className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
+                vatMode === "exc" ? "bg-slate-800 text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
               )}>Pa TVSH</button>
           </div>
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {cards.map((card) => (
           <button
             key={card.title}
@@ -196,20 +196,28 @@ export default function Dashboard() {
 
 
 
-      {/* Charts Grid */}
-      <div className="grid grid-cols-1 gap-6">
-        <RevenueChart />
+      {/* Charts */}
+      <div className="grid grid-cols-1 gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
+          <RevenueChart />
+        </div>
       </div>
 
       {/* Recent Invoices + Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        <div className="lg:col-span-2 rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
           <RecentInvoices />
         </div>
         <div className="space-y-4">
-          <LowStockAlert />
-          <UpcomingReminders />
-          <UndeliveredCashAlert users={undeliveredUsers} />
+          <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
+            <LowStockAlert />
+          </div>
+          <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
+            <UpcomingReminders />
+          </div>
+          <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
+            <UndeliveredCashAlert users={undeliveredUsers} />
+          </div>
         </div>
       </div>
     </div>
