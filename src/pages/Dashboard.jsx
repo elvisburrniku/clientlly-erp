@@ -5,6 +5,7 @@ import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTria
 import StatCard from "../components/dashboard/StatCard";
 import MonthlyRevenueBar from "../components/dashboard/MonthlyRevenueBar";
 import RevenueChart from "../components/dashboard/RevenueChart";
+import FinancialOverview from "../components/dashboard/FinancialOverview";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
 import UpcomingReminders from "../components/dashboard/UpcomingReminders";
 import LowStockAlert from "../components/dashboard/LowStockAlert";
