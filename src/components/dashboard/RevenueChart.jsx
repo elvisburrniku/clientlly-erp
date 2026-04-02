@@ -4,7 +4,7 @@ import {
   ResponsiveContainer, Legend
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 const yearsData = {
   2020: [
@@ -106,30 +106,15 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function RevenueChart() {
-  const [viewMode, setViewMode] = useState("vjetore"); // "nderviti" or "vjetore"
-  const [selectedYear, setSelectedYear] = useState(2025);
   const years = Object.keys(yearsData).map(Number).sort((a, b) => a - b);
-  const currentYearIndex = years.indexOf(selectedYear);
   
-  const handlePrevYear = () => {
-    if (currentYearIndex > 0) setSelectedYear(years[currentYearIndex - 1]);
-  };
-  
-  const handleNextYear = () => {
-    if (currentYearIndex < years.length - 1) setSelectedYear(years[currentYearIndex + 1]);
-  };
-  
-  const data = viewMode === "nderviti" ? yearsData[selectedYear] : generateYearlyData();
-  
-  function generateYearlyData() {
-    return years.map(year => {
-      const yearData = yearsData[year];
-      const revenue = yearData.reduce((s, m) => s + m.revenue, 0);
-      const expenses = yearData.reduce((s, m) => s + m.expenses, 0);
-      const debt = yearData.reduce((s, m) => s + m.debt, 0);
-      return { name: year.toString(), revenue, expenses, debt };
-    });
-  }
+  const data = years.map(year => {
+    const yearData = yearsData[year];
+    const revenue = yearData.reduce((s, m) => s + m.revenue, 0);
+    const expenses = yearData.reduce((s, m) => s + m.expenses, 0);
+    const debt = yearData.reduce((s, m) => s + m.debt, 0);
+    return { name: year.toString(), revenue, expenses, debt };
+  });
 
   return (
     <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
@@ -143,83 +128,7 @@ export default function RevenueChart() {
           </div>
           <p className="text-sm text-muted-foreground ml-10">Të ardhurat, shpenzimet & borxhi</p>
         </div>
-        <div className="space-y-3">
-          {/* View mode buttons */}
-          <div className="flex gap-2 bg-muted/80 rounded-xl p-1 w-fit">
-            <button
-              onClick={() => setViewMode("nderviti")}
-              className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200",
-                viewMode === "nderviti"
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Ndërviti
-            </button>
-            <button
-              onClick={() => setViewMode("vjetore")}
-              className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200",
-                viewMode === "vjetore"
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Vjetore
-            </button>
-          </div>
 
-          {/* Year selection */}
-          {viewMode === "nderviti" ? (
-            <div className="flex items-center gap-2 bg-muted/80 rounded-xl p-1 w-fit">
-              <button
-                onClick={handlePrevYear}
-                disabled={currentYearIndex === 0}
-                className={cn(
-                  "p-1.5 rounded-lg transition-all duration-200",
-                  currentYearIndex === 0
-                    ? "text-muted-foreground opacity-40 cursor-not-allowed"
-                    : "hover:bg-white text-foreground"
-                )}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="px-3 py-1.5 text-sm font-semibold text-foreground min-w-[50px] text-center">
-                {selectedYear}
-              </div>
-              <button
-                onClick={handleNextYear}
-                disabled={currentYearIndex === years.length - 1}
-                className={cn(
-                  "p-1.5 rounded-lg transition-all duration-200",
-                  currentYearIndex === years.length - 1
-                    ? "text-muted-foreground opacity-40 cursor-not-allowed"
-                    : "hover:bg-white text-foreground"
-                )}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-2 flex-wrap">
-              {years.map(year => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className={cn(
-                    "px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200",
-                    selectedYear === year
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-muted/80 text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {year}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Summary pills */}
