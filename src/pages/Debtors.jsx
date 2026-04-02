@@ -426,7 +426,7 @@ export default function Debtors() {
              </tr>
            </thead>
             <tbody className="divide-y divide-border">
-              {paginated.length === 0 ? (
+              {paginatedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
