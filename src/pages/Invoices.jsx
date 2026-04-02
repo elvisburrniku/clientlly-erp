@@ -376,7 +376,7 @@ export default function Invoices() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
+    <div className="p-6 lg:p-10 space-y-8">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-start justify-between">
