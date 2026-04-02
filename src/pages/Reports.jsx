@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import RevenueExpenseChart from "@/components/reports/RevenueExpenseChart";
 import moment from "moment";
 
 export default function Reports() {
@@ -17,8 +15,6 @@ export default function Reports() {
   const [cashTransactions, setCashTransactions] = useState([]);
   const [loadingReport, setLoadingReport] = useState(null);
   const [selectedReports, setSelectedReports] = useState(['invoices']);
-  const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
-  const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
 
   useEffect(() => {
     loadReportData();
@@ -172,27 +168,6 @@ export default function Reports() {
         </div>
         <p className="text-sm text-muted-foreground">Shiko trendet e të ardhurave dhe shpenzimeve përmes grafikëve të avancuar</p>
       </div>
-
-      {/* Date Filters */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar className="w-5 h-5 text-muted-foreground" />
-          <h3 className="text-base font-semibold">Zgjedh Periudhën</h3>
-        </div>
-        <div className="flex flex-col md:flex-row gap-4 items-end">
-          <div className="flex-1">
-            <Label className="text-xs font-semibold mb-2 block">Nga data</Label>
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          </div>
-          <div className="flex-1">
-            <Label className="text-xs font-semibold mb-2 block">Deri në datë</Label>
-            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-          </div>
-        </div>
-      </div>
-
-      {/* Chart Section */}
-      <RevenueExpenseChart dateFrom={dateFrom} dateTo={dateTo} />
 
       {/* Quick Download Reports */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
