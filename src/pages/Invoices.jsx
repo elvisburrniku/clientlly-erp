@@ -94,7 +94,16 @@ export default function Invoices() {
 
   const loadSettings = async () => {
     const sets = await base44.entities.InvoiceSettings.list("-created_date", 1);
-    setSettings(sets.length > 0 ? sets[0] : null);
+    const s = sets.length > 0 ? sets[0] : null;
+    setSettings(s);
+    return s;
+  };
+
+  const getDefaultDueDate = (s) => {
+    const days = s?.default_due_days ?? 10;
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split('T')[0];
   };
 
   const generateInvoiceNumber = async () => {
@@ -387,7 +396,7 @@ export default function Invoices() {
           <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2">
             <Layers className="w-4 h-4" /> Merge PDF
           </Button>
-          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+          <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2">
             <Plus className="w-4 h-4" /> Krijo Faturë
           </Button>
         </div>
@@ -765,6 +774,7 @@ export default function Invoices() {
                   <div>
                     <Label className="text-xs">Afat Pagese</Label>
                     <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1" />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Default: {settings?.default_due_days ?? 10} ditë</p>
                   </div>
                   <div>
                     <Label className="text-xs">Shënime Pagese</Label>

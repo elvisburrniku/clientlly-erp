@@ -187,6 +187,8 @@ export default function Settings() {
             <Input placeholder="INV-{###}" value={invoiceSettings?.invoice_number_format || 'INV-{###}'} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, invoice_number_format: e.target.value })} className="mt-1" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><Label>Afati Default i Faturave (ditë)</Label><Input type="number" min="1" value={invoiceSettings?.default_due_days ?? 10} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, default_due_days: parseInt(e.target.value) || 10 })} className="mt-1.5" /><p className="text-xs text-muted-foreground mt-1">Afati për pagesmën vendoset automatikisht kur krijohet fatura</p></div>
+            <div className="sm:col-span-1"></div>
             <div><Label>Ditë përpara afatit për kujtesë</Label><Input type="number" min="1" value={invoiceSettings?.payment_reminder_days_before || 3} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, payment_reminder_days_before: parseInt(e.target.value) })} className="mt-1.5" /></div>
             <div><Label>Ditë pas afatit për kujtesë</Label><Input type="number" min="1" value={invoiceSettings?.payment_reminder_days_after || 5} onChange={(e) => setInvoiceSettings({ ...invoiceSettings, payment_reminder_days_after: parseInt(e.target.value) })} className="mt-1.5" /></div>
           </div>

@@ -147,6 +147,7 @@ export default function Reminders() {
             <thead>
               <tr className="border-b border-border bg-muted/20">
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Fatura</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data Faturës</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Email</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Afati</th>
@@ -167,6 +168,7 @@ export default function Reminders() {
                 reminders.map(r => (
                   <tr key={r.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4"><span className="text-sm font-semibold text-primary">{r.invoice_number}</span></td>
+                    <td className="px-6 py-4 text-xs text-muted-foreground">{invoices.find(i => i.id === r.invoice_id)?.created_date ? moment(invoices.find(i => i.id === r.invoice_id).created_date).format("DD MMM YY") : "—"}</td>
                     <td className="px-6 py-4 text-sm">{r.client_name}</td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">{r.client_email}</td>
                     <td className="px-6 py-4 text-sm">{moment(r.due_date).format("DD MMM YY")}</td>
