@@ -185,12 +185,20 @@ export default function Settings() {
         base44.entities.ServiceCategory.list('-created_date', 200).catch(() => []),
       ]);
       setUnits(unts);
-      setCategories(cats);
       setUser(u);
       if (temps.length > 0) { setTemplate(temps[0]); setForm(temps[0]); }
       else setForm({ company_name: '', company_email: '', company_phone: '', company_address: '', logo_url: '', primary_color: '#4338CA', footer_text: '' });
       if (invSets.length > 0) setInvoiceSettings(invSets[0]);
       if (cbSets.length > 0) { setCashboxSettings(cbSets[0]); setCashboxForm(cbSets[0]); }
+
+      // Auto-seed expense categories if empty
+      let finalCats = cats || [];
+      if (finalCats.length === 0) {
+        const createdCats = await Promise.all(DEFAULT_EXPENSE_CATEGORIES.map(c => base44.entities.ExpenseCategory.create({ ...c, is_default: true })));
+        finalCats = createdCats;
+        toast.success(`U shtuan ${createdCats.length} kategori standarde`);
+      }
+      setCategories(finalCats);
 
       // Auto-seed services if empty
       let finalSvcs = svcs || [];
