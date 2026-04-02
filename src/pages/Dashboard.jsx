@@ -152,25 +152,25 @@ export default function Dashboard() {
             <h1 className="text-5xl font-bold tracking-tight text-foreground">Mirë se vjen</h1>
             <p className="text-muted-foreground text-base">Ja çfarë po ndodh sot me biznesin tënd</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             {/* Period filter */}
-            <div className="flex gap-1 border-b border-border/40">
+            <div className="inline-flex gap-1.5 bg-muted/40 p-1.5 rounded-lg">
               {["today","month","year"].map(p => (
                 <button key={p} onClick={() => setPeriod(p)}
-                  className={cn("px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 border-b-2 -mb-px",
-                    period === p ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                  className={cn("px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200",
+                    period === p ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
                   )}>{periodLabels[p]}</button>
               ))}
             </div>
             {/* VAT toggle */}
-            <div className="flex gap-1 border-b border-border/40">
+            <div className="inline-flex gap-1.5 bg-muted/40 p-1.5 rounded-lg">
               <button onClick={() => setVatMode("inc")}
-                className={cn("px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 border-b-2 -mb-px",
-                  vatMode === "inc" ? "border-success text-success" : "border-transparent text-muted-foreground hover:text-foreground"
+                className={cn("px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200",
+                  vatMode === "inc" ? "bg-white text-success shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}>Me TVSH</button>
               <button onClick={() => setVatMode("exc")}
-                className={cn("px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 border-b-2 -mb-px",
-                  vatMode === "exc" ? "border-slate-700 text-slate-700" : "border-transparent text-muted-foreground hover:text-foreground"
+                className={cn("px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200",
+                  vatMode === "exc" ? "bg-white text-slate-700 shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}>Pa TVSH</button>
             </div>
           </div>
