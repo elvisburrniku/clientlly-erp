@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Plus, Trash2, MoreHorizontal, Mail, Phone, Download, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
@@ -26,6 +27,8 @@ const emptyForm = () => ({
 });
 
 export default function Suppliers() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -41,8 +44,9 @@ export default function Suppliers() {
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
+    if (!tenantId) return;
     try {
-      const data = await base44.entities.Supplier.list("-created_date", 100);
+      const data = await base44.entities.Supplier.filter({ tenant_id: tenantId }, "-created_date", 100);
       setSuppliers(data);
     } catch (err) {
       console.error("Load error:", err);
@@ -61,7 +65,7 @@ export default function Suppliers() {
         await base44.entities.Supplier.update(editingId, form);
         toast.success("Furnitori u përditësua");
       } else {
-        await base44.entities.Supplier.create(form);
+        await base44.entities.Supplier.create({ ...form, tenant_id: tenantId });
         toast.success("Furnitori u shtua");
       }
       setForm(emptyForm());

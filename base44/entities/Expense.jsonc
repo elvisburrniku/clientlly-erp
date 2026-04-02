@@ -2,6 +2,10 @@
   "name": "Expense",
   "type": "object",
   "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
     "category": {
       "type": "string",
       "description": "Kategoria e shpenzimit (ID e kategoris\u00eb)"
@@ -34,16 +38,13 @@
     },
     "is_paid": {
       "type": "boolean",
-      "description": "A \u00ebsht\u00eb paguar",
       "default": true
     },
     "pdf_url": {
-      "type": "string",
-      "description": "URL e fatur\u00ebs/dokumentit t\u00eb bashk\u00ebngjitur"
+      "type": "string"
     },
     "receipt_pdf_url": {
-      "type": "string",
-      "description": "URL e fatur\u00ebs s\u00eb gjeneruar automatikisht"
+      "type": "string"
     }
   },
   "required": [

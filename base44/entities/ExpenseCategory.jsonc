@@ -2,13 +2,15 @@
   "name": "ExpenseCategory",
   "type": "object",
   "properties": {
-    "name": {
+    "tenant_id": {
       "type": "string",
-      "description": "Emri i kategoris\u00eb"
+      "description": "Tenant ID for multi-tenancy"
+    },
+    "name": {
+      "type": "string"
     },
     "parent_category": {
       "type": "string",
-      "description": "Kategoria prind (grupi)",
       "default": ""
     },
     "type": {
@@ -18,27 +20,22 @@
         "variable",
         "one-time"
       ],
-      "description": "Lloji: fikse, variab\u00ebl, nj\u00ebher\u00ebsh",
       "default": "variable"
     },
     "color": {
       "type": "string",
-      "description": "Ngjyra hex e kategoris\u00eb (p.sh. #FF5733)",
       "default": "#6366f1"
     },
     "is_default": {
       "type": "boolean",
-      "description": "A \u00ebsht\u00eb kategoria e paracaktuar",
       "default": false
     },
     "is_favorite": {
       "type": "boolean",
-      "description": "A \u00ebsht\u00eb kategoria e preferuar (p\u00ebrdoret shpesh)",
       "default": false
     },
     "is_active": {
       "type": "boolean",
-      "description": "A \u00ebsht\u00eb kategoria aktive",
       "default": true
     }
   },

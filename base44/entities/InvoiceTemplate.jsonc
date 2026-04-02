@@ -2,42 +2,37 @@
   "name": "InvoiceTemplate",
   "type": "object",
   "properties": {
-    "company_name": {
+    "tenant_id": {
       "type": "string",
-      "description": "Emri i kompanis\u00eb"
+      "description": "Tenant ID for multi-tenancy"
+    },
+    "company_name": {
+      "type": "string"
     },
     "company_email": {
-      "type": "string",
-      "description": "Email i kompanis\u00eb"
+      "type": "string"
     },
     "company_phone": {
-      "type": "string",
-      "description": "Numri i telefonit i kompanis\u00eb"
+      "type": "string"
     },
     "company_address": {
-      "type": "string",
-      "description": "Adresa e kompanis\u00eb"
+      "type": "string"
     },
     "logo_url": {
-      "type": "string",
-      "description": "URL i logos s\u00eb kompanis\u00eb"
+      "type": "string"
     },
     "bg_image_url": {
-      "type": "string",
-      "description": "URL i imazhit t\u00eb sfondit p\u00ebr fatur\u00ebn"
+      "type": "string"
     },
     "primary_color": {
       "type": "string",
-      "description": "Ngjyra kryesore e fatur\u00ebs (hex code, p.sh. #4338CA)",
       "default": "#4338CA"
     },
     "footer_text": {
-      "type": "string",
-      "description": "Teksti i sh\u00ebnimeve n\u00eb fund t\u00eb fatur\u00ebs"
+      "type": "string"
     },
     "is_active": {
       "type": "boolean",
-      "description": "A \u00ebsht\u00eb ky shabllon aktiv",
       "default": true
     }
   },

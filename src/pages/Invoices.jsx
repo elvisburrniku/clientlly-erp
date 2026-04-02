@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Plus, FileText, Send, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Trash2, Filter, X, SlidersHorizontal, Calendar, User, Hash, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -38,6 +39,8 @@ const emptyForm = () => ({
 });
 
 export default function Invoices() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -114,7 +117,7 @@ export default function Invoices() {
     if (settings) {
       await base44.entities.InvoiceSettings.update(settings.id, { invoice_number_counter: counter });
     } else {
-      await base44.entities.InvoiceSettings.create({ invoice_number_format: format, invoice_number_counter: counter });
+      await base44.entities.InvoiceSettings.create({ invoice_number_format: format, invoice_number_counter: counter, tenant_id: tenantId });
     }
     await loadSettings();
     return number;
@@ -139,6 +142,7 @@ export default function Invoices() {
     const invoiceNumber = await generateInvoiceNumber();
     const { subtotal, vat_amount, amount } = calcTotals(form.items);
     const newInvoice = {
+      tenant_id: tenantId,
       invoice_type: form.invoice_type || "standard",
       invoice_number: invoiceNumber,
       client_name: form.client_name,
@@ -235,6 +239,7 @@ export default function Invoices() {
   const handleDuplicate = async (inv) => {
     const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
     const copy = {
+      tenant_id: tenantId,
       invoice_number: invoiceNumber, client_name: inv.client_name, client_email: inv.client_email,
       client_phone: inv.client_phone, items: inv.items, subtotal: inv.subtotal, vat_amount: inv.vat_amount,
       amount: inv.amount, payment_method: inv.payment_method, due_date: inv.due_date,

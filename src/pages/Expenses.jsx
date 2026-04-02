@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import CategorySelector from "../components/expenses/CategorySelector";
 import { Plus, Trash2, MoreHorizontal, AlertCircle, Download, FileText, SlidersHorizontal, X, Search, Calendar, Sheet, Layers, Paperclip, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,8 @@ const generateExpenseReceiptPDF = (exp, categoryName) => {
 };
 
 export default function Expenses() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -94,18 +97,20 @@ export default function Expenses() {
   useEffect(() => { loadData(); loadCategories(); loadBudgets(); }, []);
 
   const loadBudgets = async () => {
-    const buds = await base44.entities.CategoryBudget.list("-created_date", 100).catch(() => []);
+    if (!tenantId) return;
+    const buds = await base44.entities.CategoryBudget.filter({ tenant_id: tenantId }, "-created_date", 100).catch(() => []);
     setBudgets(buds);
   };
 
   const loadCategories = async () => {
-    const cats = await base44.entities.ExpenseCategory.list("-created_date", 100).catch(() => []);
+    if (!tenantId) return;
+    const cats = await base44.entities.ExpenseCategory.filter({ tenant_id: tenantId }, "-created_date", 100).catch(() => []);
     setCategories(cats);
   };
 
   const addCategory = async () => {
     if (!newCategoryName.trim()) return;
-    const newCat = await base44.entities.ExpenseCategory.create({ name: newCategoryName });
+    const newCat = await base44.entities.ExpenseCategory.create({ name: newCategoryName, tenant_id: tenantId });
     setCategories([...categories, newCat]);
     setForm({ ...form, category: newCat.id });
     setShowNewCategory(false);
@@ -113,7 +118,8 @@ export default function Expenses() {
   };
 
   const loadData = async () => {
-    const data = await base44.entities.Expense.list("-created_date", 200);
+    if (!tenantId) return;
+    const data = await base44.entities.Expense.filter({ tenant_id: tenantId }, "-created_date", 200);
     setExpenses(data);
     setLoading(false);
   };
@@ -134,7 +140,7 @@ export default function Expenses() {
       return;
     }
     setSubmitting(true);
-    const created = await base44.entities.Expense.create(form);
+    const created = await base44.entities.Expense.create({ ...form, tenant_id: tenantId });
 
     // Generate receipt PDF and save URL
     const catName = categories.find(c => c.id === form.category)?.name || form.category;

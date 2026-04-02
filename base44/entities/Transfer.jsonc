@@ -2,39 +2,36 @@
   "name": "Transfer",
   "type": "object",
   "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
     "type": {
       "type": "string",
       "enum": [
         "cash_to_bank",
         "bank_to_bank"
       ],
-      "description": "Lloji i transfert\u00ebs",
       "default": "cash_to_bank"
     },
     "from_account": {
-      "type": "string",
-      "description": "Llogaria burimore (p.sh. Arka, Raiffeisen)"
+      "type": "string"
     },
     "to_account": {
-      "type": "string",
-      "description": "Llogaria destinuese (p.sh. BKT, Credins)"
+      "type": "string"
     },
     "amount": {
-      "type": "number",
-      "description": "Shuma e transfert\u00ebs n\u00eb EUR"
+      "type": "number"
     },
     "transfer_date": {
       "type": "string",
-      "format": "date",
-      "description": "Data e transfert\u00ebs"
+      "format": "date"
     },
     "reference": {
-      "type": "string",
-      "description": "Referenca / numri i dokumentit"
+      "type": "string"
     },
     "notes": {
-      "type": "string",
-      "description": "Sh\u00ebnime shtes\u00eb"
+      "type": "string"
     },
     "status": {
       "type": "string",
@@ -42,8 +39,7 @@
         "completed",
         "pending"
       ],
-      "default": "completed",
-      "description": "Statusi i transfert\u00ebs"
+      "default": "completed"
     }
   },
   "required": [

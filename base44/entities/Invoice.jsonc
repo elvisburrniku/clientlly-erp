@@ -2,6 +2,10 @@
   "name": "Invoice",
   "type": "object",
   "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
     "invoice_number": {
       "type": "string",
       "description": "Invoice number"
@@ -47,8 +51,7 @@
             "enum": [
               "product",
               "service"
-            ],
-            "description": "Product or service"
+            ]
           },
           "name": {
             "type": "string"
@@ -57,24 +60,19 @@
             "type": "number"
           },
           "unit": {
-            "type": "string",
-            "description": "e.g. cope, kg, ore, m2"
+            "type": "string"
           },
           "price_ex_vat": {
-            "type": "number",
-            "description": "Unit price without VAT"
+            "type": "number"
           },
           "vat_rate": {
-            "type": "number",
-            "description": "VAT % e.g. 20"
+            "type": "number"
           },
           "price_inc_vat": {
-            "type": "number",
-            "description": "Unit price with VAT"
+            "type": "number"
           },
           "line_total": {
-            "type": "number",
-            "description": "Qty * price_inc_vat"
+            "type": "number"
           }
         }
       }
@@ -90,18 +88,15 @@
         "percentage",
         "fixed"
       ],
-      "default": "none",
-      "description": "Type of discount"
+      "default": "none"
     },
     "discount_value": {
       "type": "number",
-      "default": 0,
-      "description": "Discount value (% or fixed amount)"
+      "default": 0
     },
     "discount_amount": {
       "type": "number",
-      "default": 0,
-      "description": "Calculated discount amount"
+      "default": 0
     },
     "vat_amount": {
       "type": "number",
@@ -125,12 +120,10 @@
     },
     "is_open": {
       "type": "boolean",
-      "description": "Is the invoice open (unpaid)",
       "default": true
     },
     "hand_delivered": {
       "type": "boolean",
-      "description": "Was the invoice delivered by hand to the client",
       "default": false
     },
     "payment_method": {
@@ -140,12 +133,10 @@
         "bank_transfer",
         "card",
         "other"
-      ],
-      "description": "How the invoice was paid"
+      ]
     },
     "payment_records": {
       "type": "array",
-      "description": "Payment history with partial payments",
       "items": {
         "type": "object",
         "properties": {
@@ -173,21 +164,17 @@
       "type": "string"
     },
     "payment_notes": {
-      "type": "string",
-      "description": "Payment instructions or notes"
+      "type": "string"
     },
     "internal_notes": {
-      "type": "string",
-      "description": "Internal notes (not shown to client)"
+      "type": "string"
     },
     "issued_by": {
-      "type": "string",
-      "description": "Email of staff who issued"
+      "type": "string"
     },
     "is_recurring": {
       "type": "boolean",
-      "default": false,
-      "description": "Is this a recurring invoice"
+      "default": false
     },
     "recurring_interval": {
       "type": "string",
@@ -195,16 +182,13 @@
         "monthly",
         "quarterly",
         "yearly"
-      ],
-      "description": "Recurrence interval if recurring"
+      ]
     },
     "parent_invoice_id": {
-      "type": "string",
-      "description": "ID of the invoice this was duplicated from or converted from proforma"
+      "type": "string"
     },
     "converted_from_proforma": {
       "type": "boolean",
-      "description": "Was this invoice converted from a proforma",
       "default": false
     }
   },

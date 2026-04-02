@@ -2,6 +2,10 @@
   "name": "Client",
   "type": "object",
   "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
     "name": {
       "type": "string",
       "description": "Emri i klientit"
@@ -16,7 +20,7 @@
     },
     "nipt": {
       "type": "string",
-      "description": "NIPT (Numri i Identifikimit p\u00ebr Tatimin mbi Vler\u00ebn e Shtuar)"
+      "description": "NIPT"
     },
     "address": {
       "type": "string",
@@ -34,12 +38,10 @@
     },
     "total_spent": {
       "type": "number",
-      "description": "Shuma totale e shpenzuar",
       "default": 0
     },
     "notes": {
-      "type": "string",
-      "description": "Sh\u00ebnime rreth klientit"
+      "type": "string"
     }
   },
   "required": [

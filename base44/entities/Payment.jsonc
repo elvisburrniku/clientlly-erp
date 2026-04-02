@@ -2,25 +2,24 @@
   "name": "Payment",
   "type": "object",
   "properties": {
-    "invoice_id": {
+    "tenant_id": {
       "type": "string",
-      "description": "ID e fatur\u00ebs"
+      "description": "Tenant ID for multi-tenancy"
+    },
+    "invoice_id": {
+      "type": "string"
     },
     "invoice_number": {
-      "type": "string",
-      "description": "Numri i fatur\u00ebs"
+      "type": "string"
     },
     "client_name": {
-      "type": "string",
-      "description": "Emri i klientit"
+      "type": "string"
     },
     "client_email": {
-      "type": "string",
-      "description": "Email i klientit"
+      "type": "string"
     },
     "amount": {
-      "type": "number",
-      "description": "Shuma e paguar n\u00eb EUR"
+      "type": "number"
     },
     "payment_method": {
       "type": "string",
@@ -29,12 +28,10 @@
         "bank_transfer",
         "card",
         "other"
-      ],
-      "description": "Metoda e pages\u00ebs"
+      ]
     },
     "card_last_four": {
-      "type": "string",
-      "description": "Kat\u00ebr shifrat e fundit t\u00eb kart\u00ebs (xxxx1234)"
+      "type": "string"
     },
     "card_type": {
       "type": "string",
@@ -43,17 +40,14 @@
         "mastercard",
         "amex",
         "other"
-      ],
-      "description": "Lloji i kart\u00ebs"
+      ]
     },
     "notes": {
-      "type": "string",
-      "description": "Sh\u00ebnime n\u00eb lidhje me pagesen"
+      "type": "string"
     },
     "payment_date": {
       "type": "string",
-      "format": "date",
-      "description": "Data e pages\u00ebs"
+      "format": "date"
     },
     "status": {
       "type": "string",
@@ -62,8 +56,7 @@
         "completed",
         "failed"
       ],
-      "default": "completed",
-      "description": "Statusi i pages\u00ebs"
+      "default": "completed"
     }
   },
   "required": [

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Plus, Trash2, Bell, MoreHorizontal, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
 import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
@@ -26,6 +27,8 @@ const emptyForm = () => ({
 });
 
 export default function Reminders() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [reminders, setReminders] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,10 +47,11 @@ export default function Reminders() {
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
+    if (!tenantId) return;
     try {
       const [remindersData, invoicesData] = await Promise.all([
-        base44.entities.Reminder.list("-created_date", 100),
-        base44.entities.Invoice.list("-created_date", 100),
+        base44.entities.Reminder.filter({ tenant_id: tenantId }, "-created_date", 100),
+        base44.entities.Invoice.filter({ tenant_id: tenantId }, "-created_date", 100),
       ]);
       setReminders(remindersData);
       setInvoices(invoicesData);
@@ -78,7 +82,7 @@ export default function Reminders() {
     }
     setSubmitting(true);
     try {
-      await base44.entities.Reminder.create(form);
+      await base44.entities.Reminder.create({ ...form, tenant_id: tenantId });
       toast.success("Kujtesa u shtua");
       setForm(emptyForm());
       setDialogOpen(false);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle, TrendingUp, BanknoteIcon, ChevronRight } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
@@ -11,6 +12,8 @@ import LowStockAlert from "../components/dashboard/LowStockAlert";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [period, setPeriod] = useState("today");
   const [vatMode, setVatMode] = useState("inc"); // inc = me TVSH, exc = pa TVSH
   const [stats, setStats] = useState({
@@ -41,11 +44,12 @@ export default function Dashboard() {
 
   const loadDashboardData = async () => {
     try {
+      if (!tenantId) return;
       const [invoices, transactions, users, expenses] = await Promise.all([
-        base44.entities.Invoice.list(),
-        base44.entities.CashTransaction.list(),
+        base44.entities.Invoice.filter({ tenant_id: tenantId }),
+        base44.entities.CashTransaction.filter({ tenant_id: tenantId }),
         base44.entities.User.list().catch(() => []),
-        base44.entities.Expense.list(),
+        base44.entities.Expense.filter({ tenant_id: tenantId }),
       ]);
 
       // Filter invoices by period

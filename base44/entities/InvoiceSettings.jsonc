@@ -2,34 +2,32 @@
   "name": "InvoiceSettings",
   "type": "object",
   "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
     "invoice_number_format": {
       "type": "string",
-      "description": "Format template: INV-{YYYY}-{###}, FAT-{##}, etc",
       "default": "INV-{###}"
     },
     "invoice_number_counter": {
       "type": "number",
-      "description": "Current counter for invoice numbering",
       "default": 1
     },
     "payment_reminder_days_before": {
       "type": "number",
-      "description": "Days before due date to send reminder",
       "default": 3
     },
     "payment_reminder_days_after": {
       "type": "number",
-      "description": "Days after due date to send overdue reminder",
       "default": 5
     },
     "auto_send_reminders": {
       "type": "boolean",
-      "description": "Enable automatic payment reminders",
       "default": false
     },
     "default_payment_notes": {
-      "type": "string",
-      "description": "Default payment notes/instructions template"
+      "type": "string"
     }
   },
   "required": []

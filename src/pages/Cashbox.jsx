@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, FileSpreadsheet, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet as SheetDrawer, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
@@ -13,6 +14,8 @@ import { cn } from "@/lib/utils";
 import moment from "moment";
 
 export default function Cashbox() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -28,7 +31,8 @@ export default function Cashbox() {
   useEffect(() => { loadTransactions(); }, []);
 
   const loadTransactions = async () => {
-    const data = await base44.entities.CashTransaction.list("-created_date", 200);
+    if (!tenantId) return;
+    const data = await base44.entities.CashTransaction.filter({ tenant_id: tenantId }, "-created_date", 200);
     setTransactions(data);
     setLoading(false);
   };
@@ -207,6 +211,7 @@ export default function Cashbox() {
       type: dialogType,
       note,
       reference_type: "manual",
+      tenant_id: tenantId,
     });
     setDialogOpen(false);
     setSubmitting(false);

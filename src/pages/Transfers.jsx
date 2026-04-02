@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +17,8 @@ const TYPE_LABELS = {
 };
 
 export default function Transfers() {
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [transfers, setTransfers] = useState([]);
   const [cashBalance, setCashBalance] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -37,9 +40,10 @@ export default function Transfers() {
   }, []);
 
   const loadTransfers = async () => {
+    if (!tenantId) return;
     const [data, txns] = await Promise.all([
-      base44.entities.Transfer.list("-transfer_date", 100).catch(() => []),
-      base44.entities.CashTransaction.list('-created_date', 1000).catch(() => []),
+      base44.entities.Transfer.filter({ tenant_id: tenantId }, "-transfer_date", 100).catch(() => []),
+      base44.entities.CashTransaction.filter({ tenant_id: tenantId }, '-created_date', 1000).catch(() => []),
     ]);
     setTransfers(data);
     const balance = txns.reduce((sum, t) => t.type === 'cash_in' ? sum + t.amount : sum - t.amount, 0);
@@ -71,7 +75,7 @@ export default function Transfers() {
     }
     setSaving(true);
 
-    const payload = { ...form, amount: parseFloat(form.amount) };
+    const payload = { ...form, amount: parseFloat(form.amount), tenant_id: tenantId };
     await base44.entities.Transfer.create(payload);
 
     // If cash_to_bank (deponim nga arka), regjistroje edhe si dalje nga arka
@@ -81,6 +85,7 @@ export default function Transfers() {
         type: "cash_out",
         note: `Deponim në bankë: ${form.to_account}${form.reference ? " - Ref: " + form.reference : ""}`,
         reference_type: "manual",
+        tenant_id: tenantId,
       });
       toast.success("Transferta u regjistrua dhe arka u përditësua");
     } else {

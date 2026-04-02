@@ -2,50 +2,43 @@
   "name": "Supplier",
   "type": "object",
   "properties": {
-    "name": {
+    "tenant_id": {
       "type": "string",
-      "description": "Emri i furnitorit"
+      "description": "Tenant ID for multi-tenancy"
+    },
+    "name": {
+      "type": "string"
     },
     "email": {
-      "type": "string",
-      "description": "Email i furnitorit"
+      "type": "string"
     },
     "phone": {
-      "type": "string",
-      "description": "Numri i telefonit (me prefiks)"
+      "type": "string"
     },
     "address": {
-      "type": "string",
-      "description": "Adresa e furnitorit"
+      "type": "string"
     },
     "nipt": {
-      "type": "string",
-      "description": "NIPT i furnitorit"
+      "type": "string"
     },
     "contact_person": {
-      "type": "string",
-      "description": "Personi i kontaktit"
+      "type": "string"
     },
     "payment_terms": {
-      "type": "string",
-      "description": "Termat e pages\u00ebs (p.sh. 30 dit\u00eb)"
+      "type": "string"
     },
     "category": {
-      "type": "string",
-      "description": "Kategoria e produkteve/sh\u00ebrbimeve"
+      "type": "string"
     },
     "notes": {
-      "type": "string",
-      "description": "Sh\u00ebnime rreth furnitorit"
+      "type": "string"
     },
     "is_active": {
       "type": "boolean",
-      "description": "A \u00ebsht\u00eb furnitori aktiv",
       "default": true
     },
     "total_spent": {
       "type": "number",
-      "description": "Shuma totale e blerjeve",
       "default": 0
     }
   },

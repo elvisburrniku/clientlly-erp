@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Plus, Trash2, Pencil, MoreHorizontal, Users, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
 import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
@@ -26,6 +27,8 @@ const emptyForm = () => ({
 
 export default function Clients() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -43,8 +46,9 @@ export default function Clients() {
   }, []);
 
   const loadClients = async () => {
+    if (!tenantId) return;
     setLoading(true);
-    const data = await base44.entities.Client.list("-created_date", 100);
+    const data = await base44.entities.Client.filter({ tenant_id: tenantId }, "-created_date", 100);
     setClients(data);
     setLoading(false);
   };
@@ -52,7 +56,7 @@ export default function Clients() {
   const handleCreate = async () => {
     if (!form.name || !form.email) return;
     setSubmitting(true);
-    await base44.entities.Client.create(form);
+    await base44.entities.Client.create({ ...form, tenant_id: tenantId });
     setDialogOpen(false);
     setForm(emptyForm());
     setSubmitting(false);

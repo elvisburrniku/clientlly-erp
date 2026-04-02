@@ -2,6 +2,10 @@
   "name": "CashTransaction",
   "type": "object",
   "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
     "amount": {
       "type": "number",
       "description": "Transaction amount in EUR"
@@ -15,8 +19,7 @@
       "description": "Type of transaction"
     },
     "note": {
-      "type": "string",
-      "description": "Transaction note/description"
+      "type": "string"
     },
     "reference_type": {
       "type": "string",
@@ -24,12 +27,10 @@
         "manual",
         "handover",
         "invoice"
-      ],
-      "description": "What triggered this transaction"
+      ]
     },
     "reference_id": {
-      "type": "string",
-      "description": "ID of the related record"
+      "type": "string"
     }
   },
   "required": [
