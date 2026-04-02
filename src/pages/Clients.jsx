@@ -43,9 +43,9 @@ export default function Clients() {
   const [showNameDrop, setShowNameDrop] = useState(false);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
   const [selectedClientForCard, setSelectedClientForCard] = useState(null);
-  const [cardMonth, setCardMonth] = useState(new Date().getMonth() + 1);
+  const [cardStartDate, setCardStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [cardEndDate, setCardEndDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]);
   const [cardYear, setCardYear] = useState(new Date().getFullYear());
-  const [cardSearch, setCardSearch] = useState("");
 
   useEffect(() => {
     loadClients();
@@ -472,58 +472,40 @@ export default function Clients() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
-              <Label>Zgjedh Klientin</Label>
-              <div className="relative mt-1.5">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <input type="text" placeholder="Kërko klientin..." value={cardSearch}
-                  onChange={(e) => setCardSearch(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30" />
-              </div>
-              {cardSearch && cardFilteredClients.length > 0 && (
-                <div className="mt-2 border border-border rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                  {cardFilteredClients.map(c => (
-                    <button key={c.id} onClick={() => setSelectedClientForCard(c)} className={cn(
-                      "w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition border-b border-border last:border-b-0",
-                      selectedClientForCard?.id === c.id && "bg-primary/10 font-semibold text-primary"
-                    )}>
-                      {c.name}
-                    </button>
+              <Label>Zgjedh Klientin *</Label>
+              <Select value={selectedClientForCard?.id || ""} onValueChange={(id) => setSelectedClientForCard(clients.find(c => c.id === id) || null)}>
+                <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjidh një klient" /></SelectTrigger>
+                <SelectContent>
+                  {clients.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
-                </div>
-              )}
-              {selectedClientForCard && (
-                <div className="mt-2 p-3 bg-muted rounded-xl text-sm font-medium">{selectedClientForCard.name}</div>
-              )}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Muaji</Label>
-                <Select value={cardMonth.toString()} onValueChange={(v) => setCardMonth(parseInt(v))}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
-                      <SelectItem key={m} value={m.toString()}>{new Date(2024, m-1).toLocaleString('sq-AL', { month: 'long' })}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Viti</Label>
-                <Select value={cardYear.toString()} onValueChange={(v) => setCardYear(parseInt(v))}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {[2024, 2025, 2026, 2027].map(y => (
-                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label>Data e Fillimit *</Label>
+              <Input type="date" value={cardStartDate} onChange={(e) => setCardStartDate(e.target.value)} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Data e Mbarimit *</Label>
+              <Input type="date" value={cardEndDate} onChange={(e) => setCardEndDate(e.target.value)} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Viti *</Label>
+              <Select value={cardYear.toString()} onValueChange={(v) => setCardYear(parseInt(v))}>
+                <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027].map(y => (
+                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCardDialogOpen(false)}>Anulo</Button>
             <Button onClick={() => {
-              if (selectedClientForCard) {
+              if (selectedClientForCard && cardStartDate && cardEndDate) {
                 const doc = new jsPDF({ unit: "mm", format: "a6" });
                 const W = 105; const H = 148;
                 doc.setFillColor(67, 56, 202);
@@ -545,21 +527,20 @@ export default function Clients() {
                   doc.text((value || "—").toString().slice(0, 30), 8, y + 4);
                   y += 10;
                 };
-                const monthName = new Date(2024, cardMonth-1).toLocaleString('sq-AL', { month: 'long' });
                 addField("EMRI", selectedClientForCard.name);
                 addField("EMAIL", selectedClientForCard.email);
                 addField("TELEFON", selectedClientForCard.phone);
                 addField("NIPT", selectedClientForCard.nipt);
                 addField("ADRESA", selectedClientForCard.address);
-                addField("MUAJI", monthName);
+                addField("DATA FILLIMI", moment(cardStartDate).format("DD/MM/YYYY"));
+                addField("DATA MBARIMI", moment(cardEndDate).format("DD/MM/YYYY"));
                 addField("VITI", cardYear);
-                doc.save(`kartela_${selectedClientForCard.name.replace(/\s+/g, "_")}_${cardMonth}_${cardYear}.pdf`);
+                doc.save(`kartela_${selectedClientForCard.name.replace(/\s+/g, "_")}.pdf`);
                 setCardDialogOpen(false);
                 setSelectedClientForCard(null);
-                setCardSearch("");
                 toast.success("Kartela u shkarkua");
               }
-            }} disabled={!selectedClientForCard}>
+            }} disabled={!selectedClientForCard || !cardStartDate || !cardEndDate}>
               Shkarko
             </Button>
           </DialogFooter>
