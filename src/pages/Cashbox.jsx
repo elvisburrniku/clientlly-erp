@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, Sheet, Calendar } from "lucide-react";
+import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, FileSpreadsheet, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
+import { Sheet as SheetDrawer, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -22,6 +23,7 @@ export default function Cashbox() {
   const [filterType, setFilterType] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => { loadTransactions(); }, []);
 
@@ -230,7 +232,7 @@ export default function Cashbox() {
           <p className="text-sm text-muted-foreground mt-1">Menaxhimi i parave të gatshme</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" onClick={exportExcel} className="gap-2"><Sheet className="w-4 h-4" /> Excel</Button>
+          <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
           <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF Raport</Button>
           <Button onClick={() => openDialog("cash_in")} className="gap-2"><Plus className="w-4 h-4" /> Shto Para</Button>
           <Button onClick={() => openDialog("cash_out")} variant="outline" className="gap-2"><Minus className="w-4 h-4" /> Tërhiq Para</Button>
@@ -274,34 +276,76 @@ export default function Cashbox() {
         </div>
       </div>
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="flex bg-muted rounded-xl p-1">
-          {["", "cash_in", "cash_out"].map(type => (
-            <button key={type} onClick={() => setFilterType(type)}
-              className={cn("px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                filterType === type ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              )}>
-              {type === "" ? "Të gjitha" : type === "cash_in" ? "Hyrjet" : "Daljet"}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)}
-            className="px-3 py-1.5 text-xs border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary/30" />
-          <span className="text-xs text-muted-foreground">—</span>
-          <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)}
-            className="px-3 py-1.5 text-xs border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary/30" />
-        </div>
-        {[
-          { label: "Sot", action: () => { const t = new Date().toISOString().split('T')[0]; setFilterDateFrom(t); setFilterDateTo(t); } },
-          { label: "Ky Muaj", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), n.getMonth(), 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); } },
-          { label: "Ky Vit", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), 0, 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); } },
-        ].map(p => (
-          <button key={p.label} onClick={p.action} className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-primary hover:text-white hover:border-primary transition-all">{p.label}</button>
-        ))}
-        {hasFilters && <button onClick={clearFilters} className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-destructive/40 text-destructive hover:bg-destructive hover:text-white transition-all">✕ Pastro</button>}
+      {/* Filter button */}
+      <div className="flex items-center gap-2">
+        <SheetDrawer open={filterOpen} onOpenChange={setFilterOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="gap-2 relative">
+              <SlidersHorizontal className="w-4 h-4" /> Filtro
+              {hasFilters && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">{[filterType, filterDateFrom, filterDateTo].filter(Boolean).length}</span>}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-80">
+            <SheetHeader>
+              <SheetTitle>Filtro Transaksionet</SheetTitle>
+            </SheetHeader>
+            <div className="space-y-5 mt-6">
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Tipi</label>
+                <div className="flex bg-muted rounded-xl p-1">
+                  {["", "cash_in", "cash_out"].map(type => (
+                    <button key={type} onClick={() => setFilterType(type)}
+                      className={cn("flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                        filterType === type ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      )}>
+                      {type === "" ? "Të gjitha" : type === "cash_in" ? "Hyrjet" : "Daljet"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">Periudha</label>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground">Nga</label>
+                    <input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)}
+                      className="w-full mt-1 px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground">Deri</label>
+                    <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)}
+                      className="w-full mt-1 px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground block">Periudha e shpejtë</label>
+                {[
+                  { label: "Sot", action: () => { const t = new Date().toISOString().split('T')[0]; setFilterDateFrom(t); setFilterDateTo(t); }},
+                  { label: "Ky Muaj", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), n.getMonth(), 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); }},
+                  { label: "Ky Vit", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), 0, 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); }},
+                ].map(p => (
+                  <button key={p.label} onClick={p.action}
+                    className="w-full px-3 py-2 text-sm font-medium rounded-lg border border-border bg-white hover:bg-primary hover:text-white hover:border-primary transition-all text-left">
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {hasFilters && (
+                <button onClick={() => { clearFilters(); setFilterOpen(false); }}
+                  className="w-full px-3 py-2 text-sm font-semibold rounded-lg border border-destructive/40 text-destructive hover:bg-destructive hover:text-white transition-all">
+                  ✕ Pastro Filtrat
+                </button>
+              )}
+            </div>
+          </SheetContent>
+        </SheetDrawer>
+        {hasFilters && (
+          <div className="flex flex-wrap gap-2">
+            {filterType && <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">{filterType === "cash_in" ? "Hyrjet" : "Daljet"} <button onClick={() => setFilterType("")} className="hover:text-destructive"><X className="w-3 h-3" /></button></span>}
+            {(filterDateFrom || filterDateTo) && <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">{filterDateFrom || "..."} — {filterDateTo || "..."} <button onClick={() => { setFilterDateFrom(""); setFilterDateTo(""); }} className="hover:text-destructive"><X className="w-3 h-3" /></button></span>}
+          </div>
+        )}
       </div>
 
       {/* Filtered summary */}
