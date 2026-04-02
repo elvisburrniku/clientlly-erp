@@ -688,27 +688,27 @@ export default function Invoices() {
                     <td className="px-6 py-4"><span className="text-xs text-muted-foreground">{inv.issued_by ? inv.issued_by.split("@")[0] : "—"}</span></td>
                     <td className="px-6 py-4">
                       <div className="flex gap-1.5 justify-end items-center">
-                        <InvoicePDFButton invoice={inv} />
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="w-4 h-4" /></Button>
+                       <InvoicePDFButton invoice={inv} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="w-4 h-4" /></Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}><Eye className="w-4 h-4 mr-2" /> Shiko Faturën</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openEdit(inv)}><Pencil className="w-4 h-4 mr-2" /> Modifiko</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setSendDialog(inv)}><Send className="w-4 h-4 mr-2" /> Ridërgo Faturën</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSendReminder(inv)}><Bell className="w-4 h-4 mr-2" /> Kujtese për Faturën</DropdownMenuItem>
-                            {!inv.hand_delivered && <DropdownMenuItem onClick={() => handleMarkHandDelivered(inv)}><FileText className="w-4 h-4 mr-2" /> Shëno si Dorëzuar në Dorë</DropdownMenuItem>}
-                            {inv.is_open && <DropdownMenuItem onClick={() => setPaymentDialog(inv)}><Banknote className="w-4 h-4 mr-2" /> Shto Pagesë</DropdownMenuItem>}
-                            {inv.invoice_type === "proforma" && <DropdownMenuItem onClick={() => handleConvertProforma(inv)}><FileText className="w-4 h-4 mr-2" /> Konverto në Faturë</DropdownMenuItem>}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDuplicate(inv)}><Copy className="w-4 h-4 mr-2" /> Dyfisho</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleDelete(inv)} className="text-destructive focus:text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Fshi Faturën</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                         <DropdownMenuContent align="end" className="w-48">
+                           <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}><Eye className="w-4 h-4 mr-2" /> Shiko Faturën</DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => openEdit(inv)}><Pencil className="w-4 h-4 mr-2" /> Modifiko</DropdownMenuItem>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem onClick={() => setSendDialog(inv)}><Send className="w-4 h-4 mr-2" /> Ridërgo Faturën</DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => handleSendReminder(inv)}><Bell className="w-4 h-4 mr-2" /> Kujtese për Faturën</DropdownMenuItem>
+                           {!inv.hand_delivered && <DropdownMenuItem onClick={() => handleMarkHandDelivered(inv)}><FileText className="w-4 h-4 mr-2" /> Shëno si Dorëzuar në Dorë</DropdownMenuItem>}
+                           {inv.is_open && <DropdownMenuItem onClick={() => setPaymentDialog(inv)}><Banknote className="w-4 h-4 mr-2" /> Shto Pagesë</DropdownMenuItem>}
+                           {inv.invoice_type === "proforma" && <DropdownMenuItem onClick={() => handleConvertProforma(inv)}><FileText className="w-4 h-4 mr-2" /> Konverto në Faturë</DropdownMenuItem>}
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem onClick={() => handleDuplicate(inv)}><Copy className="w-4 h-4 mr-2" /> Dyfisho</DropdownMenuItem>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem onClick={() => handleDelete(inv)} className="text-destructive focus:text-destructive"><Trash2 className="w-4 h-4 mr-2" /> Fshi Faturën</DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
+                     </div>
                     </td>
                   </tr>
                 ))
