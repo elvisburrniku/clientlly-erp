@@ -36,6 +36,7 @@ export default function Products() {
   const [filterName, setFilterName] = useState("");
   const [nameQuery, setNameQuery] = useState("");
   const [showNameDrop, setShowNameDrop] = useState(false);
+  const [viewType, setViewType] = useState("all");
 
   useEffect(() => { loadData(); }, []);
 
@@ -95,6 +96,8 @@ export default function Products() {
     if (filterStatus === "active" && !p.is_active) return false;
     if (filterStatus === "inactive" && p.is_active) return false;
     if (filterName && p.name !== filterName) return false;
+    if (viewType === "products" && p.type !== "product") return false;
+    if (viewType === "services" && p.type !== "service") return false;
     return true;
   });
 
@@ -199,6 +202,29 @@ export default function Products() {
             {products.filter(p => p.type === "service" && p.is_active).length} / {products.filter(p => p.type === "product" && p.is_active).length}
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">shërbime / produkte</p>
+        </div>
+      </div>
+
+      {/* View Type Toggle */}
+      <div className="flex items-center gap-3 bg-white rounded-2xl border border-border/60 shadow-sm p-3 w-fit">
+        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Shfaqi:</span>
+        <div className="flex bg-muted rounded-xl p-1">
+          {[
+            { value: "all", label: "Të Gjitha" },
+            { value: "products", label: "Produktet" },
+            { value: "services", label: "Shërbimet" }
+          ].map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setViewType(opt.value)}
+              className={cn(
+                "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                viewType === opt.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 
