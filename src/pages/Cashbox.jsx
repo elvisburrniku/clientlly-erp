@@ -419,8 +419,25 @@ export default function Cashbox() {
 
       {/* Transactions table */}
       <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="p-5 border-b border-border flex items-center justify-between">
-          <h3 className="text-base font-semibold">{filtered.length} transaksione{hasFilters ? " (filtruara)" : ""}</h3>
+        <div className="p-5 border-b border-border flex items-center justify-between gap-3">
+          <p className="font-semibold text-sm">{filtered.length} transaksione{hasFilters ? " (filtruara)" : ""}</p>
+          <div className="flex items-center gap-1.5 ml-auto">
+            {[
+              { label: "Sot", action: () => { const t = new Date().toISOString().split('T')[0]; setFilterDateFrom(t); setFilterDateTo(t); } },
+              { label: "Muaj", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), n.getMonth(), 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); } },
+              { label: "Vit", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), 0, 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); } },
+            ].map(p => (
+              <button key={p.label} onClick={p.action}
+                className="px-3 py-1 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-primary hover:text-white hover:border-primary transition-all">
+                {p.label}
+              </button>
+            ))}
+            {hasFilters && (
+              <button onClick={clearFilters} className="px-3 py-1 text-xs font-semibold rounded-lg border border-destructive/40 text-destructive hover:bg-destructive hover:text-white transition-all">
+                ✕ Pastro
+              </button>
+            )}
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
