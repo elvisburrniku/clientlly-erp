@@ -714,14 +714,12 @@ export default function Quotes() {
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
                 <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
               </div>
-              <div className="pl-8 space-y-3">
-                <Input placeholder="Emri i Klientit *" value={formData.client_name} onChange={(e) => setFormData({ ...formData, client_name: e.target.value })} />
-                <div className="grid grid-cols-3 gap-3">
-                  <Input placeholder="Email" type="email" value={formData.client_email} onChange={(e) => setFormData({ ...formData, client_email: e.target.value })} />
-                  <Input placeholder="Telefon" value={formData.client_phone} onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })} />
-                  <Input placeholder="NIPT" value={formData.client_nipt} onChange={(e) => setFormData({ ...formData, client_nipt: e.target.value })} />
-                </div>
-                <Textarea placeholder="Adresa" value={formData.client_address} onChange={(e) => setFormData({ ...formData, client_address: e.target.value })} rows={2} />
+              <div className="pl-8 space-y-2">
+                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Emri i Klientit *</label><Input value={formData.client_name} onChange={(e) => setFormData({ ...formData, client_name: e.target.value })} className="text-sm" /></div>
+                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Email</label><Input type="email" value={formData.client_email} onChange={(e) => setFormData({ ...formData, client_email: e.target.value })} className="text-sm" /></div>
+                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Telefon</label><Input value={formData.client_phone} onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })} className="text-sm" /></div>
+                <div><label className="text-xs font-medium text-muted-foreground block mb-1">NIPT</label><Input value={formData.client_nipt} onChange={(e) => setFormData({ ...formData, client_nipt: e.target.value })} className="text-sm" /></div>
+                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Adresa</label><Textarea value={formData.client_address} onChange={(e) => setFormData({ ...formData, client_address: e.target.value })} rows={2} className="text-sm" /></div>
                 {formData.client_name && <QuoteHistory clientName={formData.client_name} />}
               </div>
             </div>
