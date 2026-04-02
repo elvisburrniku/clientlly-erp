@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Trash2, DollarSign, X, SlidersHorizontal, Calendar, User, Hash } from "lucide-react";
+import { Plus, FileText, Send, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Trash2, Filter, X, SlidersHorizontal, Calendar, User, Hash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Sheet as SheetComponent, SheetContent, SheetClose } from "@/components/ui/sheet";
@@ -500,7 +500,7 @@ export default function Invoices() {
             <div className="h-px bg-border mx-6" />
             <div className="px-6 pt-5 pb-6">
               <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                <Filter className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Statusi i Pagesës</span>
               </div>
               <div className="flex gap-2 mb-4">
