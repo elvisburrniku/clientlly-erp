@@ -7,6 +7,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Upload, Loader2, Plus, Trash2, BellRing } from "lucide-react";
 
+const DEFAULT_UNITS = [
+  { name: "cope", category: "sasi" },
+  { name: "çift", category: "sasi" },
+  { name: "pako", category: "sasi" },
+  { name: "kuti", category: "sasi" },
+  { name: "sasi", category: "sasi" },
+  { name: "g", category: "peshe" },
+  { name: "kg", category: "peshe" },
+  { name: "t", category: "peshe" },
+  { name: "mg", category: "peshe" },
+  { name: "ml", category: "volume" },
+  { name: "cl", category: "volume" },
+  { name: "dl", category: "volume" },
+  { name: "l", category: "volume" },
+  { name: "mm", category: "gjatesi" },
+  { name: "cm", category: "gjatesi" },
+  { name: "m", category: "gjatesi" },
+  { name: "km", category: "gjatesi" },
+  { name: "m2", category: "siperfaqe" },
+  { name: "m3", category: "siperfaqe" },
+  { name: "ari", category: "siperfaqe" },
+  { name: "hektar", category: "siperfaqe" },
+  { name: "ore", category: "kohe" },
+  { name: "ditë", category: "kohe" },
+  { name: "javë", category: "kohe" },
+  { name: "muaj", category: "kohe" },
+  { name: "shërbim", category: "sherbim" },
+];
+
 export default function Settings() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +82,15 @@ export default function Settings() {
     setUnits([...units, newUnit]);
     setNewUnitName(""); setShowNewUnit(false);
     toast.success("Njësia u shtua");
+  };
+
+  const seedDefaultUnits = async () => {
+    const existing = units.map(u => u.name.toLowerCase());
+    const toAdd = DEFAULT_UNITS.filter(u => !existing.includes(u.name.toLowerCase()));
+    if (toAdd.length === 0) { toast.info("Të gjitha njësitë standarde ekzistojnë tashmë"); return; }
+    const created = await Promise.all(toAdd.map(u => base44.entities.Unit.create({ name: u.name })));
+    setUnits([...units, ...created]);
+    toast.success(`U shtuan ${created.length} njësi standarde`);
   };
 
   const deleteUnit = async (id) => {
@@ -259,7 +297,10 @@ export default function Settings() {
             </div>
           ))}
           {!showNewUnit ? (
-            <Button onClick={() => setShowNewUnit(true)} variant="outline" className="w-full gap-2"><Plus className="w-4 h-4" /> Njësi e Re</Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowNewUnit(true)} variant="outline" className="flex-1 gap-2"><Plus className="w-4 h-4" /> Njësi e Re</Button>
+              <Button onClick={seedDefaultUnits} variant="outline" className="flex-1 gap-2 text-primary border-primary/30 hover:bg-primary/5">Shto Njësi Standarde</Button>
+            </div>
           ) : (
             <div className="flex gap-2">
               <Input placeholder="P.sh. cope, kg, m, l..." value={newUnitName} onChange={(e) => setNewUnitName(e.target.value)} className="text-sm" />
