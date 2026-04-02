@@ -258,12 +258,18 @@ export default function Reminders() {
                   {(filterClient || clientQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterClient(""); setClientQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
                   {showClientDrop && filteredClientSuggestions.length > 0 && (
                     <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
-                      {filteredClientSuggestions.map(c => (
-                        <button key={c} onMouseDown={() => { setFilterClient(c); setClientQuery(c); setShowClientDrop(false); }}
-                          className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition", filterClient === c && "bg-primary/10 font-semibold text-primary")}>
-                          {c}
-                        </button>
-                      ))}
+                      {filteredClientSuggestions.map(c => {
+                        const reminder = reminders.find(r => r.client_name === c);
+                        const typeMap = { before_due: { label: "Para", cls: "bg-blue-100 text-blue-700" }, on_due: { label: "Afat", cls: "bg-amber-100 text-amber-700" }, after_due: { label: "Pas", cls: "bg-red-100 text-red-700" } };
+                        const badge = typeMap[reminder?.reminder_type] || { label: "K", cls: "bg-slate-100 text-slate-600" };
+                        return (
+                          <button key={c} onMouseDown={() => { setFilterClient(c); setClientQuery(c); setShowClientDrop(false); }}
+                            className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition flex items-center gap-3", filterClient === c && "bg-primary/10 font-semibold text-primary")}>
+                            <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0", badge.cls)}>{badge.label}</span>
+                            {c}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -281,12 +287,17 @@ export default function Reminders() {
                   {(filterInvoice || invoiceQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterInvoice(""); setInvoiceQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
                   {showInvoiceDrop && filteredInvoiceSuggestions.length > 0 && (
                     <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
-                      {filteredInvoiceSuggestions.map(i => (
-                        <button key={i} onMouseDown={() => { setFilterInvoice(i); setInvoiceQuery(i); setShowInvoiceDrop(false); }}
-                          className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition", filterInvoice === i && "bg-primary/10 font-semibold text-primary")}>
-                          {i}
-                        </button>
-                      ))}
+                      {filteredInvoiceSuggestions.map(i => {
+                        const rem = reminders.find(r => r.invoice_number === i);
+                        return (
+                          <button key={i} onMouseDown={() => { setFilterInvoice(i); setInvoiceQuery(i); setShowInvoiceDrop(false); }}
+                            className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition flex items-center gap-3", filterInvoice === i && "bg-primary/10 font-semibold text-primary")}>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 bg-violet-100 text-violet-700">F</span>
+                            <span className="flex-1">{i}</span>
+                            {rem?.client_name && <span className="text-xs text-muted-foreground truncate max-w-[100px]">{rem.client_name}</span>}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

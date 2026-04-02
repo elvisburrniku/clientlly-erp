@@ -249,12 +249,19 @@ export default function Clients() {
                 {(filterName || nameQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterName(""); setNameQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
                 {showNameDrop && nameSuggestions.length > 0 && (
                   <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
-                    {nameSuggestions.map(c => (
-                      <button key={c.id} onMouseDown={() => { setFilterName(c.name); setNameQuery(c.name); setShowNameDrop(false); }}
-                        className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition", filterName === c.name && "bg-primary/10 font-semibold text-primary")}>
-                        {c.name}
-                      </button>
-                    ))}
+                    {nameSuggestions.map(c => {
+                      const badgeStyle = { institutional: "bg-blue-100 text-blue-700", business: "bg-amber-100 text-amber-700", residential: "bg-emerald-100 text-emerald-700" };
+                      const badgeLabel = { institutional: "I", business: "B", residential: "R" };
+                      return (
+                        <button key={c.id} onMouseDown={() => { setFilterName(c.name); setNameQuery(c.name); setShowNameDrop(false); }}
+                          className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition flex items-center gap-3", filterName === c.name && "bg-primary/10 font-semibold text-primary")}>
+                          <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0", badgeStyle[c.classification] || "bg-slate-100 text-slate-600")}>
+                            {badgeLabel[c.classification] || "K"}
+                          </span>
+                          {c.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
