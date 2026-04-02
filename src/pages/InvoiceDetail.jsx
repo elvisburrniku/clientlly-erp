@@ -10,6 +10,22 @@ import InvoicePDFButton from "../components/invoices/InvoicePDFButton";
 import SendInvoiceDialog from "../components/invoices/SendInvoiceDialog";
 import WarehouseSlip from "../components/invoices/WarehouseSlip";
 
+const COMPANY = {
+  name: "Emri i Kompanisë",
+  email: "email@company.com",
+  phone: "+355 6X XXX XXXX",
+  address: "Adresa e kompanisë"
+};
+
+const statusConfig = {
+  draft: { label: "Draft", cls: "bg-slate-100 text-slate-700 border-slate-300" },
+  sent: { label: "Dërguar", cls: "bg-blue-100 text-blue-700 border-blue-300" },
+  paid: { label: "Paguar", cls: "bg-green-100 text-green-700 border-green-300" },
+  overdue: { label: "Vonuar", cls: "bg-red-100 text-red-700 border-red-300" },
+  cancelled: { label: "Anuluar", cls: "bg-gray-100 text-gray-700 border-gray-300" },
+  partially_paid: { label: "Pjesërisht Paguar", cls: "bg-amber-100 text-amber-700 border-amber-300" }
+};
+
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
