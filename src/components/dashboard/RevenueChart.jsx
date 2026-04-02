@@ -106,15 +106,35 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function RevenueChart() {
+  const [periodFilter, setPeriodFilter] = useState("vjetore"); // sot, muaji, viti, vjetore
+  const [tvshFilter, setTvshFilter] = useState("me"); // me or pa
   const years = Object.keys(yearsData).map(Number).sort((a, b) => a - b);
   
-  const data = years.map(year => {
-    const yearData = yearsData[year];
-    const revenue = yearData.reduce((s, m) => s + m.revenue, 0);
-    const expenses = yearData.reduce((s, m) => s + m.expenses, 0);
-    const debt = yearData.reduce((s, m) => s + m.debt, 0);
-    return { name: year.toString(), revenue, expenses, debt };
-  });
+  let data = [];
+  if (periodFilter === "vjetore") {
+    data = years.map(year => {
+      const yearData = yearsData[year];
+      const revenue = yearData.reduce((s, m) => s + m.revenue, 0);
+      const expenses = yearData.reduce((s, m) => s + m.expenses, 0);
+      const debt = yearData.reduce((s, m) => s + m.debt, 0);
+      return { name: year.toString(), revenue, expenses, debt };
+    });
+  } else if (periodFilter === "viti") {
+    data = yearsData[2025];
+  } else if (periodFilter === "muaji") {
+    data = yearsData[2025].slice(0, 6);
+  } else if (periodFilter === "sot") {
+    data = yearsData[2025].slice(0, 1);
+  }
+  
+  if (tvshFilter === "pa") {
+    data = data.map(d => ({
+      ...d,
+      revenue: d.revenue * 0.83,
+      expenses: d.expenses * 0.83,
+      debt: d.debt * 0.83
+    }));
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
@@ -128,7 +148,50 @@ export default function RevenueChart() {
           </div>
           <p className="text-sm text-muted-foreground ml-10">Të ardhurat, shpenzimet & borxhi</p>
         </div>
+      </div>
 
+      {/* Filter buttons */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex gap-1 bg-muted/80 rounded-lg p-1">
+          {[
+            { key: "sot", label: "Sot" },
+            { key: "muaji", label: "Muaji" },
+            { key: "viti", label: "Viti" },
+            { key: "vjetore", label: "Vjetore" }
+          ].map(f => (
+            <button
+              key={f.key}
+              onClick={() => setPeriodFilter(f.key)}
+              className={cn(
+                "px-2.5 py-1.5 text-xs font-medium rounded transition-all duration-200",
+                periodFilter === f.key
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-1 bg-muted/80 rounded-lg p-1">
+          {[
+            { key: "me", label: "Me TVSH" },
+            { key: "pa", label: "Pa TVSH" }
+          ].map(f => (
+            <button
+              key={f.key}
+              onClick={() => setTvshFilter(f.key)}
+              className={cn(
+                "px-2.5 py-1.5 text-xs font-medium rounded transition-all duration-200",
+                tvshFilter === f.key
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Summary pills */}
