@@ -41,6 +41,11 @@ export default function Clients() {
   const [nameQuery, setNameQuery] = useState("");
   const [filterName, setFilterName] = useState("");
   const [showNameDrop, setShowNameDrop] = useState(false);
+  const [cardDialogOpen, setCardDialogOpen] = useState(false);
+  const [selectedClientForCard, setSelectedClientForCard] = useState(null);
+  const [cardMonth, setCardMonth] = useState(new Date().getMonth() + 1);
+  const [cardYear, setCardYear] = useState(new Date().getFullYear());
+  const [cardSearch, setCardSearch] = useState("");
 
   useEffect(() => {
     loadClients();
@@ -219,6 +224,8 @@ export default function Clients() {
     residential: clients.filter(c => c.classification === "residential").length,
   };
 
+  const cardFilteredClients = clients.filter(c => c.name.toLowerCase().includes(cardSearch.toLowerCase()));
+
   return (
     <div className="p-6 lg:p-10 space-y-8">
       {/* Header */}
@@ -256,18 +263,22 @@ export default function Clients() {
         </div>
       </div>
 
-      {/* Filter Sheet */}
-      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-        <SheetTrigger asChild>
-          <button className={cn(
-            "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
-            hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
-          )}>
-            <SlidersHorizontal className="w-4 h-4" />
-            Filtrat & Kërkimi
-            {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
-          </button>
-        </SheetTrigger>
+      {/* Buttons */}
+      <div className="flex gap-2 flex-wrap">
+        <Button variant="outline" className="gap-2" onClick={() => setCardDialogOpen(true)}>
+          <FileSpreadsheet className="w-4 h-4" /> Kartela e Bleresit
+        </Button>
+        <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+          <SheetTrigger asChild>
+            <button className={cn(
+              "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
+              hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
+            )}>
+              <SlidersHorizontal className="w-4 h-4" />
+              Filtrat & Kërkimi
+              {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
+            </button>
+          </SheetTrigger>
         <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
           <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
@@ -326,8 +337,9 @@ export default function Clients() {
             {hasFilters && <button onClick={clearFilters} className="w-full py-2 text-sm font-semibold rounded-xl border border-border hover:bg-muted transition">Pastro të gjithë Filtrat</button>}
             <SheetClose asChild><Button className="w-full rounded-xl">Apliko & Mbyll</Button></SheetClose>
           </div>
-        </SheetContent>
-      </Sheet>
+          </SheetContent>
+          </Sheet>
+          </div>
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
@@ -381,9 +393,6 @@ export default function Clients() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                           <DropdownMenuItem onClick={() => generateClientCardPDF(client)}>
-                             <Download className="w-4 h-4 mr-2" /> Shkarko Kartela
-                           </DropdownMenuItem>
                            <DropdownMenuItem onClick={() => openEdit(client)}>
                              <Pencil className="w-4 h-4 mr-2" /> Modifiko
                            </DropdownMenuItem>
@@ -450,6 +459,108 @@ export default function Clients() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
             <Button onClick={handleCreate} disabled={submitting || !form.name || !form.email}>
               {submitting ? "Duke krijuar..." : "Krijo"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Kartela Dialog */}
+      <Dialog open={cardDialogOpen} onOpenChange={setCardDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kartela e Bleresit</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Zgjedh Klientin</Label>
+              <div className="relative mt-1.5">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input type="text" placeholder="Kërko klientin..." value={cardSearch}
+                  onChange={(e) => setCardSearch(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              </div>
+              {cardSearch && cardFilteredClients.length > 0 && (
+                <div className="mt-2 border border-border rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                  {cardFilteredClients.map(c => (
+                    <button key={c.id} onClick={() => setSelectedClientForCard(c)} className={cn(
+                      "w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition border-b border-border last:border-b-0",
+                      selectedClientForCard?.id === c.id && "bg-primary/10 font-semibold text-primary"
+                    )}>
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {selectedClientForCard && (
+                <div className="mt-2 p-3 bg-muted rounded-xl text-sm font-medium">{selectedClientForCard.name}</div>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Muaji</Label>
+                <Select value={cardMonth.toString()} onValueChange={(v) => setCardMonth(parseInt(v))}>
+                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                      <SelectItem key={m} value={m.toString()}>{new Date(2024, m-1).toLocaleString('sq-AL', { month: 'long' })}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Viti</Label>
+                <Select value={cardYear.toString()} onValueChange={(v) => setCardYear(parseInt(v))}>
+                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {[2024, 2025, 2026, 2027].map(y => (
+                      <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCardDialogOpen(false)}>Anulo</Button>
+            <Button onClick={() => {
+              if (selectedClientForCard) {
+                const doc = new jsPDF({ unit: "mm", format: "a6" });
+                const W = 105; const H = 148;
+                doc.setFillColor(67, 56, 202);
+                doc.rect(0, 0, W, 40, "F");
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.text("KARTELA E BLERESIT", W / 2, 12, { align: "center" });
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "normal");
+                doc.text(new Date().toLocaleDateString("sq-AL"), W / 2, 20, { align: "center" });
+                doc.setTextColor(30, 30, 30);
+                let y = 50;
+                const addField = (label, value) => {
+                  doc.setFontSize(7);
+                  doc.setFont("helvetica", "bold");
+                  doc.text(label + ":", 8, y);
+                  doc.setFont("helvetica", "normal");
+                  doc.text((value || "—").toString().slice(0, 30), 8, y + 4);
+                  y += 10;
+                };
+                const monthName = new Date(2024, cardMonth-1).toLocaleString('sq-AL', { month: 'long' });
+                addField("EMRI", selectedClientForCard.name);
+                addField("EMAIL", selectedClientForCard.email);
+                addField("TELEFON", selectedClientForCard.phone);
+                addField("NIPT", selectedClientForCard.nipt);
+                addField("ADRESA", selectedClientForCard.address);
+                addField("MUAJI", monthName);
+                addField("VITI", cardYear);
+                doc.save(`kartela_${selectedClientForCard.name.replace(/\s+/g, "_")}_${cardMonth}_${cardYear}.pdf`);
+                setCardDialogOpen(false);
+                setSelectedClientForCard(null);
+                setCardSearch("");
+                toast.success("Kartela u shkarkua");
+              }
+            }} disabled={!selectedClientForCard}>
+              Shkarko
             </Button>
           </DialogFooter>
         </DialogContent>
