@@ -63,6 +63,23 @@ export default function Quotes() {
     setLoading(false);
   };
 
+  const resetForm = () => {
+    setFormData({
+      client_name: '',
+      client_email: '',
+      client_phone: '',
+      client_nipt: '',
+      client_address: '',
+      items: [{ type: 'product', name: '', quantity: 1, unit: 'cope', price_ex_vat: 0, vat_rate: 20 }],
+      description: '',
+      work_description: '',
+      logo_url: '',
+      validity_days: 30,
+      template: 'classic',
+      font_family: 'helvetica',
+    });
+  };
+
   const handleAddQuote = async () => {
     const subtotal = formData.items.reduce((s, i) => s + i.price_ex_vat * i.quantity, 0);
     const vat_amount = subtotal * 0.2;
@@ -88,6 +105,7 @@ export default function Quotes() {
       valid_until: valid_until.toISOString().split('T')[0],
       status: 'draft',
       template: formData.template,
+      font_family: formData.font_family,
     };
 
     await base44.entities.Quote.create(quote);
@@ -114,12 +132,13 @@ export default function Quotes() {
     }
 
     // Title
-    doc.setFont('helvetica', 'bold');
+    const font = quote.font_family || 'helvetica';
+    doc.setFont(font, 'bold');
     doc.setFontSize(22);
     doc.text('OFERTA PROFESIONALE', 20, y);
     y += 12;
 
-    doc.setFont('helvetica', 'normal');
+    doc.setFont(font, 'normal');
     doc.setFontSize(10);
 
     doc.text(`Nr. Ofertës: ${quote.quote_number}`, 20, y);
@@ -488,6 +507,7 @@ export default function Quotes() {
             <thead>
               <tr className="border-b border-border bg-muted/20">
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">NR. OFERTËS</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">DATA</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">KLIENTE</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">SHUMA</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">VALIDE DERI</th>
@@ -498,7 +518,7 @@ export default function Quotes() {
             <tbody className="divide-y divide-border">
               {getFilteredQuotes().length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-16">
+                  <td colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <FileText className="w-7 h-7 text-muted-foreground/50" />
@@ -514,6 +534,7 @@ export default function Quotes() {
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-primary cursor-pointer hover:underline">{quote.quote_number}</span>
                     </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{quote.created_date ? format(new Date(quote.created_date), 'dd MMM yyyy') : '—'}</td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold">{quote.client_name}</div>
                       {quote.client_email && <div className="text-xs text-muted-foreground mt-0.5">{quote.client_email}</div>}
