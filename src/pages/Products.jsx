@@ -205,114 +205,115 @@ export default function Products() {
         </div>
       </div>
 
-      {/* View Type Toggle */}
-      <div className="flex items-center gap-3 bg-white rounded-2xl border border-border/60 shadow-sm p-3 w-fit">
-        <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Shfaqi:</span>
-        <div className="flex bg-muted rounded-xl p-1">
-          {[
-            { value: "all", label: "Të Gjitha" },
-            { value: "products", label: "Produktet" },
-            { value: "services", label: "Shërbimet" }
-          ].map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setViewType(opt.value)}
-              className={cn(
-                "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                viewType === opt.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Filter button */}
-      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-        <SheetTrigger asChild>
-          <button className={cn(
-            "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
-            hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
-          )}>
-            <SlidersHorizontal className="w-4 h-4" />
-            Filtrat & Kërkimi
-            {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
-          </button>
-        </SheetTrigger>
-        <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
-          <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <SlidersHorizontal className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-bold text-[15px]">Filtrat & Kërkimi</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{hasFilters ? `${activeFilterCount} filtr aktiv` : "Filtro produktet"}</p>
-              </div>
-            </div>
-            <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition">
-              <X className="h-4 w-4" />
-            </SheetClose>
-          </div>
-          <div className="flex-1 overflow-y-auto bg-background">
-            <div className="px-6 pt-6 pb-5">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Kërkim</span>
-              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Emri i Produktit / Shërbimit</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <input type="text" placeholder="Kërko produktin..." value={filterName || nameQuery}
-                  onChange={e => { setNameQuery(e.target.value); setFilterName(""); setShowNameDrop(true); }}
-                  onFocus={() => setShowNameDrop(true)}
-                  onBlur={() => setTimeout(() => setShowNameDrop(false), 150)}
-                  className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                {(filterName || nameQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterName(""); setNameQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
-                {showNameDrop && nameSuggestions.length > 0 && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
-                    {nameSuggestions.map(p => (
-                      <button key={p.id} onMouseDown={() => { setFilterName(p.name); setNameQuery(p.name); setShowNameDrop(false); }}
-                        className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition flex items-center gap-3", filterName === p.name && "bg-primary/10 font-semibold text-primary")}>
-                        <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded", p.type === "product" ? "bg-blue-100 text-blue-700" : "bg-violet-100 text-violet-700")}>
-                          {p.type === "product" ? "P" : "S"}
-                        </span>
-                        {p.name}
-                      </button>
-                    ))}
-                  </div>
+      {/* View Type Toggle & Filter */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 bg-white rounded-2xl border border-border/60 shadow-sm p-2">
+          <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground px-2">Shfaqi:</span>
+          <div className="flex bg-muted rounded-xl p-1">
+            {[
+              { value: "all", label: "Të Gjitha" },
+              { value: "products", label: "Produktet" },
+              { value: "services", label: "Shërbimet" }
+            ].map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setViewType(opt.value)}
+                className={cn(
+                  "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap",
+                  viewType === opt.value ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 )}
-              </div>
-            </div>
-            <div className="h-px bg-border mx-6" />
-            <div className="px-6 pt-5 pb-5">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Lloji</span>
-              <div className="flex bg-muted rounded-xl p-1">
-                {[["","Të gjitha"],["product","Produkte"],["service","Shëbime"]].map(([v,l]) => (
-                  <button key={v} onClick={() => setFilterType(v)}
-                    className={cn("flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                      filterType === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
-                ))}
-              </div>
-            </div>
-            <div className="h-px bg-border mx-6" />
-            <div className="px-6 pt-5 pb-5">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Statusi</span>
-              <div className="flex bg-muted rounded-xl p-1">
-                {[["","Të gjitha"],["active","Aktiv"],["inactive","Joaktiv"]].map(([v,l]) => (
-                  <button key={v} onClick={() => setFilterStatus(v)}
-                    className={cn("flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
-                      filterStatus === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
-                ))}
-              </div>
-            </div>
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
-          <div className="border-t border-border px-6 py-4 bg-white space-y-2 shrink-0">
-            {hasFilters && <button onClick={clearFilters} className="w-full py-2 text-sm font-semibold rounded-xl border border-border hover:bg-muted transition">Pastro të gjithë Filtrat</button>}
-            <SheetClose asChild>
-              <Button className="w-full rounded-xl">Apliko & Mbyll</Button>
-            </SheetClose>
-          </div>
-        </SheetContent>
-      </Sheet>
+        </div>
+
+        <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+          <SheetTrigger asChild>
+            <button className={cn(
+              "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all shadow-sm whitespace-nowrap",
+              hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
+            )}>
+              <SlidersHorizontal className="w-4 h-4" />
+              Filtrat & Kërkimi
+              {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
+            </button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
+            <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <SlidersHorizontal className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-bold text-[15px]">Filtrat & Kërkimi</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{hasFilters ? `${activeFilterCount} filtr aktiv` : "Filtro produktet"}</p>
+                </div>
+              </div>
+              <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition">
+                <X className="h-4 w-4" />
+              </SheetClose>
+            </div>
+            <div className="flex-1 overflow-y-auto bg-background">
+              <div className="px-6 pt-6 pb-5">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Kërkim</span>
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Emri i Produktit / Shërbimit</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <input type="text" placeholder="Kërko produktin..." value={filterName || nameQuery}
+                    onChange={e => { setNameQuery(e.target.value); setFilterName(""); setShowNameDrop(true); }}
+                    onFocus={() => setShowNameDrop(true)}
+                    onBlur={() => setTimeout(() => setShowNameDrop(false), 150)}
+                    className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  {(filterName || nameQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterName(""); setNameQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+                  {showNameDrop && nameSuggestions.length > 0 && (
+                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+                      {nameSuggestions.map(p => (
+                        <button key={p.id} onMouseDown={() => { setFilterName(p.name); setNameQuery(p.name); setShowNameDrop(false); }}
+                          className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition flex items-center gap-3", filterName === p.name && "bg-primary/10 font-semibold text-primary")}>
+                          <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded", p.type === "product" ? "bg-blue-100 text-blue-700" : "bg-violet-100 text-violet-700")}>
+                            {p.type === "product" ? "P" : "S"}
+                          </span>
+                          {p.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="h-px bg-border mx-6" />
+              <div className="px-6 pt-5 pb-5">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Lloji</span>
+                <div className="flex bg-muted rounded-xl p-1">
+                  {[["","Të gjitha"],["product","Produkte"],["service","Shëbime"]].map(([v,l]) => (
+                    <button key={v} onClick={() => setFilterType(v)}
+                      className={cn("flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                        filterType === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="h-px bg-border mx-6" />
+              <div className="px-6 pt-5 pb-5">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Statusi</span>
+                <div className="flex bg-muted rounded-xl p-1">
+                  {[["","Të gjitha"],["active","Aktiv"],["inactive","Joaktiv"]].map(([v,l]) => (
+                    <button key={v} onClick={() => setFilterStatus(v)}
+                      className={cn("flex-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                        filterStatus === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="border-t border-border px-6 py-4 bg-white space-y-2 shrink-0">
+              {hasFilters && <button onClick={clearFilters} className="w-full py-2 text-sm font-semibold rounded-xl border border-border hover:bg-muted transition">Pastro të gjithë Filtrat</button>}
+              <SheetClose asChild>
+                <Button className="w-full rounded-xl">Apliko & Mbyll</Button>
+              </SheetClose>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
