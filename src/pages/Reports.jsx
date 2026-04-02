@@ -1,19 +1,15 @@
 import { useState, useEffect } from "react";
-import { BarChart3, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import { base44 } from "@/api/base44Client";
-import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import InvoiceMetrics from "@/components/reports/InvoiceMetrics";
 import moment from "moment";
 
 export default function Reports() {
 
-  const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
-  const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
-  const [chartData, setChartData] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [debtors, setDebtors] = useState([]);
@@ -172,7 +168,6 @@ export default function Reports() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Analiza</p>
           <h1 className="text-3xl font-bold tracking-tight">Raportet Financiare</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Shiko trendet e të ardhurave dhe shpenzimeve përmes grafikëve të avancuar</p>
       </div>
 
 
