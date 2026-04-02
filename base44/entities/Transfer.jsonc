@@ -1,0 +1,56 @@
+{
+  "name": "Transfer",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "cash_to_bank",
+        "bank_to_bank"
+      ],
+      "description": "Lloji i transfert\u00ebs",
+      "default": "cash_to_bank"
+    },
+    "from_account": {
+      "type": "string",
+      "description": "Llogaria burimore (p.sh. Arka, Raiffeisen)"
+    },
+    "to_account": {
+      "type": "string",
+      "description": "Llogaria destinuese (p.sh. BKT, Credins)"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Shuma e transfert\u00ebs n\u00eb EUR"
+    },
+    "transfer_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Data e transfert\u00ebs"
+    },
+    "reference": {
+      "type": "string",
+      "description": "Referenca / numri i dokumentit"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Sh\u00ebnime shtes\u00eb"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "pending"
+      ],
+      "default": "completed",
+      "description": "Statusi i transfert\u00ebs"
+    }
+  },
+  "required": [
+    "type",
+    "from_account",
+    "to_account",
+    "amount",
+    "transfer_date"
+  ]
+}

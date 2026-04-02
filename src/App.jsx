@@ -22,6 +22,7 @@ import Settings from './pages/Settings';
 import InvoiceDetail from './pages/InvoiceDetail';
 import ClientPortal from './pages/ClientPortal';
 import ProductCatalog from './pages/ProductCatalog.jsx';
+import Transfers from './pages/Transfers';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
         <Route path="/inventory" element={<Inventory />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/catalog" element={<ProductCatalog />} />
+        <Route path="/transfers" element={<Transfers />} />
         <Route path="/client" element={<ClientPortal />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
