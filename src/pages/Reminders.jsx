@@ -34,7 +34,12 @@ export default function Reminders() {
   const [submitting, setSubmitting] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterType, setFilterType] = useState("");
-  const [filterSearch, setFilterSearch] = useState("");
+  const [filterClient, setFilterClient] = useState("");
+  const [filterInvoice, setFilterInvoice] = useState("");
+  const [clientQuery, setClientQuery] = useState("");
+  const [invoiceQuery, setInvoiceQuery] = useState("");
+  const [showClientDrop, setShowClientDrop] = useState(false);
+  const [showInvoiceDrop, setShowInvoiceDrop] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -107,16 +112,20 @@ export default function Reminders() {
 
   const filtered = reminders.filter(r => {
     if (filterType && r.reminder_type !== filterType) return false;
-    if (filterSearch) {
-      const q = filterSearch.toLowerCase();
-      if (!r.client_name?.toLowerCase().includes(q) && !r.invoice_number?.toLowerCase().includes(q)) return false;
-    }
+    if (filterClient && r.client_name !== filterClient) return false;
+    if (filterInvoice && r.invoice_number !== filterInvoice) return false;
     return true;
   });
 
-  const hasFilters = filterType || filterSearch;
-  const activeFilterCount = [filterType, filterSearch].filter(Boolean).length;
-  const clearFilters = () => { setFilterType(""); setFilterSearch(""); };
+  const hasFilters = filterType || filterClient || filterInvoice;
+  const activeFilterCount = [filterType, filterClient, filterInvoice].filter(Boolean).length;
+  const clearFilters = () => { setFilterType(""); setFilterClient(""); setFilterInvoice(""); setClientQuery(""); setInvoiceQuery(""); };
+
+  const uniqueClients = [...new Set(reminders.map(r => r.client_name).filter(Boolean))];
+  const uniqueInvoices = [...new Set(reminders.map(r => r.invoice_number).filter(Boolean))];
+
+  const filteredClientSuggestions = clientQuery ? uniqueClients.filter(c => c.toLowerCase().includes(clientQuery.toLowerCase())) : uniqueClients.slice(0, 8);
+  const filteredInvoiceSuggestions = invoiceQuery ? uniqueInvoices.filter(i => i.toLowerCase().includes(invoiceQuery.toLowerCase())) : uniqueInvoices.slice(0, 8);
 
   const exportExcel = () => {
     const headers = ["Fatura", "Klienti", "Email", "Afati", "Shuma", "Lloji", "Statusi"];
@@ -234,13 +243,53 @@ export default function Reminders() {
             <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition"><X className="h-4 w-4" /></SheetClose>
           </div>
           <div className="flex-1 overflow-y-auto bg-background">
-            <div className="px-6 pt-6 pb-5">
-              <div className="flex items-center gap-2 mb-3"><Search className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Kërkim</span></div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <input type="text" placeholder="Klienti ose nr. faturës..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)}
-                  className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                {filterSearch && <button onClick={() => setFilterSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+            <div className="px-6 pt-6 pb-5 space-y-4">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block">Kërkim</span>
+              {/* Client dropdown */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Klienti</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <input type="text" placeholder="Kërko klientin..." value={filterClient || clientQuery}
+                    onChange={e => { setClientQuery(e.target.value); setFilterClient(""); setShowClientDrop(true); }}
+                    onFocus={() => setShowClientDrop(true)}
+                    onBlur={() => setTimeout(() => setShowClientDrop(false), 150)}
+                    className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  {(filterClient || clientQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterClient(""); setClientQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+                  {showClientDrop && filteredClientSuggestions.length > 0 && (
+                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                      {filteredClientSuggestions.map(c => (
+                        <button key={c} onMouseDown={() => { setFilterClient(c); setClientQuery(c); setShowClientDrop(false); }}
+                          className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition", filterClient === c && "bg-primary/10 font-semibold text-primary")}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Invoice dropdown */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground block mb-1.5">Numri i Faturës</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <input type="text" placeholder="Kërko faturën..." value={filterInvoice || invoiceQuery}
+                    onChange={e => { setInvoiceQuery(e.target.value); setFilterInvoice(""); setShowInvoiceDrop(true); }}
+                    onFocus={() => setShowInvoiceDrop(true)}
+                    onBlur={() => setTimeout(() => setShowInvoiceDrop(false), 150)}
+                    className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                  {(filterInvoice || invoiceQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterInvoice(""); setInvoiceQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+                  {showInvoiceDrop && filteredInvoiceSuggestions.length > 0 && (
+                    <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                      {filteredInvoiceSuggestions.map(i => (
+                        <button key={i} onMouseDown={() => { setFilterInvoice(i); setInvoiceQuery(i); setShowInvoiceDrop(false); }}
+                          className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition", filterInvoice === i && "bg-primary/10 font-semibold text-primary")}>
+                          {i}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <div className="h-px bg-border mx-6" />
