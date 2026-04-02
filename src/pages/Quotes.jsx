@@ -670,17 +670,23 @@ export default function Quotes() {
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</div>
                 <h3 className="font-semibold text-sm">Të dhënat e Biznesit</h3>
               </div>
-              <div className="grid grid-cols-2 gap-3 pl-8">
+              <div className="pl-8 space-y-3">
                 <Input placeholder="Emri i Biznesit" value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} />
-                <Input placeholder="NUP" value={formData.company_nup} onChange={(e) => setFormData({ ...formData, company_nup: e.target.value })} />
-                <Input placeholder="TVSH" value={formData.company_tvsh} onChange={(e) => setFormData({ ...formData, company_tvsh: e.target.value })} />
-                <Input placeholder="Qyteti" value={formData.company_city} onChange={(e) => setFormData({ ...formData, company_city: e.target.value })} />
-                <Input placeholder="Adresa" value={formData.company_address} onChange={(e) => setFormData({ ...formData, company_address: e.target.value })} />
-                <Input placeholder="Tel. #1" value={formData.company_phone1} onChange={(e) => setFormData({ ...formData, company_phone1: e.target.value })} />
-                <Input placeholder="Tel. #2" value={formData.company_phone2} onChange={(e) => setFormData({ ...formData, company_phone2: e.target.value })} />
-                <Input placeholder="Email" type="email" value={formData.company_email} onChange={(e) => setFormData({ ...formData, company_email: e.target.value })} />
+                <div className="grid grid-cols-3 gap-3">
+                  <Input placeholder="NUP" value={formData.company_nup} onChange={(e) => setFormData({ ...formData, company_nup: e.target.value })} />
+                  <Input placeholder="TVSH" value={formData.company_tvsh} onChange={(e) => setFormData({ ...formData, company_tvsh: e.target.value })} />
+                  <Input placeholder="Qyteti" value={formData.company_city} onChange={(e) => setFormData({ ...formData, company_city: e.target.value })} />
+                </div>
+                <Textarea placeholder="Adresa" value={formData.company_address} onChange={(e) => setFormData({ ...formData, company_address: e.target.value })} rows={2} />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input placeholder="Tel. #1" value={formData.company_phone1} onChange={(e) => setFormData({ ...formData, company_phone1: e.target.value })} />
+                  <Input placeholder="Tel. #2" value={formData.company_phone2} onChange={(e) => setFormData({ ...formData, company_phone2: e.target.value })} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Input placeholder="Email" type="email" value={formData.company_email} onChange={(e) => setFormData({ ...formData, company_email: e.target.value })} />
+                  <Input placeholder="Web (p.sh. www.domain.com)" value={formData.company_website} onChange={(e) => setFormData({ ...formData, company_website: e.target.value })} />
+                </div>
               </div>
-              <Input placeholder="Web" value={formData.company_website} onChange={(e) => setFormData({ ...formData, company_website: e.target.value })} className="pl-8" />
             </div>
 
             {/* Section 2: Të dhënat e Klientit */}
@@ -689,14 +695,16 @@ export default function Quotes() {
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</div>
                 <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
               </div>
-              <div className="grid grid-cols-2 gap-3 pl-8">
+              <div className="pl-8 space-y-3">
                 <Input placeholder="Emri i Klientit *" value={formData.client_name} onChange={(e) => setFormData({ ...formData, client_name: e.target.value })} />
-                <Input placeholder="Email" type="email" value={formData.client_email} onChange={(e) => setFormData({ ...formData, client_email: e.target.value })} />
-                <Input placeholder="Telefon" value={formData.client_phone} onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })} />
-                <Input placeholder="NIPT" value={formData.client_nipt} onChange={(e) => setFormData({ ...formData, client_nipt: e.target.value })} />
+                <div className="grid grid-cols-3 gap-3">
+                  <Input placeholder="Email" type="email" value={formData.client_email} onChange={(e) => setFormData({ ...formData, client_email: e.target.value })} />
+                  <Input placeholder="Telefon" value={formData.client_phone} onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })} />
+                  <Input placeholder="NIPT" value={formData.client_nipt} onChange={(e) => setFormData({ ...formData, client_nipt: e.target.value })} />
+                </div>
+                <Textarea placeholder="Adresa" value={formData.client_address} onChange={(e) => setFormData({ ...formData, client_address: e.target.value })} rows={2} />
+                {formData.client_name && <QuoteHistory clientName={formData.client_name} />}
               </div>
-              <Textarea placeholder="Adresa" value={formData.client_address} onChange={(e) => setFormData({ ...formData, client_address: e.target.value })} className="pl-8" />
-              {formData.client_name && <QuoteHistory clientName={formData.client_name} />}
             </div>
 
             {/* Section 3: Logo/Imazh */}
