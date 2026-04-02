@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Bell, MoreHorizontal } from "lucide-react";
+import { Plus, Trash2, Bell, MoreHorizontal, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
+import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -30,6 +32,9 @@ export default function Reminders() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterType, setFilterType] = useState("");
+  const [filterSearch, setFilterSearch] = useState("");
 
   useEffect(() => { loadData(); }, []);
 
@@ -100,6 +105,70 @@ export default function Reminders() {
     }
   };
 
+  const filtered = reminders.filter(r => {
+    if (filterType && r.reminder_type !== filterType) return false;
+    if (filterSearch) {
+      const q = filterSearch.toLowerCase();
+      if (!r.client_name?.toLowerCase().includes(q) && !r.invoice_number?.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const hasFilters = filterType || filterSearch;
+  const activeFilterCount = [filterType, filterSearch].filter(Boolean).length;
+  const clearFilters = () => { setFilterType(""); setFilterSearch(""); };
+
+  const exportExcel = () => {
+    const headers = ["Fatura", "Klienti", "Email", "Afati", "Shuma", "Lloji", "Statusi"];
+    const rows = filtered.map(r => [
+      r.invoice_number, r.client_name, r.client_email,
+      moment(r.due_date).format("DD MMM YYYY"),
+      (r.amount || 0).toFixed(2),
+      r.reminder_type === "before_due" ? `${r.days_before || 3}d para` : typeLabels[r.reminder_type],
+      r.is_active ? "Aktiv" : "Joaktiv",
+    ]);
+    const html = `<html><head><meta charset="UTF-8"></head><body><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`;
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `kujtesat_${new Date().toISOString().slice(0,10)}.xls`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const W = 210; const H = 297; const margin = 14; const cw = W - margin * 2;
+    doc.setFillColor(67,56,202); doc.rect(0,0,W,38,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont("helvetica","bold");
+    doc.text("KUJTESAT PËR PAGESA", margin, 18);
+    doc.setFontSize(8); doc.setFont("helvetica","normal");
+    doc.text("Gjeneruar: " + new Date().toLocaleDateString("sq-AL"), margin, 28);
+    let y = 50;
+    doc.setFillColor(67,56,202); doc.rect(margin,y-4,cw,8,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica","bold");
+    doc.text("Fatura", margin+2, y+1); doc.text("Klienti", margin+30, y+1);
+    doc.text("Afati", margin+90, y+1); doc.text("Shuma", margin+120, y+1);
+    doc.text("Lloji", margin+145, y+1); doc.text("Statusi", margin+170, y+1);
+    y += 10;
+    doc.setFont("helvetica","normal"); doc.setFontSize(8);
+    filtered.forEach((r, ri) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      if (ri % 2 === 0) { doc.setFillColor(245,247,255); doc.rect(margin,y-4,cw,7,"F"); }
+      doc.setTextColor(40,40,40);
+      doc.text((r.invoice_number||"—").slice(0,12), margin+2, y);
+      doc.text((r.client_name||"—").slice(0,28), margin+30, y);
+      doc.text(moment(r.due_date).format("DD MMM YY"), margin+90, y);
+      doc.text("\u20ac"+(r.amount||0).toFixed(2), margin+120, y);
+      doc.text(r.reminder_type==="before_due" ? `${r.days_before||3}d para` : (typeLabels[r.reminder_type]||"—"), margin+145, y);
+      doc.setTextColor(r.is_active ? 22 : 150, r.is_active ? 163 : 150, r.is_active ? 74 : 150);
+      doc.text(r.is_active ? "Aktiv" : "Joaktiv", margin+170, y);
+      y += 7;
+    });
+    doc.setFillColor(67,56,202); doc.rect(0,H-14,W,14,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text("Ky dokument u gjenerua automatikisht.", W/2, H-6, { align: "center" });
+    doc.save(`kujtesat_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -118,9 +187,13 @@ export default function Reminders() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
           <h1 className="text-3xl font-bold tracking-tight">Kujtesat për Pagesat</h1>
         </div>
-        <Button onClick={() => { setForm(emptyForm()); setDialogOpen(true); }} className="gap-2">
-          <Plus className="w-4 h-4" /> Shto Kujtesë
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
+          <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+          <Button onClick={() => { setForm(emptyForm()); setDialogOpen(true); }} className="gap-2">
+            <Plus className="w-4 h-4" /> Shto Kujtesë
+          </Button>
+        </div>
       </div>
 
       {/* Summary */}
@@ -137,10 +210,63 @@ export default function Reminders() {
         </div>
       </div>
 
+      {/* Filter */}
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+        <SheetTrigger asChild>
+          <button className={cn(
+            "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
+            hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
+          )}>
+            <SlidersHorizontal className="w-4 h-4" />
+            Filtrat & Kërkimi
+            {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
+          </button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
+          <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><SlidersHorizontal className="w-5 h-5 text-primary" /></div>
+              <div>
+                <p className="font-bold text-[15px]">Filtrat & Kërkimi</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{hasFilters ? `${activeFilterCount} filtr aktiv` : "Filtro kujtesat"}</p>
+              </div>
+            </div>
+            <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition"><X className="h-4 w-4" /></SheetClose>
+          </div>
+          <div className="flex-1 overflow-y-auto bg-background">
+            <div className="px-6 pt-6 pb-5">
+              <div className="flex items-center gap-2 mb-3"><Search className="w-3.5 h-3.5 text-muted-foreground" /><span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Kërkim</span></div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input type="text" placeholder="Klienti ose nr. faturës..." value={filterSearch} onChange={e => setFilterSearch(e.target.value)}
+                  className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                {filterSearch && <button onClick={() => setFilterSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+              </div>
+            </div>
+            <div className="h-px bg-border mx-6" />
+            <div className="px-6 pt-5 pb-5">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Lloji</span>
+              <div className="flex bg-muted rounded-xl p-1">
+                {[["","Të gjitha"],["before_due","Para afatit"],["on_due","Në afatin"],["after_due","Pas afatit"]].map(([v,l]) => (
+                  <button key={v} onClick={() => setFilterType(v)}
+                    className={cn("flex-1 px-2 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                      filterType === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-border px-6 py-4 bg-white space-y-2 shrink-0">
+            {hasFilters && <button onClick={clearFilters} className="w-full py-2 text-sm font-semibold rounded-xl border border-border hover:bg-muted transition">Pastro të gjithë Filtrat</button>}
+            <SheetClose asChild><Button className="w-full rounded-xl">Apliko & Mbyll</Button></SheetClose>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <p className="font-semibold text-sm">{reminders.length} kujtesash</p>
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
+          <p className="font-semibold text-sm">{filtered.length} kujtesa{hasFilters ? " (filtruara)" : ""}</p>
+          {hasFilters && <button onClick={clearFilters} className="px-3 py-1 text-xs font-semibold rounded-lg border border-destructive/40 text-destructive hover:bg-destructive hover:text-white transition-all">✕ Pastro</button>}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -158,14 +284,14 @@ export default function Reminders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {reminders.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-8">
-                    <p className="text-sm text-muted-foreground">Asnjë kujtesë të regjistruar</p>
+                  <td colSpan={9} className="text-center py-8">
+                    <p className="text-sm text-muted-foreground">Nuk ka kujtesa</p>
                   </td>
                 </tr>
               ) : (
-                reminders.map(r => (
+                filtered.map(r => (
                   <tr key={r.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4"><span className="text-sm font-semibold text-primary">{r.invoice_number}</span></td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">{invoices.find(i => i.id === r.invoice_id)?.created_date ? moment(invoices.find(i => i.id === r.invoice_id).created_date).format("DD MMM YY") : "—"}</td>
