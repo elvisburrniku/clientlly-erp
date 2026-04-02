@@ -202,10 +202,11 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Invoices + Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-        <div className="lg:col-span-2 rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
+      <div className="grid grid-cols-1 gap-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+        <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
           <RecentInvoices />
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="space-y-4">
           <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
             <LowStockAlert />
@@ -217,6 +218,7 @@ export default function Dashboard() {
             <UndeliveredCashAlert users={undeliveredUsers} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
