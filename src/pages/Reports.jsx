@@ -81,6 +81,11 @@ export default function Reports() {
     });
   };
 
+  const handleAmountChange = (invId, newAmount) => {
+    const royaltyAmount = newAmount * 0.06;
+    setRoyalties(prev => ({ ...prev, [invId]: royaltyAmount }));
+  };
+
   const saveRoyalties = async () => {
     setSavingRoyalties(true);
     try {
@@ -236,22 +241,25 @@ export default function Reports() {
               </tr>
             </thead>
             <tbody>
-              {filterDataByDate(invoices).map(inv => (
-                <tr key={inv.id} className="border-b hover:bg-gray-50">
-                  <td className="py-2 px-2">{inv.invoice_number}</td>
-                  <td className="py-2 px-2">{inv.client_name}</td>
-                  <td className="text-right py-2 px-2">€{(inv.subtotal || (inv.amount / 1.2)).toFixed(2)}</td>
-                  <td className="text-right py-2 px-2">
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={royalties[inv.id] || 0}
-                      onChange={(e) => setRoyalties(prev => ({ ...prev, [inv.id]: parseFloat(e.target.value) }))}
-                      className="w-24 text-right"
-                    />
-                  </td>
-                </tr>
-              ))}
+              {filterDataByDate(invoices).map(inv => {
+                const subtotal = inv.subtotal || (inv.amount / 1.2);
+                return (
+                  <tr key={inv.id} className="border-b hover:bg-gray-50">
+                    <td className="py-2 px-2">{inv.invoice_number}</td>
+                    <td className="py-2 px-2">{inv.client_name}</td>
+                    <td className="text-right py-2 px-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={subtotal}
+                        onChange={(e) => handleAmountChange(inv.id, parseFloat(e.target.value))}
+                        className="w-32 text-right"
+                      />
+                    </td>
+                    <td className="text-right py-2 px-2">€{(royalties[inv.id] || subtotal * 0.06).toFixed(2)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
