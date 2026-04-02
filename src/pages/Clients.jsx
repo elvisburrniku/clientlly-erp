@@ -132,6 +132,37 @@ export default function Clients() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `klientet_${new Date().toISOString().slice(0,10)}.xls`; a.click();
   };
 
+  const generateClientCardPDF = (client) => {
+    const doc = new jsPDF({ unit: "mm", format: "a6" });
+    const W = 105; const H = 148;
+    doc.setFillColor(67, 56, 202);
+    doc.rect(0, 0, W, 40, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("KARTELA E KLIENTIT", W / 2, 12, { align: "center" });
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(new Date().toLocaleDateString("sq-AL"), W / 2, 20, { align: "center" });
+    doc.setTextColor(30, 30, 30);
+    let y = 50;
+    const addField = (label, value) => {
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "bold");
+      doc.text(label + ":", 8, y);
+      doc.setFont("helvetica", "normal");
+      doc.text((value || "—").toString().slice(0, 30), 8, y + 4);
+      y += 10;
+    };
+    addField("EMRI", client.name);
+    addField("EMAIL", client.email);
+    addField("TELEFON", client.phone);
+    addField("NIPT", client.nipt);
+    addField("ADRESA", client.address);
+    addField("KLASIFIKIMI", { institutional: "Institucional", business: "Biznesor", residential: "Rezidencial" }[client.classification]);
+    doc.save(`kartela_${client.name.replace(/\s+/g, "_")}.pdf`);
+  };
+
   const exportPDF = () => {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const W = 297; const H = 210; const margin = 14; const cw = W - margin * 2;
@@ -343,13 +374,16 @@ export default function Clients() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => openEdit(client)}>
-                            <Pencil className="w-4 h-4 mr-2" /> Modifiko
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(client)} className="text-destructive focus:text-destructive">
-                            <Trash2 className="w-4 h-4 mr-2" /> Fshi
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
+                           <DropdownMenuItem onClick={() => generateClientCardPDF(client)}>
+                             <Download className="w-4 h-4 mr-2" /> Shkarko Kartela
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => openEdit(client)}>
+                             <Pencil className="w-4 h-4 mr-2" /> Modifiko
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => handleDelete(client)} className="text-destructive focus:text-destructive">
+                             <Trash2 className="w-4 h-4 mr-2" /> Fshi
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
                   </tr>
