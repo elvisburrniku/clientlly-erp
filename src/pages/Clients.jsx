@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Pencil, MoreHorizontal, Users } from "lucide-react";
+import { Plus, Trash2, Pencil, MoreHorizontal, Users, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
+import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,11 @@ export default function Clients() {
   const [editClient, setEditClient] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterClassification, setFilterClassification] = useState("");
+  const [nameQuery, setNameQuery] = useState("");
+  const [filterName, setFilterName] = useState("");
+  const [showNameDrop, setShowNameDrop] = useState(false);
 
   useEffect(() => {
     loadClients();
@@ -96,6 +103,63 @@ export default function Clients() {
     );
   };
 
+  const filtered = clients.filter(c => {
+    if (filterClassification && c.classification !== filterClassification) return false;
+    if (filterName && c.name !== filterName) return false;
+    return true;
+  });
+
+  const hasFilters = filterClassification || filterName;
+  const activeFilterCount = [filterClassification, filterName].filter(Boolean).length;
+  const clearFilters = () => { setFilterClassification(""); setFilterName(""); setNameQuery(""); };
+
+  const nameSuggestions = nameQuery
+    ? clients.filter(c => c.name.toLowerCase().includes(nameQuery.toLowerCase()))
+    : clients.slice(0, 8);
+
+  const exportExcel = () => {
+    const headers = ["Emri", "Email", "Telefon", "NIPT", "Adresë", "Klasifikimi"];
+    const classLabels = { regular: "I Rregullt", vip: "VIP", new: "I Ri" };
+    const rows = filtered.map(c => [c.name, c.email, c.phone || "", c.nipt || "", c.address || "", classLabels[c.classification] || c.classification]);
+    const html = `<html><head><meta charset="UTF-8"></head><body><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`;
+    const blob = new Blob([html], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `klientet_${new Date().toISOString().slice(0,10)}.xls`; a.click();
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const W = 297; const H = 210; const margin = 14; const cw = W - margin * 2;
+    doc.setFillColor(67,56,202); doc.rect(0,0,W,36,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont("helvetica","bold");
+    doc.text("LISTA E KLIENTEVE", margin, 16);
+    doc.setFontSize(8); doc.setFont("helvetica","normal");
+    doc.text("Gjeneruar: " + new Date().toLocaleDateString("sq-AL"), margin, 26);
+    let y = 48;
+    doc.setFillColor(67,56,202); doc.rect(margin,y-4,cw,8,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica","bold");
+    doc.text("Emri", margin+2, y+1); doc.text("Email", margin+60, y+1);
+    doc.text("Telefon", margin+130, y+1); doc.text("NIPT", margin+175, y+1);
+    doc.text("Klasifikimi", margin+220, y+1);
+    y += 10;
+    const classLabels = { regular: "I Rregullt", vip: "VIP", new: "I Ri" };
+    doc.setFont("helvetica","normal"); doc.setFontSize(8);
+    filtered.forEach((c, i) => {
+      if (y > H - 20) { doc.addPage(); y = 20; }
+      if (i % 2 === 0) { doc.setFillColor(245,247,255); doc.rect(margin,y-4,cw,7,"F"); }
+      doc.setTextColor(40,40,40);
+      doc.text((c.name||"").slice(0,28), margin+2, y);
+      doc.text((c.email||"").slice(0,30), margin+60, y);
+      doc.text((c.phone||"—").slice(0,18), margin+130, y);
+      doc.text((c.nipt||"—").slice(0,16), margin+175, y);
+      doc.text(classLabels[c.classification]||"—", margin+220, y);
+      y += 7;
+    });
+    doc.setFillColor(67,56,202); doc.rect(0,H-12,W,12,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(7);
+    doc.text("Ky dokument u gjenerua automatikisht.", W/2, H-4, { align: "center" });
+    doc.save(`klientet_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -119,9 +183,13 @@ export default function Clients() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
           <h1 className="text-3xl font-bold tracking-tight">Klientët</h1>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2 self-start sm:self-auto">
-          <Plus className="w-4 h-4" /> Shto Klient
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
+          <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+          <Button onClick={() => setDialogOpen(true)} className="gap-2 self-start sm:self-auto">
+            <Plus className="w-4 h-4" /> Shto Klient
+          </Button>
+        </div>
       </div>
 
       {/* Summary */}
@@ -144,10 +212,77 @@ export default function Clients() {
         </div>
       </div>
 
+      {/* Filter Sheet */}
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+        <SheetTrigger asChild>
+          <button className={cn(
+            "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
+            hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
+          )}>
+            <SlidersHorizontal className="w-4 h-4" />
+            Filtrat & Kërkimi
+            {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
+          </button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
+          <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><SlidersHorizontal className="w-5 h-5 text-primary" /></div>
+              <div>
+                <p className="font-bold text-[15px]">Filtrat & Kërkimi</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{hasFilters ? `${activeFilterCount} filtr aktiv` : "Filtro klientët"}</p>
+              </div>
+            </div>
+            <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition"><X className="h-4 w-4" /></SheetClose>
+          </div>
+          <div className="flex-1 overflow-y-auto bg-background">
+            <div className="px-6 pt-6 pb-5">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Kërkim</span>
+              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Emri i Klientit</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input type="text" placeholder="Kërko klientin..." value={filterName || nameQuery}
+                  onChange={e => { setNameQuery(e.target.value); setFilterName(""); setShowNameDrop(true); }}
+                  onFocus={() => setShowNameDrop(true)}
+                  onBlur={() => setTimeout(() => setShowNameDrop(false), 150)}
+                  className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                {(filterName || nameQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterName(""); setNameQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+                {showNameDrop && nameSuggestions.length > 0 && (
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                    {nameSuggestions.map(c => (
+                      <button key={c.id} onMouseDown={() => { setFilterName(c.name); setNameQuery(c.name); setShowNameDrop(false); }}
+                        className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition", filterName === c.name && "bg-primary/10 font-semibold text-primary")}>
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="h-px bg-border mx-6" />
+            <div className="px-6 pt-5 pb-5">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Klasifikimi</span>
+              <div className="flex bg-muted rounded-xl p-1">
+                {[["","Të gjitha"],["new","I Ri"],["regular","I Rregullt"],["vip","VIP"]].map(([v,l]) => (
+                  <button key={v} onClick={() => setFilterClassification(v)}
+                    className={cn("flex-1 px-2 py-1.5 text-xs font-semibold rounded-lg transition-all",
+                      filterClassification === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="border-t border-border px-6 py-4 bg-white space-y-2 shrink-0">
+            {hasFilters && <button onClick={clearFilters} className="w-full py-2 text-sm font-semibold rounded-xl border border-border hover:bg-muted transition">Pastro të gjithë Filtrat</button>}
+            <SheetClose asChild><Button className="w-full rounded-xl">Apliko & Mbyll</Button></SheetClose>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <p className="font-semibold text-sm">{clients.length} klientë</p>
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
+          <p className="font-semibold text-sm">{filtered.length} klientë{hasFilters ? " (filtruar)" : ""}</p>
+          {hasFilters && <button onClick={clearFilters} className="px-3 py-1 text-xs font-semibold rounded-lg border border-destructive/40 text-destructive hover:bg-destructive hover:text-white transition-all">✕ Pastro</button>}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -163,9 +298,9 @@ export default function Clients() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {clients.length === 0 ? (
+              {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-16">
+                  <td colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <Users className="w-7 h-7 text-muted-foreground/50" />
@@ -175,7 +310,7 @@ export default function Clients() {
                   </td>
                 </tr>
               ) : (
-                clients.map((client) => (
+                filtered.map((client) => (
                   <tr key={client.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold">{client.name}</span>
