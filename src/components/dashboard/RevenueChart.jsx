@@ -106,7 +106,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function RevenueChart() {
-  const [viewMode, setViewMode] = useState("nderviti"); // "nderviti" or "vjetore"
+  const [viewMode, setViewMode] = useState("vjetore"); // "nderviti" or "vjetore"
   const [selectedYear, setSelectedYear] = useState(2025);
   const years = Object.keys(yearsData).map(Number).sort((a, b) => a - b);
   const currentYearIndex = years.indexOf(selectedYear);
