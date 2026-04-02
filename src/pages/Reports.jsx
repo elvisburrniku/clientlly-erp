@@ -9,6 +9,8 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import InvoiceMetrics from "@/components/reports/InvoiceMetrics";
+import InvoiceAnalyticsCharts from "@/components/reports/InvoiceAnalyticsCharts";
 import moment from "moment";
 
 export default function Reports() {
@@ -201,6 +203,10 @@ export default function Reports() {
         </div>
       </div>
 
+      {/* Invoice Analytics */}
+      <InvoiceMetrics invoices={invoices} expenses={expenses} />
+      <InvoiceAnalyticsCharts invoices={invoices} expenses={expenses} />
+
       {/* Quick Download Reports */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
         <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
@@ -229,8 +235,7 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Charts */}
-      <RevenueExpenseChart categoryFilter={categoryFilter} clientSegment={clientSegment} onDataChange={setChartData} />
+
     </div>
   );
 }
