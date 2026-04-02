@@ -100,6 +100,10 @@
       "type": "string",
       "description": "Quote description/notes"
     },
+    "personalization_message": {
+      "type": "string",
+      "description": "Personalized message for client"
+    },
     "validity_days": {
       "type": "number",
       "default": 30,

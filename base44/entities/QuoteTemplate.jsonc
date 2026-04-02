@@ -1,0 +1,60 @@
+{
+  "name": "QuoteTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i template-it"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "client_email": {
+      "type": "string"
+    },
+    "client_phone": {
+      "type": "string"
+    },
+    "client_nipt": {
+      "type": "string"
+    },
+    "client_address": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "description": "Template artikuj",
+      "items": {
+        "type": "object"
+      }
+    },
+    "description": {
+      "type": "string"
+    },
+    "validity_days": {
+      "type": "number",
+      "default": 30
+    },
+    "personalization_message": {
+      "type": "string",
+      "description": "Mesazh p\u00ebrsonalizim p\u00ebr klientin"
+    },
+    "template_style": {
+      "type": "string",
+      "enum": [
+        "classic",
+        "modern"
+      ]
+    },
+    "font_family": {
+      "type": "string"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

@@ -10,7 +10,10 @@ import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calenda
 import { useLanguage } from '@/lib/useLanguage';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 import SignatureDialog from '@/components/quotes/SignatureDialog';
+import QuoteApprovalDialog from '@/components/quotes/QuoteApprovalDialog';
+import QuoteHistory from '@/components/quotes/QuoteHistory';
 import { cn } from '@/lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -30,6 +33,8 @@ export default function Quotes() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState(null);
 
   const [formData, setFormData] = useState({
     client_name: '',
@@ -45,6 +50,9 @@ export default function Quotes() {
     template: 'classic',
     font_family: 'helvetica',
     signature_image: null,
+    discount_type: 'none',
+    discount_value: 0,
+    personalization_message: '',
   });
 
   const statusColors = {
@@ -81,13 +89,23 @@ export default function Quotes() {
       template: 'classic',
       font_family: 'helvetica',
       signature_image: null,
+      discount_type: 'none',
+      discount_value: 0,
+      personalization_message: '',
     });
   };
 
   const handleAddQuote = async () => {
     const subtotal = formData.items.reduce((s, i) => s + i.price_ex_vat * i.quantity, 0);
-    const vat_amount = subtotal * 0.2;
-    const amount = subtotal + vat_amount;
+    let discount_amount = 0;
+    if (formData.discount_type === 'percentage') {
+      discount_amount = subtotal * (formData.discount_value / 100);
+    } else if (formData.discount_type === 'fixed') {
+      discount_amount = formData.discount_value;
+    }
+    const subtotalAfterDiscount = subtotal - discount_amount;
+    const vat_amount = subtotalAfterDiscount * 0.2;
+    const amount = subtotalAfterDiscount + vat_amount;
     const valid_until = new Date();
     valid_until.setDate(valid_until.getDate() + formData.validity_days);
 
@@ -100,10 +118,14 @@ export default function Quotes() {
       client_address: formData.client_address,
       items: formData.items,
       subtotal,
+      discount_type: formData.discount_type,
+      discount_value: formData.discount_value,
+      discount_amount,
       vat_amount,
       amount,
       description: formData.description,
       work_description: formData.work_description,
+      personalization_message: formData.personalization_message,
       logo_url: formData.logo_url,
       validity_days: formData.validity_days,
       valid_until: valid_until.toISOString().split('T')[0],
@@ -120,7 +142,7 @@ export default function Quotes() {
     loadQuotes();
   };
 
-  const handleDownloadPDF = (quote) => {
+  const handleDownloadPDF = async (quote) => {
     const pageWidth = 210;
     const pageHeight = 297;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -225,6 +247,11 @@ export default function Quotes() {
     doc.setFontSize(9);
     doc.text(`Subtotal (pa TVSH): €${(quote.subtotal || 0).toFixed(2)}`, 120, y);
     y += 5;
+    if (quote.discount_amount > 0) {
+      const discountLabel = quote.discount_type === 'percentage' ? `${quote.discount_value}%` : '€';
+      doc.text(`Zbritje (${discountLabel}): -€${(quote.discount_amount || 0).toFixed(2)}`, 120, y);
+      y += 5;
+    }
     doc.text(`TVSH (20%): €${(quote.vat_amount || 0).toFixed(2)}`, 120, y);
     y += 6;
     doc.setFont('helvetica', 'bold');
@@ -256,6 +283,19 @@ export default function Quotes() {
       } catch (e) {
         console.error('Error adding signature:', e);
       }
+    }
+
+    // QR Code
+    try {
+      const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/quote-approval/${quote.id}`);
+      y += 40;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.text('Pranoni Ofertën:', 140, y);
+      y += 6;
+      doc.addImage(qrCodeUrl, 'PNG', 140, y, 30, 30);
+    } catch (e) {
+      console.error('Error adding QR code:', e);
     }
 
     doc.save(`${quote.quote_number}.pdf`);
@@ -571,7 +611,21 @@ export default function Quotes() {
                         <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleDownloadPDF(quote)} title="Shkarko PDF">
                           <Download className="w-4 h-4" />
                         </Button>
-                        {quote.status !== 'converted' && (
+                        {quote.status === 'sent' && (
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-7 w-7" 
+                            onClick={() => {
+                              setSelectedQuote(quote);
+                              setShowApprovalDialog(true);
+                            }}
+                            title="Përgjigje"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </Button>
+                        )}
+                        {quote.status !== 'converted' && quote.status !== 'sent' && (
                           <Button 
                             size="icon" 
                             variant="ghost" 
@@ -616,6 +670,7 @@ export default function Quotes() {
                 <Input placeholder="NIPT" value={formData.client_nipt} onChange={(e) => setFormData({ ...formData, client_nipt: e.target.value })} />
               </div>
               <Textarea placeholder="Adresa" value={formData.client_address} onChange={(e) => setFormData({ ...formData, client_address: e.target.value })} className="pl-8" />
+              {formData.client_name && <QuoteHistory clientName={formData.client_name} />}
             </div>
 
             {/* Section 2: Logo/Imazh */}
@@ -720,14 +775,15 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 5: Shënime */}
+            {/* Section 5: Shënime dhe Përsonalizim */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">5</div>
-                <h3 className="font-semibold text-sm">Shënime Shtesë</h3>
+                <h3 className="font-semibold text-sm">Shënime dhe Përsonalizim</h3>
               </div>
-              <div className="pl-8">
+              <div className="pl-8 space-y-2">
                 <Textarea placeholder="Kushte pagese, garancia, etj..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                <Textarea placeholder="Mesazh përsonalizim për klientin (p.sh. Faleminderit që na keni besuar...)" value={formData.personalization_message} onChange={(e) => setFormData({ ...formData, personalization_message: e.target.value })} />
               </div>
             </div>
 
@@ -760,7 +816,26 @@ export default function Quotes() {
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</div>
                 <h3 className="font-semibold text-sm">Cilësime të Ofertës</h3>
               </div>
-              <div className="grid grid-cols-3 gap-3 pl-8">
+              <div className="grid grid-cols-4 gap-3 pl-8">
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-1.5">Zbritje Lloji</label>
+                 <Select value={formData.discount_type} onValueChange={(val) => setFormData({ ...formData, discount_type: val })}>
+                   <SelectTrigger>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="none">Asgjë</SelectItem>
+                     <SelectItem value="percentage">%</SelectItem>
+                     <SelectItem value="fixed">€</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+               {formData.discount_type !== 'none' && (
+                 <div>
+                   <label className="text-xs font-medium text-muted-foreground block mb-1.5">Zbritje Vlera</label>
+                   <Input type="number" value={formData.discount_value} onChange={(e) => setFormData({ ...formData, discount_value: parseFloat(e.target.value) })} />
+                 </div>
+               )}
                <div>
                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Vlefshme për (ditë)</label>
                  <Input type="number" value={formData.validity_days} onChange={(e) => setFormData({ ...formData, validity_days: parseInt(e.target.value) })} />
@@ -814,6 +889,14 @@ export default function Quotes() {
         open={showSignatureDialog}
         onOpenChange={setShowSignatureDialog}
         onSignatureSaved={(signature) => setFormData({ ...formData, signature_image: signature })}
+      />
+
+      {/* Approval Dialog */}
+      <QuoteApprovalDialog
+        open={showApprovalDialog}
+        onOpenChange={setShowApprovalDialog}
+        quote={selectedQuote}
+        onApprovalChange={() => loadQuotes()}
       />
 
       {/* Convert to Invoice Dialog */}
