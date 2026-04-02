@@ -265,9 +265,6 @@ export default function Clients() {
 
       {/* Buttons */}
       <div className="flex gap-2 flex-wrap">
-        <Button variant="outline" className="gap-2" onClick={() => setCardDialogOpen(true)}>
-          <FileSpreadsheet className="w-4 h-4" /> Kartela e Bleresit
-        </Button>
         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
           <SheetTrigger asChild>
             <button className={cn(
@@ -339,6 +336,9 @@ export default function Clients() {
           </div>
           </SheetContent>
           </Sheet>
+          <button onClick={() => setCardDialogOpen(true)} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 border-border bg-white text-foreground text-sm font-semibold transition-all w-fit shadow-sm hover:border-primary/50 hover:shadow-md">
+          <FileSpreadsheet className="w-4 h-4" /> Kartela e Bleresit
+          </button>
           </div>
 
       {/* Table */}
