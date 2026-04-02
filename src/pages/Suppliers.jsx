@@ -144,15 +144,19 @@ export default function Suppliers() {
   return (
     <div className="p-6 lg:p-10 space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
-          <h1 className="text-3xl font-bold tracking-tight">Furnitorët</h1>
-        </div>
-        <Button onClick={() => { setForm(emptyForm()); setEditingId(null); setDialogOpen(true); }} className="gap-2">
-          <Plus className="w-4 h-4" /> Furnitor i Ri
-        </Button>
-      </div>
+       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+         <div>
+           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
+           <h1 className="text-3xl font-bold tracking-tight">Furnitorët</h1>
+         </div>
+         <div className="flex flex-col sm:flex-row gap-3">
+           <Button onClick={exportCSV} variant="outline" className="gap-2"><Download className="w-4 h-4" /> CSV</Button>
+           <Button onClick={exportPDF} variant="outline" className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+           <Button onClick={() => { setForm(emptyForm()); setEditingId(null); setDialogOpen(true); }} className="gap-2">
+             <Plus className="w-4 h-4" /> Furnitor i Ri
+           </Button>
+         </div>
+       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -173,17 +177,18 @@ export default function Suppliers() {
         </div>
       </div>
 
-      {/* Filters & Search */}
-       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-         <Input placeholder="Kërko sipas emrit ose email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm flex-1" />
-         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-           <SheetTrigger asChild>
-             <button className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit ${hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50"}`}>
-               <SlidersHorizontal className="w-4 h-4" /> Filtrat
-               {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>}
-             </button>
-           </SheetTrigger>
-           <SheetContent side="right" className="w-full sm:w-[350px]">
+      {/* Search */}
+      <Input placeholder="Kërko sipas emrit ose email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm max-w-md" />
+
+      {/* Filters Sidebar */}
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+        <SheetTrigger asChild>
+          <button className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit ${hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50"}`}>
+            <SlidersHorizontal className="w-4 h-4" /> Filtrat
+            {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>}
+          </button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-full sm:w-[350px]">
              <SheetHeader className="border-b pb-4">
                <h3 className="font-bold">Filtrat</h3>
              </SheetHeader>
@@ -221,11 +226,8 @@ export default function Suppliers() {
                </div>
                {hasFilters && <Button variant="outline" onClick={clearFilters} className="w-full">Pastro Filtrat</Button>}
              </div>
-           </SheetContent>
-         </Sheet>
-         <Button onClick={exportCSV} variant="outline" className="gap-2"><Download className="w-4 h-4" /> CSV</Button>
-         <Button onClick={exportPDF} variant="outline" className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
-       </div>
+             </SheetContent>
+             </Sheet>
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
