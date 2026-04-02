@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Download, AlertCircle, SlidersHorizontal, X, Filter, Calendar } from 'lucide-react';
+import { Search, Download, AlertCircle, SlidersHorizontal, X, Filter, Calendar, Eye, Pencil, Trash2, MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 import { Sheet as SheetComponent, SheetContent, SheetClose } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
@@ -408,7 +410,7 @@ export default function Debtors() {
       </SheetComponent>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden w-full transition-shadow hover:shadow-md">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
           <p className="font-semibold text-sm">{filtered.length} debitorë{hasActiveFilters && ' (filtruara)'}</p>
         </div>
@@ -441,10 +443,10 @@ export default function Debtors() {
                paginatedInvoices.map((inv, idx) => {
                  const rowNum = (page - 1) * PAGE_SIZE + idx + 1;
                  return (
-                   <tr key={`${inv.client_name}-${inv.number}-${idx}`} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)}>  
+                   <tr key={`${inv.client_name}-${inv.number}-${idx}`} className="hover:bg-muted/20 transition-colors group">  
                      <td className="px-6 py-4 text-sm text-muted-foreground font-medium text-right">{rowNum}</td>
                      <td className="px-6 py-4">
-                       <span className="text-sm font-bold text-primary hover:underline">{inv.client_name}</span>
+                       <button onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)} className="text-sm font-bold text-primary hover:underline">{inv.client_name}</button>
                      </td>
                      <td className="px-6 py-4 text-sm font-medium text-muted-foreground">{inv.number}</td>
                      <td className="px-6 py-4 text-sm font-semibold">€{inv.amount?.toFixed(2) || '0.00'}</td>
@@ -452,14 +454,31 @@ export default function Debtors() {
                      <td className="px-6 py-4">
                        <span className="text-sm font-bold text-destructive">€{(inv.status !== 'paid' ? inv.amount : 0).toFixed(2)}</span>
                      </td>
-                     <td className="px-6 py-4">
-                       {inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid' ? (
-                         <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
-                           {Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))} ditë
-                         </span>
-                       ) : (
-                         <span className="text-xs text-muted-foreground">—</span>
-                       )}
+                     <td className="px-6 py-4 flex items-center justify-between">
+                       <span>
+                         {inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid' ? (
+                           <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
+                             {Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))} ditë
+                           </span>
+                         ) : (
+                           <span className="text-xs text-muted-foreground">—</span>
+                         )}
+                       </span>
+                       <DropdownMenu>
+                         <DropdownMenuTrigger asChild>
+                           <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <MoreHorizontal className="w-4 h-4" />
+                           </Button>
+                         </DropdownMenuTrigger>
+                         <DropdownMenuContent align="end" className="w-48">
+                           <DropdownMenuItem onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)}>
+                             <Eye className="w-4 h-4 mr-2" /> Shiko Debitor
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id || inv.number}`)}>
+                             <Pencil className="w-4 h-4 mr-2" /> Modifiko Faturën
+                           </DropdownMenuItem>
+                         </DropdownMenuContent>
+                       </DropdownMenu>
                      </td>
                    </tr>
                  );
