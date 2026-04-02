@@ -8,7 +8,7 @@ import ReportPDFExport from "../components/reports/ReportPDFExport";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import moment from "moment";
 
 export default function Reports() {
@@ -22,7 +22,7 @@ export default function Reports() {
   const [suppliers, setSuppliers] = useState([]);
   const [cashTransactions, setCashTransactions] = useState([]);
   const [loadingReport, setLoadingReport] = useState(null);
-  const [selectedReport, setSelectedReport] = useState('invoices');
+  const [selectedReports, setSelectedReports] = useState(['invoices']);
 
   useEffect(() => {
     loadReportData();
@@ -52,15 +52,17 @@ export default function Reports() {
   };
 
   const handleDownload = () => {
-    if (selectedReport === 'invoices') {
-      downloadReport('invoices', 'Faturat', invoices);
-    } else if (selectedReport === 'debtors') {
-      downloadReport('debtors', 'Borxhet', debtors);
-    } else if (selectedReport === 'suppliers') {
-      downloadReport('suppliers', 'Furnitorët', suppliers);
-    } else if (selectedReport === 'cashbox') {
-      downloadReport('cashbox', 'Arka', cashTransactions);
-    }
+    let delay = 0;
+    if (selectedReports.includes('invoices')) { setTimeout(() => downloadReport('invoices', 'Faturat', invoices), delay); delay += 500; }
+    if (selectedReports.includes('debtors')) { setTimeout(() => downloadReport('debtors', 'Borxhet', debtors), delay); delay += 500; }
+    if (selectedReports.includes('suppliers')) { setTimeout(() => downloadReport('suppliers', 'Furnitorët', suppliers), delay); delay += 500; }
+    if (selectedReports.includes('cashbox')) { setTimeout(() => downloadReport('cashbox', 'Arka', cashTransactions), delay); }
+  };
+
+  const toggleReport = (report) => {
+    setSelectedReports(prev => 
+      prev.includes(report) ? prev.filter(r => r !== report) : [...prev, report]
+    );
   };
 
   const downloadReport = async (type, title, data) => {
@@ -202,23 +204,27 @@ export default function Reports() {
       {/* Quick Download Reports */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
         <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
-        <div className="flex flex-col sm:flex-row gap-3 items-end">
-          <div className="flex-1">
-            <Label className="text-xs font-semibold mb-2 block">Zgjidh Raportin</Label>
-            <Select value={selectedReport} onValueChange={setSelectedReport}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="invoices">Faturat</SelectItem>
-                <SelectItem value="debtors">Borxhet</SelectItem>
-                <SelectItem value="suppliers">Furnitorët</SelectItem>
-                <SelectItem value="cashbox">Arka</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-6">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('invoices')}>
+              <Checkbox checked={selectedReports.includes('invoices')} onChange={() => toggleReport('invoices')} />
+              <Label className="cursor-pointer">Faturat</Label>
+            </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('debtors')}>
+              <Checkbox checked={selectedReports.includes('debtors')} onChange={() => toggleReport('debtors')} />
+              <Label className="cursor-pointer">Borxhet</Label>
+            </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('suppliers')}>
+              <Checkbox checked={selectedReports.includes('suppliers')} onChange={() => toggleReport('suppliers')} />
+              <Label className="cursor-pointer">Furnitorët</Label>
+            </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('cashbox')}>
+              <Checkbox checked={selectedReports.includes('cashbox')} onChange={() => toggleReport('cashbox')} />
+              <Label className="cursor-pointer">Arka</Label>
+            </div>
           </div>
-          <Button onClick={handleDownload} disabled={loadingReport !== null} className="gap-2" variant="default">
-            <Download className="w-4 h-4" /> {loadingReport ? 'Duke shkarkuar...' : 'Shkarko'}
+          <Button onClick={handleDownload} disabled={loadingReport !== null || selectedReports.length === 0} className="gap-2" variant="default">
+            <Download className="w-4 h-4" /> {loadingReport ? 'Duke shkarkuar...' : 'Shkarko Të Zgjedhurat'}
           </Button>
         </div>
       </div>
