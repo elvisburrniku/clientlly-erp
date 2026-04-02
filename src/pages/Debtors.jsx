@@ -177,8 +177,10 @@ export default function Debtors() {
 
   const totalOwed = filtered.reduce((sum, d) => sum + d.balance, 0);
   const overdueCount = filtered.filter(d => d.days_overdue > 0).length;
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  
+  const allInvoices = filtered.flatMap(d => d.invoices.map(inv => ({ ...inv, client_name: d.name })));
+  const totalPages = Math.ceil(allInvoices.length / PAGE_SIZE);
+  const paginatedInvoices = allInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -426,7 +428,7 @@ export default function Debtors() {
             <tbody className="divide-y divide-border">
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16">
+                  <td colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <AlertCircle className="w-7 h-7 text-muted-foreground/50" />
@@ -436,41 +438,39 @@ export default function Debtors() {
                   </td>
                 </tr>
               ) : (
-                paginated.flatMap((d, dIdx) =>
-                  d.invoices.map((inv, invIdx) => {
-                    const rowNum = (page - 1) * PAGE_SIZE + dIdx + invIdx + 1;
-                    return (
-                  <tr key={d.name} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(d.name)}`)}>  
-                      <td className="px-6 py-4 text-sm text-muted-foreground font-medium text-right">{(page - 1) * PAGE_SIZE + ((d.invoices || []).indexOf(inv)) + 1}</td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-primary hover:underline">{d.name}</span>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-muted-foreground">{inv.number}</td>
-                      <td className="px-6 py-4 text-sm font-semibold">€{inv.amount?.toFixed(2) || '0.00'}</td>
-                      <td className="px-6 py-4 text-sm text-success">€{(inv.status === 'paid' ? inv.amount : 0).toFixed(2)}</td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-destructive">€{(inv.status !== 'paid' ? inv.amount : 0).toFixed(2)}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid' ? (
-                          <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
-                            {Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))} ditë
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </td>
-                    </tr>
-                    );
-                    })
-                    )
+               paginatedInvoices.map((inv, idx) => {
+                 const rowNum = (page - 1) * PAGE_SIZE + idx + 1;
+                 return (
+                   <tr key={`${inv.client_name}-${inv.number}-${idx}`} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)}>  
+                     <td className="px-6 py-4 text-sm text-muted-foreground font-medium text-right">{rowNum}</td>
+                     <td className="px-6 py-4">
+                       <span className="text-sm font-bold text-primary hover:underline">{inv.client_name}</span>
+                     </td>
+                     <td className="px-6 py-4 text-sm font-medium text-muted-foreground">{inv.number}</td>
+                     <td className="px-6 py-4 text-sm font-semibold">€{inv.amount?.toFixed(2) || '0.00'}</td>
+                     <td className="px-6 py-4 text-sm text-success">€{(inv.status === 'paid' ? inv.amount : 0).toFixed(2)}</td>
+                     <td className="px-6 py-4">
+                       <span className="text-sm font-bold text-destructive">€{(inv.status !== 'paid' ? inv.amount : 0).toFixed(2)}</span>
+                     </td>
+                     <td className="px-6 py-4">
+                       {inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid' ? (
+                         <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
+                           {Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))} ditë
+                         </span>
+                       ) : (
+                         <span className="text-xs text-muted-foreground">—</span>
+                       )}
+                     </td>
+                   </tr>
+                 );
+               })
               )}
             </tbody>
           </table>
         </div>
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/20">
-            <p className="text-sm text-muted-foreground">Duke shfaqur {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} nga {filtered.length} debitorë</p>
+            <p className="text-sm text-muted-foreground">Duke shfaqur {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, allInvoices.length)} nga {allInvoices.length} fatura</p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
