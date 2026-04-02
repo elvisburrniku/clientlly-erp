@@ -803,7 +803,7 @@ export default function Quotes() {
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</div>
                 <h3 className="font-semibold text-sm">Cilësime të Ofertës</h3>
               </div>
-              <div className="grid grid-cols-4 gap-3 pl-8">
+              <div className="grid grid-cols-3 gap-3 pl-8">
                <div>
                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Zbritje Lloji</label>
                  <Select value={formData.discount_type} onValueChange={(val) => setFormData({ ...formData, discount_type: val })}>
@@ -836,25 +836,6 @@ export default function Quotes() {
                    <SelectContent>
                      <SelectItem value="classic">Klasik</SelectItem>
                      <SelectItem value="modern">Modern</SelectItem>
-                   </SelectContent>
-                 </Select>
-               </div>
-               <div>
-                 <label className="text-xs font-medium text-muted-foreground block mb-1.5">Font</label>
-                 <Select value={formData.font_family} onValueChange={(val) => setFormData({ ...formData, font_family: val })}>
-                   <SelectTrigger>
-                     <SelectValue />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="helvetica">Helvetica</SelectItem>
-                     <SelectItem value="arial">Arial</SelectItem>
-                     <SelectItem value="times">Times New Roman</SelectItem>
-                     <SelectItem value="courier">Courier</SelectItem>
-                     <SelectItem value="georgia">Georgia</SelectItem>
-                     <SelectItem value="verdana">Verdana</SelectItem>
-                     <SelectItem value="trebuchet">Trebuchet MS</SelectItem>
-                     <SelectItem value="palatino">Palatino</SelectItem>
-                     <SelectItem value="garamond">Garamond</SelectItem>
                    </SelectContent>
                  </Select>
                </div>
