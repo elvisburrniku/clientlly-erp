@@ -20,6 +20,7 @@ export default function Reports() {
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
   const [chartData, setChartData] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [debtors, setDebtors] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [cashTransactions, setCashTransactions] = useState([]);
@@ -31,12 +32,14 @@ export default function Reports() {
   }, []);
 
   const loadReportData = async () => {
-    const [invs, sups, cashTxns] = await Promise.all([
+    const [invs, exps, sups, cashTxns] = await Promise.all([
       base44.entities.Invoice.list("-created_date", 500),
+      base44.entities.Expense.list("-created_date", 500),
       base44.entities.Supplier.list("-created_date", 500),
       base44.entities.CashTransaction.list("-created_date", 500),
     ]);
     setInvoices(invs);
+    setExpenses(exps);
     setSuppliers(sups);
     setCashTransactions(cashTxns);
 
