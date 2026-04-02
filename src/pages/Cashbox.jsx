@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, Sheet, Calendar } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -47,6 +48,43 @@ export default function Cashbox() {
 
   const hasFilters = filterType || filterDateFrom || filterDateTo;
   const clearFilters = () => { setFilterType(""); setFilterDateFrom(""); setFilterDateTo(""); };
+
+  const [chartView, setChartView] = useState("month"); // "month" | "year"
+
+  const chartData = (() => {
+    const now = new Date();
+    if (chartView === "month") {
+      // Group by day of current month
+      const days = {};
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let d = 1; d <= daysInMonth; d++) {
+        days[d] = { name: `${d}`, hyrje: 0, dalje: 0 };
+      }
+      transactions.forEach(t => {
+        const d = new Date(t.created_date);
+        if (d.getFullYear() === year && d.getMonth() === month) {
+          const day = d.getDate();
+          if (t.type === "cash_in") days[day].hyrje += t.amount || 0;
+          else days[day].dalje += t.amount || 0;
+        }
+      });
+      return Object.values(days);
+    } else {
+      // Group by month of current year
+      const months = ["Jan","Shk","Mar","Pri","Maj","Qer","Kor","Gus","Sht","Tet","Nën","Dhj"];
+      const data = months.map(m => ({ name: m, hyrje: 0, dalje: 0 }));
+      transactions.forEach(t => {
+        const d = new Date(t.created_date);
+        if (d.getFullYear() === now.getFullYear()) {
+          if (t.type === "cash_in") data[d.getMonth()].hyrje += t.amount || 0;
+          else data[d.getMonth()].dalje += t.amount || 0;
+        }
+      });
+      return data;
+    }
+  })();
 
   const exportExcel = () => {
     const headers = ["Data", "Tipi", "Debi", "Kredi", "Shënim", "Referenca"];
@@ -260,6 +298,37 @@ export default function Cashbox() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Chart */}
+      <div className="bg-card rounded-xl border border-border p-5 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h3 className="text-base font-semibold">Ecuria Financiare</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Hyrjet dhe daljet e parave</p>
+          </div>
+          <div className="flex bg-muted rounded-xl p-1">
+            <button onClick={() => setChartView("month")}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                chartView === "month" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}>Muaji</button>
+            <button onClick={() => setChartView("year")}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                chartView === "year" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}>Viti</button>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barCategoryGap="40%">
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#888" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "#888" }} axisLine={false} tickLine={false} tickFormatter={v => `€${v}`} />
+            <Tooltip formatter={(val, name) => [`€${val.toFixed(2)}`, name === "hyrje" ? "Hyrje (Kredi)" : "Dalje (Debi)"]} />
+            <Legend formatter={v => v === "hyrje" ? "Hyrje (Kredi)" : "Dalje (Debi)"} />
+            <Bar dataKey="hyrje" fill="#16a34a" radius={[4,4,0,0]} />
+            <Bar dataKey="dalje" fill="#dc2626" radius={[4,4,0,0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Filter bar */}
