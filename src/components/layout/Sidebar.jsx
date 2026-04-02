@@ -104,6 +104,25 @@ export default function Sidebar() {
             </Link>
           );
         })}
+
+        {!collapsed && (
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Të Tjera</p>
+        )}
+        <Link
+          to="/settings"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+            location.pathname === '/settings'
+              ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
+              : "text-white/55 hover:bg-white/8 hover:text-white/90"
+          )}
+        >
+          <Settings className={cn("w-5 h-5 shrink-0", location.pathname === '/settings' ? "text-white" : "text-white/50")} />
+          {!collapsed && <span className="whitespace-nowrap">Parametrat</span>}
+          {location.pathname === '/settings' && !collapsed && (
+            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
+          )}
+        </Link>
       </nav>
 
       {/* Collapse toggle */}
