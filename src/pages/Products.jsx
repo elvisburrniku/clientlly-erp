@@ -240,7 +240,7 @@ export default function Products() {
               {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">{activeFilterCount}</span>}
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
+          <SheetContent side="left" className="w-full sm:w-[400px] p-0 flex flex-col">
             <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
