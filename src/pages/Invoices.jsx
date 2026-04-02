@@ -624,6 +624,7 @@ export default function Invoices() {
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">NR.</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Faturës</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Total</th>
@@ -638,7 +639,7 @@ export default function Invoices() {
             <tbody className="divide-y divide-border">
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="text-center py-16">
+                   <td colSpan={13} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <FileText className="w-7 h-7 text-muted-foreground/50" />
@@ -663,6 +664,7 @@ export default function Invoices() {
                         {inv.invoice_type === "credit_note" && <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Kredit Note</span>}
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">{inv.created_date ? moment(inv.created_date).format("DD MMM YYYY") : "—"}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
                     <td className="px-6 py-4"><span className="text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</span></td>
