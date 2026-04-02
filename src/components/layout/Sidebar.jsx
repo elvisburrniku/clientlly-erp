@@ -20,6 +20,17 @@ const menuItems = [
   { label: "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover" },
   { label: "Raportet", icon: BarChart3, path: "/reports" },
   { label: "Analiza Faturave", icon: BarChart3, path: "/invoice-analytics" },
+];
+
+const performanceItems = [
+  { label: "Performanca e Kompanisë", section: true },
+  { label: "Raportet", icon: BarChart3, path: "/reports" },
+  { label: "Analiza Faturave", icon: BarChart3, path: "/invoice-analytics" },
+];
+
+const allMenuItems = [
+  ...menuItems.slice(0, 10),
+  ...performanceItems.filter(item => !item.section),
   { label: "Settings", icon: Settings, path: "/settings" },
 ];
 
@@ -54,7 +65,32 @@ export default function Sidebar() {
         {!collapsed && (
           <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3">Menuja</p>
         )}
-        {menuItems.map((item) => {
+        {menuItems.slice(0, 10).map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
+                  : "text-white/55 hover:bg-white/8 hover:text-white/90"
+              )}
+            >
+              <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-white/50")} />
+              {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+              {isActive && !collapsed && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
+              )}
+            </Link>
+          );
+        })}
+
+        {!collapsed && (
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Performanca e Kompanisë</p>
+        )}
+        {performanceItems.filter(item => !item.section).map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
