@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { BarChart3, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import FinancialSummary from "../components/reports/FinancialSummary";
 
-
-import ReportPDFExport from "../components/reports/ReportPDFExport";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -178,30 +175,7 @@ export default function Reports() {
         <p className="text-sm text-muted-foreground">Shiko trendet e të ardhurave dhe shpenzimeve përmes grafikëve të avancuar</p>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-6">
-        <div>
-          <h3 className="text-base font-semibold mb-4">Zgjedh Periudhën</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <Label>Nga Data</Label>
-              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="mt-1.5" />
-            </div>
-            <div>
-              <Label>Deri më Data</Label>
-              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="mt-1.5" />
-            </div>
-          </div>
-          <ReportPDFExport dateFrom={dateFrom} dateTo={dateTo} categoryFilter="all" chartData={chartData} />
-        </div>
-      </div>
 
-
-
-      {/* Financial Summary - Full Width */}
-      <div className="-mx-6 -mb-6 bg-gradient-to-b from-white to-slate-50 px-6 py-8">
-        <FinancialSummary />
-      </div>
 
       {/* Quick Download Reports */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
