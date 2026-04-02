@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, SlidersHorizontal, X, Download, Sheet, Calendar } from "lucide-react";
+import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, Sheet, Calendar } from "lucide-react";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -21,14 +21,11 @@ export default function Cashbox() {
   const [filterType, setFilterType] = useState("");
   const [filterDateFrom, setFilterDateFrom] = useState("");
   const [filterDateTo, setFilterDateTo] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
 
-  useEffect(() => {
-    loadTransactions();
-  }, []);
+  useEffect(() => { loadTransactions(); }, []);
 
   const loadTransactions = async () => {
-    const data = await base44.entities.CashTransaction.list("-created_date", 100);
+    const data = await base44.entities.CashTransaction.list("-created_date", 200);
     setTransactions(data);
     setLoading(false);
   };
@@ -41,23 +38,23 @@ export default function Cashbox() {
     return true;
   });
 
-  const cashIn = transactions.filter((t) => t.type === "cash_in").reduce((s, t) => s + (t.amount || 0), 0);
-  const cashOut = transactions.filter((t) => t.type === "cash_out").reduce((s, t) => s + (t.amount || 0), 0);
+  const cashIn = transactions.filter(t => t.type === "cash_in").reduce((s, t) => s + (t.amount || 0), 0);
+  const cashOut = transactions.filter(t => t.type === "cash_out").reduce((s, t) => s + (t.amount || 0), 0);
   const balance = cashIn - cashOut;
 
   const filteredIn = filtered.filter(t => t.type === "cash_in").reduce((s, t) => s + (t.amount || 0), 0);
   const filteredOut = filtered.filter(t => t.type === "cash_out").reduce((s, t) => s + (t.amount || 0), 0);
 
   const hasFilters = filterType || filterDateFrom || filterDateTo;
-
   const clearFilters = () => { setFilterType(""); setFilterDateFrom(""); setFilterDateTo(""); };
 
   const exportExcel = () => {
-    const headers = ["Data", "Tipi", "Shuma", "Shënim", "Referenca"];
+    const headers = ["Data", "Tipi", "Debi", "Kredi", "Shënim", "Referenca"];
     const rows = filtered.map(t => [
       moment(t.created_date).format("DD MMM YYYY HH:mm"),
-      t.type === "cash_in" ? "Hyrje" : "Dalje",
-      (t.type === "cash_in" ? "+" : "-") + (t.amount || 0).toFixed(2),
+      t.type === "cash_in" ? "Hyrje (Kredi)" : "Dalje (Debi)",
+      t.type === "cash_out" ? (t.amount || 0).toFixed(2) : "",
+      t.type === "cash_in" ? (t.amount || 0).toFixed(2) : "",
       t.note || "",
       t.reference_type || "manual",
     ]);
@@ -71,63 +68,116 @@ export default function Cashbox() {
 
   const exportPDF = () => {
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-    const W = 210; const margin = 14;
+    const W = 210; const H = 297; const margin = 14; const cw = W - margin * 2;
+
+    // ── Header ────────────────────────────────────────────────
     doc.setFillColor(67, 56, 202);
-    doc.rect(0, 0, W, 22, "F");
-    doc.setTextColor(255,255,255);
-    doc.setFontSize(14); doc.setFont("helvetica", "bold");
-    doc.text("Raporti i Arkës", margin, 14);
-    doc.setFontSize(9); doc.setFont("helvetica", "normal");
-    doc.text(`Gjeneruar: ${new Date().toLocaleDateString("sq-AL")}`, W - margin, 14, { align: "right" });
+    doc.rect(0, 0, W, 38, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18); doc.setFont("helvetica", "bold");
+    doc.text("RAPORTI I ARKES", margin, 18);
+    doc.setFontSize(8); doc.setFont("helvetica", "normal");
+    doc.text("Gjeneruar: " + new Date().toLocaleDateString("sq-AL"), margin, 28);
+    if (filterDateFrom || filterDateTo) {
+      doc.text("Periudha: " + (filterDateFrom || "...") + " - " + (filterDateTo || "..."), W - margin, 28, { align: "right" });
+    }
 
-    // Summary box
-    let y = 32;
+    let y = 50;
+
+    // ── Summary title ──────────────────────────────────────────
+    doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.setTextColor(100, 100, 100);
+    doc.text("PERMBLEDHJA FINANCIARE", margin, y);
+    y += 3;
+    doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
+    doc.line(margin, y, W - margin, y);
+    y += 7;
+
+    const boxW = (cw - 6) / 3;
+
+    // KREDI box (hyrjet)
     doc.setFillColor(240, 253, 244);
-    doc.roundedRect(margin, y, (W - margin*2)/3 - 3, 20, 3, 3, "F");
-    doc.setTextColor(22, 163, 74); doc.setFontSize(8); doc.setFont("helvetica", "bold");
-    doc.text("HYRJET (Filtr)", margin + 2, y + 7);
-    doc.setFontSize(12);
-    doc.text(`\u20ac${filteredIn.toFixed(2)}`, margin + 2, y + 16);
+    doc.roundedRect(margin, y, boxW, 22, 2, 2, "F");
+    doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(50, 130, 70);
+    doc.text("KREDI (Hyrjet)", margin + 3, y + 7);
+    doc.setFontSize(13); doc.setFont("helvetica", "bold"); doc.setTextColor(22, 163, 74);
+    doc.text("\u20ac" + filteredIn.toFixed(2), margin + 3, y + 17);
 
+    // DEBI box (daljet)
     doc.setFillColor(254, 242, 242);
-    doc.roundedRect(margin + (W - margin*2)/3 + 1, y, (W - margin*2)/3 - 3, 20, 3, 3, "F");
-    doc.setTextColor(220, 38, 38); doc.setFontSize(8);
-    doc.text("DALJET (Filtr)", margin + (W - margin*2)/3 + 3, y + 7);
-    doc.setFontSize(12);
-    doc.text(`\u20ac${filteredOut.toFixed(2)}`, margin + (W - margin*2)/3 + 3, y + 16);
+    doc.roundedRect(margin + boxW + 3, y, boxW, 22, 2, 2, "F");
+    doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(150, 50, 50);
+    doc.text("DEBI (Daljet)", margin + boxW + 6, y + 7);
+    doc.setFontSize(13); doc.setFont("helvetica", "bold"); doc.setTextColor(220, 38, 38);
+    doc.text("\u20ac" + filteredOut.toFixed(2), margin + boxW + 6, y + 17);
 
+    // NETO box
+    const neto = filteredIn - filteredOut;
     doc.setFillColor(239, 246, 255);
-    doc.roundedRect(margin + (W - margin*2)*2/3 + 2, y, (W - margin*2)/3 - 3, 20, 3, 3, "F");
-    doc.setTextColor(67, 56, 202); doc.setFontSize(8);
-    doc.text("BILANCI TOTAL", margin + (W - margin*2)*2/3 + 4, y + 7);
-    doc.setFontSize(12);
-    doc.text(`\u20ac${balance.toFixed(2)}`, margin + (W - margin*2)*2/3 + 4, y + 16);
+    doc.roundedRect(margin + (boxW + 3) * 2, y, boxW, 22, 2, 2, "F");
+    doc.setFontSize(7); doc.setFont("helvetica", "normal"); doc.setTextColor(50, 50, 150);
+    doc.text("NETO (Bilanci)", margin + (boxW + 3) * 2 + 3, y + 7);
+    doc.setFontSize(13); doc.setFont("helvetica", "bold");
+    doc.setTextColor(neto >= 0 ? 22 : 220, neto >= 0 ? 163 : 38, neto >= 0 ? 74 : 38);
+    doc.text("\u20ac" + neto.toFixed(2), margin + (boxW + 3) * 2 + 3, y + 17);
 
-    y += 28;
-    const headers = ["Data", "Tipi", "Shuma", "Shënim"];
-    const colW = [38, 22, 28, 88];
-    doc.setFillColor(243,244,246);
-    doc.rect(margin, y - 5, W - margin*2, 8, "F");
-    doc.setFontSize(7); doc.setFont("helvetica", "bold"); doc.setTextColor(100,100,100);
-    let x = margin;
-    headers.forEach((h, i) => { doc.text(h, x + 2, y); x += colW[i]; });
+    y += 30;
+
+    // Bilanci total i gjithesej
+    doc.setFillColor(245, 247, 255);
+    doc.roundedRect(margin, y, cw, 14, 2, 2, "F");
+    doc.setFontSize(8); doc.setFont("helvetica", "normal"); doc.setTextColor(80, 80, 80);
+    doc.text("Bilanci Total i Arkes (te gjitha transaksionet):", margin + 4, y + 5);
+    doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(67, 56, 202);
+    doc.text("\u20ac" + balance.toFixed(2), W - margin - 4, y + 9, { align: "right" });
+    y += 22;
+
+    // ── Transactions table ─────────────────────────────────────
+    doc.setFontSize(8); doc.setFont("helvetica", "bold"); doc.setTextColor(100, 100, 100);
+    doc.text("LISTA E TRANSAKSIONEVE", margin, y);
+    y += 3;
+    doc.line(margin, y, W - margin, y);
     y += 5;
+
+    // Table header
+    doc.setFillColor(67, 56, 202);
+    doc.rect(margin, y - 4, cw, 8, "F");
+    doc.setTextColor(255, 255, 255); doc.setFontSize(8); doc.setFont("helvetica", "bold");
+    doc.text("Data", margin + 2, y + 1);
+    doc.text("Tipi", margin + 44, y + 1);
+    doc.text("Debi", margin + 88, y + 1);
+    doc.text("Kredi", margin + 118, y + 1);
+    doc.text("Shenim", margin + 148, y + 1);
+    y += 10;
+
     doc.setFont("helvetica", "normal"); doc.setFontSize(8);
     filtered.forEach((t, ri) => {
       if (y > 270) { doc.addPage(); y = 20; }
-      if (ri % 2 === 0) { doc.setFillColor(249,250,251); doc.rect(margin, y - 4, W - margin*2, 8, "F"); }
-      doc.setTextColor(t.type === "cash_in" ? 22 : 220, t.type === "cash_in" ? 163 : 38, t.type === "cash_in" ? 74 : 38);
-      const row = [
-        moment(t.created_date).format("DD MMM YY HH:mm"),
-        t.type === "cash_in" ? "Hyrje" : "Dalje",
-        (t.type === "cash_in" ? "+" : "-") + `\u20ac${(t.amount||0).toFixed(2)}`,
-        (t.note || "").slice(0, 45),
-      ];
-      x = margin;
-      row.forEach((v, i) => { doc.text(String(v), x + 2, y); x += colW[i]; });
-      y += 8;
+      if (ri % 2 === 0) { doc.setFillColor(245, 247, 255); doc.rect(margin, y - 4, cw, 7, "F"); }
+      doc.setTextColor(40, 40, 40);
+      doc.text(moment(t.created_date).format("DD MMM YY HH:mm"), margin + 2, y);
+      if (t.type === "cash_in") {
+        doc.setTextColor(22, 163, 74);
+        doc.text("Hyrje (Kredi)", margin + 44, y);
+        doc.setTextColor(180, 180, 180); doc.text("-", margin + 90, y);
+        doc.setTextColor(22, 163, 74); doc.text("\u20ac" + (t.amount || 0).toFixed(2), margin + 118, y);
+      } else {
+        doc.setTextColor(220, 38, 38);
+        doc.text("Dalje (Debi)", margin + 44, y);
+        doc.setTextColor(220, 38, 38); doc.text("\u20ac" + (t.amount || 0).toFixed(2), margin + 88, y);
+        doc.setTextColor(180, 180, 180); doc.text("-", margin + 120, y);
+      }
+      doc.setTextColor(100, 100, 100);
+      doc.text((t.note || "").slice(0, 24), margin + 148, y);
+      y += 7;
     });
-    doc.save(`arka_${new Date().toISOString().slice(0,10)}.pdf`);
+
+    // ── Footer ─────────────────────────────────────────────────
+    doc.setFillColor(67, 56, 202);
+    doc.rect(0, H - 14, W, 14, "F");
+    doc.setTextColor(255, 255, 255); doc.setFontSize(7); doc.setFont("helvetica", "normal");
+    doc.text("Ky dokument u gjenerua automatikisht.", W / 2, H - 6, { align: "center" });
+
+    doc.save("arka_" + new Date().toISOString().slice(0, 10) + ".pdf");
   };
 
   const openDialog = (type) => {
@@ -194,7 +244,7 @@ export default function Cashbox() {
               <ArrowDownCircle className="w-5 h-5 text-success" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Hyrjet</p>
+              <p className="text-sm text-muted-foreground">Hyrjet (Kredi)</p>
               <p className="text-xl font-bold text-success">€{cashIn.toLocaleString()}</p>
             </div>
           </div>
@@ -205,7 +255,7 @@ export default function Cashbox() {
               <ArrowUpCircle className="w-5 h-5 text-destructive" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Daljet</p>
+              <p className="text-sm text-muted-foreground">Daljet (Debi)</p>
               <p className="text-xl font-bold text-destructive">€{cashOut.toLocaleString()}</p>
             </div>
           </div>
@@ -232,9 +282,10 @@ export default function Cashbox() {
           <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)}
             className="px-3 py-1.5 text-xs border border-border rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-primary/30" />
         </div>
-        {[{ label: "Sot", action: () => { const t = new Date().toISOString().split('T')[0]; setFilterDateFrom(t); setFilterDateTo(t); }},
-          { label: "Ky Muaj", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), n.getMonth(), 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); }},
-          { label: "Ky Vit", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), 0, 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); }},
+        {[
+          { label: "Sot", action: () => { const t = new Date().toISOString().split('T')[0]; setFilterDateFrom(t); setFilterDateTo(t); } },
+          { label: "Ky Muaj", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), n.getMonth(), 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); } },
+          { label: "Ky Vit", action: () => { const n = new Date(); setFilterDateFrom(new Date(n.getFullYear(), 0, 1).toISOString().split('T')[0]); setFilterDateTo(n.toISOString().split('T')[0]); } },
         ].map(p => (
           <button key={p.label} onClick={p.action} className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-primary hover:text-white hover:border-primary transition-all">{p.label}</button>
         ))}
@@ -245,11 +296,11 @@ export default function Cashbox() {
       {hasFilters && (
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-success/5 border border-success/20 rounded-xl p-4">
-            <p className="text-xs text-muted-foreground">Hyrjet (filtruara)</p>
+            <p className="text-xs text-muted-foreground">Kredi / Hyrjet</p>
             <p className="text-lg font-bold text-success mt-0.5">€{filteredIn.toFixed(2)}</p>
           </div>
           <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-4">
-            <p className="text-xs text-muted-foreground">Daljet (filtruara)</p>
+            <p className="text-xs text-muted-foreground">Debi / Daljet</p>
             <p className="text-lg font-bold text-destructive mt-0.5">€{filteredOut.toFixed(2)}</p>
           </div>
           <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
@@ -270,7 +321,8 @@ export default function Cashbox() {
               <tr className="border-b border-border bg-muted/30">
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Data</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Tipi</th>
-                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Shuma</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Debi</th>
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Kredi</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Shënim</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Referenca</th>
               </tr>
@@ -278,7 +330,7 @@ export default function Cashbox() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center text-sm text-muted-foreground py-12">
+                  <td colSpan={6} className="text-center text-sm text-muted-foreground py-12">
                     Nuk ka transaksione
                   </td>
                 </tr>
@@ -289,18 +341,16 @@ export default function Cashbox() {
                     <td className="px-5 py-3.5">
                       <span className={cn(
                         "inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full",
-                        t.type === "cash_in"
-                          ? "bg-success/10 text-success"
-                          : "bg-destructive/10 text-destructive"
+                        t.type === "cash_in" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
                       )}>
                         {t.type === "cash_in" ? "Hyrje" : "Dalje"}
                       </span>
                     </td>
-                    <td className={cn(
-                      "px-5 py-3.5 text-sm font-semibold",
-                      t.type === "cash_in" ? "text-success" : "text-destructive"
-                    )}>
-                      {t.type === "cash_in" ? "+" : "-"}€{(t.amount || 0).toLocaleString()}
+                    <td className="px-5 py-3.5 text-sm font-semibold text-destructive">
+                      {t.type === "cash_out" ? `€${(t.amount || 0).toLocaleString()}` : "—"}
+                    </td>
+                    <td className="px-5 py-3.5 text-sm font-semibold text-success">
+                      {t.type === "cash_in" ? `€${(t.amount || 0).toLocaleString()}` : "—"}
                     </td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{t.note || "—"}</td>
                     <td className="px-5 py-3.5 text-xs text-muted-foreground capitalize">{t.reference_type || "manual"}</td>
@@ -323,25 +373,13 @@ export default function Cashbox() {
           <div className="space-y-4 py-2">
             <div>
               <Label>Shuma (€)</Label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="mt-1.5"
-              />
+              <Input type="number" min="0" step="0.01" placeholder="0.00"
+                value={amount} onChange={(e) => setAmount(e.target.value)} className="mt-1.5" />
             </div>
             <div>
               <Label>Shënim</Label>
-              <Textarea
-                placeholder="Shënim opsional..."
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="mt-1.5"
-                rows={3}
-              />
+              <Textarea placeholder="Shënim opsional..." value={note}
+                onChange={(e) => setNote(e.target.value)} className="mt-1.5" rows={3} />
             </div>
           </div>
           <DialogFooter>
