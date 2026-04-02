@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import UnitSelector from "./UnitSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,13 +23,6 @@ const emptyItem = () => ({
 export default function InvoiceLineItems({ items, onChange, onDiscountChange, discountInfo = { type: "none", value: 0, amount: 0 } }) {
   const [products, setProducts] = useState([]);
   const [units, setUnits] = useState([]);
-  const [showNewUnit, setShowNewUnit] = useState(null);
-  const [newUnitName, setNewUnitName] = useState("");
-  const [unitQuery, setUnitQuery] = useState({});
-  const [unitDropOpen, setUnitDropOpen] = useState({});
-
-  const UNIT_CATEGORY = { g: "P", kg: "P", mg: "P", t: "P", ml: "V", cl: "V", dl: "V", l: "V", mm: "G", cm: "G", m: "G", km: "G", m2: "S", m3: "S", ari: "S", hektar: "S", cope: "C", çift: "C", pako: "C", kuti: "C", sasi: "C", ore: "K", "ditë": "K", "javë": "K", muaj: "K", "shërbim": "Sh" };
-  const UNIT_BADGE_COLOR = { P: "bg-amber-100 text-amber-700", V: "bg-blue-100 text-blue-700", G: "bg-violet-100 text-violet-700", S: "bg-emerald-100 text-emerald-700", C: "bg-slate-100 text-slate-600", K: "bg-rose-100 text-rose-700", Sh: "bg-cyan-100 text-cyan-700" };
 
   useEffect(() => {
     Promise.all([
@@ -40,14 +34,7 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
     });
   }, []);
 
-  const addUnit = async (index) => {
-    if (!newUnitName.trim()) return;
-    const newUnit = await base44.entities.Unit.create({ name: newUnitName });
-    setUnits([...units, newUnit]);
-    update(index, "unit", newUnitName);
-    setShowNewUnit(null);
-    setNewUnitName("");
-  };
+
 
   const update = (index, field, value) => {
     const updated = items.map((item, i) => {
@@ -159,44 +146,12 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Njësia</label>
-                {showNewUnit === i ? (
-                  <div className="flex gap-1.5">
-                    <Input className="text-sm" placeholder="Emri i njësisë" value={newUnitName} onChange={(e) => setNewUnitName(e.target.value)} />
-                    <Button size="sm" variant="outline" onClick={() => addUnit(i)} className="px-2">✓</Button>
-                    <Button size="sm" variant="outline" onClick={() => { setShowNewUnit(null); setNewUnitName(""); }} className="px-2">✕</Button>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <Input
-                      className="text-sm"
-                      placeholder="Shkruaj njësinë..."
-                      value={unitQuery[i] !== undefined ? unitQuery[i] : item.unit}
-                      onChange={(e) => { setUnitQuery({ ...unitQuery, [i]: e.target.value }); setUnitDropOpen({ ...unitDropOpen, [i]: true }); }}
-                      onFocus={() => { setUnitQuery({ ...unitQuery, [i]: item.unit }); setUnitDropOpen({ ...unitDropOpen, [i]: true }); }}
-                      onBlur={() => setTimeout(() => setUnitDropOpen(prev => ({ ...prev, [i]: false })), 150)}
-                    />
-                    {unitDropOpen[i] && (() => {
-                      const q = (unitQuery[i] || "").toLowerCase();
-                      const filtered = units.filter(u => u.name.toLowerCase().includes(q));
-                      if (!filtered.length) return null;
-                      return (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                          {filtered.map(u => {
-                            const badge = UNIT_CATEGORY[u.name] || "C";
-                            const badgeColor = UNIT_BADGE_COLOR[badge] || "bg-slate-100 text-slate-600";
-                            return (
-                              <button key={u.id} onMouseDown={() => { update(i, "unit", u.name); setUnitQuery({ ...unitQuery, [i]: undefined }); setUnitDropOpen({ ...unitDropOpen, [i]: false }); }}
-                                className={cn("w-full text-left px-3 py-2 text-sm hover:bg-primary/5 flex items-center gap-2", item.unit === u.name && "bg-primary/10 font-semibold")}>
-                                <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0", badgeColor)}>{badge}</span>
-                                {u.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
+                <UnitSelector
+                  value={item.unit}
+                  onChange={(v) => update(i, "unit", v)}
+                  units={units}
+                  onUnitsChange={setUnits}
+                />
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">TVSH %</label>

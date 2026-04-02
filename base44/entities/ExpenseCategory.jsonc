@@ -6,13 +6,30 @@
       "type": "string",
       "description": "Emri i kategoris\u00eb"
     },
-    "description": {
+    "parent_category": {
       "type": "string",
-      "description": "P\u00ebrshkrimi i kategoris\u00eb"
+      "description": "Kategoria prind (grupi)",
+      "default": ""
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "fixed",
+        "variable",
+        "one-time"
+      ],
+      "description": "Lloji: fikse, variab\u00ebl, nj\u00ebher\u00ebsh",
+      "default": "variable"
     },
     "color": {
       "type": "string",
-      "description": "Ngjyra hex e kategoris\u00eb (p.sh. #FF5733)"
+      "description": "Ngjyra hex e kategoris\u00eb (p.sh. #FF5733)",
+      "default": "#6366f1"
+    },
+    "is_default": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb kategoria e paracaktuar",
+      "default": false
     },
     "is_active": {
       "type": "boolean",

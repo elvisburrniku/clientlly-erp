@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import CategorySelector from "../components/expenses/CategorySelector";
 import { Plus, Trash2, MoreHorizontal, AlertCircle, Download, FileText, SlidersHorizontal, X, Search, Calendar, Sheet, Layers, Paperclip, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -547,23 +548,15 @@ export default function Expenses() {
           <div className="space-y-4 py-2">
             <div>
               <Label className="text-xs">Kategoria *</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                <SelectTrigger className="mt-1.5 text-sm"><SelectValue placeholder="Zgjedh kategorinë" /></SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => setShowNewCategory(true)} className="w-full" disabled={showNewCategory}>+ Kategori e Re</Button>
-            </div>
-            {showNewCategory && (
-              <div className="flex gap-2">
-                <Input placeholder="Emri i kategorisë" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} className="text-sm" />
-                <Button size="sm" variant="outline" onClick={addCategory} className="px-2">✓</Button>
-                <Button size="sm" variant="outline" onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }} className="px-2">✕</Button>
+              <div className="mt-1.5">
+                <CategorySelector
+                  value={form.category}
+                  onChange={(v) => setForm({ ...form, category: v })}
+                  categories={categories}
+                  onCategoriesChange={setCategories}
+                />
               </div>
-            )}
+            </div>
             <div>
               <Label>Furnitori</Label>
               <Input placeholder="Emri i furnitorit" value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} className="mt-1.5 text-sm" />

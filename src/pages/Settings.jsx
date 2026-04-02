@@ -8,32 +8,129 @@ import { toast } from "sonner";
 import { Upload, Loader2, Plus, Trash2, BellRing } from "lucide-react";
 
 const DEFAULT_UNITS = [
-  { name: "cope", category: "sasi" },
-  { name: "çift", category: "sasi" },
-  { name: "pako", category: "sasi" },
-  { name: "kuti", category: "sasi" },
-  { name: "sasi", category: "sasi" },
-  { name: "g", category: "peshe" },
-  { name: "kg", category: "peshe" },
-  { name: "t", category: "peshe" },
-  { name: "mg", category: "peshe" },
-  { name: "ml", category: "volume" },
-  { name: "cl", category: "volume" },
-  { name: "dl", category: "volume" },
-  { name: "l", category: "volume" },
-  { name: "mm", category: "gjatesi" },
-  { name: "cm", category: "gjatesi" },
-  { name: "m", category: "gjatesi" },
-  { name: "km", category: "gjatesi" },
-  { name: "m2", category: "siperfaqe" },
-  { name: "m3", category: "siperfaqe" },
-  { name: "ari", category: "siperfaqe" },
-  { name: "hektar", category: "siperfaqe" },
-  { name: "ore", category: "kohe" },
-  { name: "ditë", category: "kohe" },
-  { name: "javë", category: "kohe" },
-  { name: "muaj", category: "kohe" },
-  { name: "shërbim", category: "sherbim" },
+  // Products
+  { name: "Piece", code: "pcs", category: "products", is_default: true },
+  { name: "Unit", code: "unit", category: "products", is_default: true },
+  { name: "Pack", code: "pack", category: "products", is_default: true },
+  { name: "Box", code: "box", category: "products", is_default: true },
+  { name: "Set", code: "set", category: "products", is_default: true },
+  { name: "Pair", code: "pair", category: "products", is_default: true },
+  // Weight
+  { name: "Kilogram", code: "kg", category: "weight", is_default: true },
+  { name: "Gram", code: "g", category: "weight", is_default: true },
+  { name: "Ton", code: "ton", category: "weight", is_default: true },
+  // Volume
+  { name: "Liter", code: "l", category: "volume", is_default: true },
+  { name: "Milliliter", code: "ml", category: "volume", is_default: true },
+  // Length / Area
+  { name: "Meter", code: "m", category: "length", is_default: true },
+  { name: "Centimeter", code: "cm", category: "length", is_default: true },
+  { name: "Square Meter", code: "m2", category: "length", is_default: true },
+  { name: "Cubic Meter", code: "m3", category: "length", is_default: true },
+  { name: "Kilometer", code: "km", category: "logistics", is_default: true },
+  // Time / Services
+  { name: "Hour", code: "hr", category: "time", is_default: true },
+  { name: "Day", code: "day", category: "time", is_default: true },
+  { name: "Week", code: "week", category: "time", is_default: true },
+  { name: "Month", code: "month", category: "time", is_default: true },
+  { name: "Year", code: "year", category: "time", is_default: true },
+  { name: "Project", code: "project", category: "time", is_default: true },
+  { name: "Service", code: "service", category: "time", is_default: true },
+  // IT / SaaS
+  { name: "User", code: "user", category: "it_saas", is_default: true },
+  { name: "License", code: "license", category: "it_saas", is_default: true },
+  { name: "Subscription", code: "sub", category: "it_saas", is_default: true },
+  { name: "Module", code: "module", category: "it_saas", is_default: true },
+  { name: "API Request", code: "api_req", category: "it_saas", is_default: true },
+  { name: "Gigabyte", code: "GB", category: "it_saas", is_default: true },
+  { name: "Megabyte", code: "MB", category: "it_saas", is_default: true },
+  // Logistics
+  { name: "Shipment", code: "ship", category: "logistics", is_default: true },
+  { name: "Pallet", code: "pallet", category: "logistics", is_default: true },
+  { name: "Container", code: "cont", category: "logistics", is_default: true },
+  // Business
+  { name: "Contract", code: "contract", category: "business", is_default: true },
+  { name: "Transaction", code: "txn", category: "business", is_default: true },
+  { name: "Fee", code: "fee", category: "business", is_default: true },
+  { name: "Percentage", code: "%", category: "business", is_default: true },
+];
+
+const DEFAULT_EXPENSE_CATEGORIES = [
+  // Operating
+  { name: "Rent", parent_category: "Operating Expenses", type: "fixed" },
+  { name: "Electricity", parent_category: "Operating Expenses", type: "fixed" },
+  { name: "Water", parent_category: "Operating Expenses", type: "fixed" },
+  { name: "Internet & Phone", parent_category: "Operating Expenses", type: "fixed" },
+  { name: "Office Maintenance", parent_category: "Operating Expenses", type: "variable" },
+  // Payroll
+  { name: "Salaries", parent_category: "Payroll & HR", type: "fixed" },
+  { name: "Bonuses", parent_category: "Payroll & HR", type: "variable" },
+  { name: "Employee Benefits", parent_category: "Payroll & HR", type: "fixed" },
+  { name: "Training", parent_category: "Payroll & HR", type: "variable" },
+  { name: "Recruitment", parent_category: "Payroll & HR", type: "one-time" },
+  // Marketing
+  { name: "Online Ads", parent_category: "Marketing & Advertising", type: "variable" },
+  { name: "Branding", parent_category: "Marketing & Advertising", type: "one-time" },
+  { name: "Graphic Design", parent_category: "Marketing & Advertising", type: "variable" },
+  { name: "Events & Promotions", parent_category: "Marketing & Advertising", type: "one-time" },
+  // Transport
+  { name: "Fuel", parent_category: "Transport & Logistics", type: "variable" },
+  { name: "Transportation", parent_category: "Transport & Logistics", type: "variable" },
+  { name: "Shipping", parent_category: "Transport & Logistics", type: "variable" },
+  { name: "Vehicle Maintenance", parent_category: "Transport & Logistics", type: "variable" },
+  // Equipment
+  { name: "Equipment Purchase", parent_category: "Equipment & Assets", type: "one-time" },
+  { name: "Office Furniture", parent_category: "Equipment & Assets", type: "one-time" },
+  { name: "Computers & Hardware", parent_category: "Equipment & Assets", type: "one-time" },
+  { name: "Tools", parent_category: "Equipment & Assets", type: "one-time" },
+  // Software
+  { name: "SaaS Subscriptions", parent_category: "Software & IT", type: "fixed" },
+  { name: "Hosting", parent_category: "Software & IT", type: "fixed" },
+  { name: "Domain", parent_category: "Software & IT", type: "fixed" },
+  { name: "Software Licenses", parent_category: "Software & IT", type: "fixed" },
+  { name: "Development Costs", parent_category: "Software & IT", type: "variable" },
+  // Financial
+  { name: "Bank Fees", parent_category: "Financial Expenses", type: "variable" },
+  { name: "Interest", parent_category: "Financial Expenses", type: "fixed" },
+  { name: "Loan Payments", parent_category: "Financial Expenses", type: "fixed" },
+  { name: "Transaction Fees", parent_category: "Financial Expenses", type: "variable" },
+  // Legal
+  { name: "Legal Services", parent_category: "Legal & Professional", type: "variable" },
+  { name: "Accounting", parent_category: "Legal & Professional", type: "fixed" },
+  { name: "Consulting", parent_category: "Legal & Professional", type: "variable" },
+  { name: "Audit", parent_category: "Legal & Professional", type: "one-time" },
+  // Supplies
+  { name: "Office Supplies", parent_category: "Supplies", type: "variable" },
+  { name: "Consumables", parent_category: "Supplies", type: "variable" },
+  { name: "Cleaning Supplies", parent_category: "Supplies", type: "variable" },
+  // COGS
+  { name: "Raw Materials", parent_category: "COGS", type: "variable" },
+  { name: "Production Costs", parent_category: "COGS", type: "variable" },
+  { name: "Packaging", parent_category: "COGS", type: "variable" },
+  // Insurance
+  { name: "Business Insurance", parent_category: "Insurance & Health", type: "fixed" },
+  { name: "Health Insurance", parent_category: "Insurance & Health", type: "fixed" },
+  { name: "Vehicle Insurance", parent_category: "Insurance & Health", type: "fixed" },
+  // Education
+  { name: "Courses", parent_category: "Education & Development", type: "variable" },
+  { name: "Seminars", parent_category: "Education & Development", type: "one-time" },
+  { name: "Books", parent_category: "Education & Development", type: "variable" },
+  // Travel
+  { name: "Flights", parent_category: "Travel & Entertainment", type: "variable" },
+  { name: "Hotels", parent_category: "Travel & Entertainment", type: "variable" },
+  { name: "Meals", parent_category: "Travel & Entertainment", type: "variable" },
+  { name: "Client Meetings", parent_category: "Travel & Entertainment", type: "variable" },
+  // Taxes
+  { name: "VAT", parent_category: "Taxes & Government", type: "variable" },
+  { name: "Corporate Tax", parent_category: "Taxes & Government", type: "fixed" },
+  { name: "Local Taxes", parent_category: "Taxes & Government", type: "fixed" },
+  // Maintenance
+  { name: "Repairs", parent_category: "Maintenance & Repairs", type: "variable" },
+  { name: "Equipment Servicing", parent_category: "Maintenance & Repairs", type: "variable" },
+  { name: "Technical Maintenance", parent_category: "Maintenance & Repairs", type: "variable" },
+  // Depreciation
+  { name: "Asset Depreciation", parent_category: "Depreciation", type: "fixed" },
+  { name: "Vehicle Depreciation", parent_category: "Depreciation", type: "fixed" },
 ];
 
 export default function Settings() {
@@ -48,6 +145,8 @@ export default function Settings() {
   const [categories, setCategories] = useState([]);
   const [showNewUnit, setShowNewUnit] = useState(false);
   const [newUnitName, setNewUnitName] = useState("");
+  const [newUnitCode, setNewUnitCode] = useState("");
+  const [newUnitCategory, setNewUnitCategory] = useState("custom");
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [cashboxSettings, setCashboxSettings] = useState(null);
@@ -76,19 +175,22 @@ export default function Settings() {
     loadData();
   }, []);
 
+  const CATEGORY_LABELS = { products: "Produkte", weight: "Peshë", volume: "Vëllim", length: "Gjatësi", time: "Kohë", it_saas: "IT/SaaS", logistics: "Logjistikë", business: "Biznes", custom: "Tjera" };
+  const CATEGORY_COLORS = { products: "bg-slate-100 text-slate-700", weight: "bg-amber-100 text-amber-700", volume: "bg-blue-100 text-blue-700", length: "bg-emerald-100 text-emerald-700", time: "bg-rose-100 text-rose-700", it_saas: "bg-violet-100 text-violet-700", logistics: "bg-orange-100 text-orange-700", business: "bg-cyan-100 text-cyan-700", custom: "bg-pink-100 text-pink-700" };
+
   const addUnit = async () => {
-    if (!newUnitName.trim()) return;
-    const newUnit = await base44.entities.Unit.create({ name: newUnitName });
+    if (!newUnitName.trim() || !newUnitCode.trim()) return;
+    const newUnit = await base44.entities.Unit.create({ name: newUnitName, code: newUnitCode, category: newUnitCategory });
     setUnits([...units, newUnit]);
-    setNewUnitName(""); setShowNewUnit(false);
+    setNewUnitName(""); setNewUnitCode(""); setNewUnitCategory("custom"); setShowNewUnit(false);
     toast.success("Njësia u shtua");
   };
 
   const seedDefaultUnits = async () => {
-    const existing = units.map(u => u.name.toLowerCase());
-    const toAdd = DEFAULT_UNITS.filter(u => !existing.includes(u.name.toLowerCase()));
+    const existing = new Set(units.map(u => u.code?.toLowerCase()));
+    const toAdd = DEFAULT_UNITS.filter(u => !existing.has(u.code?.toLowerCase()));
     if (toAdd.length === 0) { toast.info("Të gjitha njësitë standarde ekzistojnë tashmë"); return; }
-    const created = await Promise.all(toAdd.map(u => base44.entities.Unit.create({ name: u.name })));
+    const created = await Promise.all(toAdd.map(u => base44.entities.Unit.create(u)));
     setUnits([...units, ...created]);
     toast.success(`U shtuan ${created.length} njësi standarde`);
   };
@@ -106,6 +208,15 @@ export default function Settings() {
     setCategories([...categories, newCat]);
     setNewCategoryName(""); setShowNewCategory(false);
     toast.success("Kategoria u shtua");
+  };
+
+  const seedDefaultCategories = async () => {
+    const existing = new Set(categories.map(c => c.name.toLowerCase()));
+    const toAdd = DEFAULT_EXPENSE_CATEGORIES.filter(c => !existing.has(c.name.toLowerCase()));
+    if (toAdd.length === 0) { toast.info("Të gjitha kategoritë standarde ekzistojnë tashmë"); return; }
+    const created = await Promise.all(toAdd.map(c => base44.entities.ExpenseCategory.create({ ...c, is_default: true })));
+    setCategories([...categories, ...created]);
+    toast.success(`U shtuan ${created.length} kategori standarde`);
   };
 
   const deleteCategory = async (id) => {
@@ -292,8 +403,14 @@ export default function Settings() {
         <div className="space-y-3">
           {units.map(u => (
             <div key={u.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border">
-              <span className="text-sm font-medium">{u.name}</span>
-              <button onClick={() => deleteUnit(u.id)} className="text-destructive/60 hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+              <div className="flex items-center gap-3 min-w-0">
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${CATEGORY_COLORS[u.category] || CATEGORY_COLORS.custom}`}>
+                  {u.code || u.name}
+                </span>
+                <span className="text-sm font-medium truncate">{u.name}</span>
+                {u.category && <span className="text-xs text-muted-foreground hidden sm:inline">{CATEGORY_LABELS[u.category] || u.category}</span>}
+              </div>
+              <button onClick={() => deleteUnit(u.id)} className="text-destructive/60 hover:text-destructive ml-2 shrink-0"><Trash2 className="w-4 h-4" /></button>
             </div>
           ))}
           {!showNewUnit ? (
@@ -302,10 +419,18 @@ export default function Settings() {
               <Button onClick={seedDefaultUnits} variant="outline" className="flex-1 gap-2 text-primary border-primary/30 hover:bg-primary/5">Shto Njësi Standarde</Button>
             </div>
           ) : (
-            <div className="flex gap-2">
-              <Input placeholder="P.sh. cope, kg, m, l..." value={newUnitName} onChange={(e) => setNewUnitName(e.target.value)} className="text-sm" />
-              <Button size="sm" variant="outline" onClick={addUnit} className="px-2">✓</Button>
-              <Button size="sm" variant="outline" onClick={() => { setShowNewUnit(false); setNewUnitName(""); }} className="px-2">✕</Button>
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Emri (Kilogram)" value={newUnitName} onChange={(e) => setNewUnitName(e.target.value)} className="text-sm" />
+                <Input placeholder="Kodi (kg)" value={newUnitCode} onChange={(e) => setNewUnitCode(e.target.value)} className="text-sm" />
+              </div>
+              <div className="flex gap-2">
+                <select value={newUnitCategory} onChange={(e) => setNewUnitCategory(e.target.value)} className="flex-1 h-9 px-2 text-sm border border-input rounded-md bg-transparent">
+                  {Object.entries(CATEGORY_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+                <Button size="sm" variant="outline" onClick={addUnit} className="px-3">✓ Shto</Button>
+                <Button size="sm" variant="outline" onClick={() => { setShowNewUnit(false); setNewUnitName(""); setNewUnitCode(""); }} className="px-2">✕</Button>
+              </div>
             </div>
           )}
         </div>
@@ -322,10 +447,13 @@ export default function Settings() {
             </div>
           ))}
           {!showNewCategory ? (
-            <Button onClick={() => setShowNewCategory(true)} variant="outline" className="w-full gap-2"><Plus className="w-4 h-4" /> Kategori e Re</Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowNewCategory(true)} variant="outline" className="flex-1 gap-2"><Plus className="w-4 h-4" /> Kategori e Re</Button>
+              <Button onClick={seedDefaultCategories} variant="outline" className="flex-1 gap-2 text-primary border-primary/30 hover:bg-primary/5">Shto Kategori Standarde</Button>
+            </div>
           ) : (
             <div className="flex gap-2">
-              <Input placeholder="P.sh. Qira, Paga, Transport..." value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} className="text-sm" />
+              <Input placeholder="Emri i kategorisë" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} className="text-sm" />
               <Button size="sm" variant="outline" onClick={addCategory} className="px-2">✓</Button>
               <Button size="sm" variant="outline" onClick={() => { setShowNewCategory(false); setNewCategoryName(""); }} className="px-2">✕</Button>
             </div>

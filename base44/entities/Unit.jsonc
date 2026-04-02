@@ -4,23 +4,40 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Emri i nj\u00ebsis\u00eb (cope, kg, m, m2, lit\u00ebr, or\u00eb, etj)"
+      "description": "Emri i plot\u00eb i nj\u00ebsis\u00eb (p.sh. Kilogram)"
     },
-    "symbol": {
+    "code": {
       "type": "string",
-      "description": "Simboli i nj\u00ebsis\u00eb (pc, kg, m, l, h, etj)"
+      "description": "Kodi i shkurt\u00ebr (p.sh. kg, m2, hr)"
     },
-    "description": {
+    "category": {
       "type": "string",
-      "description": "P\u00ebrshkrimi"
+      "enum": [
+        "products",
+        "weight",
+        "volume",
+        "length",
+        "time",
+        "it_saas",
+        "logistics",
+        "business",
+        "custom"
+      ],
+      "description": "Kategoria e nj\u00ebsis\u00eb",
+      "default": "custom"
     },
     "is_default": {
       "type": "boolean",
       "description": "A \u00ebsht\u00eb nj\u00ebsia e paracaktuar",
       "default": false
+    },
+    "description": {
+      "type": "string",
+      "description": "P\u00ebrshkrimi opsional"
     }
   },
   "required": [
-    "name"
+    "name",
+    "code"
   ]
 }
