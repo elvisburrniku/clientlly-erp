@@ -4,19 +4,7 @@
   "properties": {
     "category": {
       "type": "string",
-      "enum": [
-        "qira",
-        "paga",
-        "furnizime",
-        "transport",
-        "komunikim",
-        "energji",
-        "sigurimi",
-        "mir\u00ebmbajtje",
-        "reklamim",
-        "tjeter"
-      ],
-      "description": "Kategoria e shpenzimit"
+      "description": "Kategoria e shpenzimit (ID e kategoris\u00eb)"
     },
     "description": {
       "type": "string",
@@ -39,6 +27,23 @@
         "card"
       ],
       "description": "Metoda e pages\u00ebs"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Emri i furnitorit"
+    },
+    "is_paid": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb paguar",
+      "default": true
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "URL e fatur\u00ebs/dokumentit t\u00eb bashk\u00ebngjitur"
+    },
+    "receipt_pdf_url": {
+      "type": "string",
+      "description": "URL e fatur\u00ebs s\u00eb gjeneruar automatikisht"
     }
   },
   "required": [
