@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, ToggleLeft, ToggleRight, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Info, Trash2, DollarSign, X } from "lucide-react";
+import { Plus, FileText, Send, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Trash2, DollarSign, X, SlidersHorizontal, Calendar, User, Hash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Sheet as SheetComponent, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { Sheet as SheetComponent, SheetContent, SheetClose } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +39,6 @@ const emptyForm = () => ({
 export default function Invoices() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 50;
   const navigate = useNavigate();
@@ -50,7 +49,6 @@ export default function Invoices() {
   const [submitting, setSubmitting] = useState(false);
   const [mergePDFOpen, setMergePDFOpen] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null);
-  const [reminderDialog, setReminderDialog] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [clients, setClients] = useState([]);
   const [filterSearchType, setFilterSearchType] = useState("client");
@@ -73,14 +71,14 @@ export default function Invoices() {
   const fillClientData = (clientId) => {
     const client = clients.find(c => c.id === clientId);
     if (client) {
-      setForm({
-        ...form,
+      setForm(prev => ({
+        ...prev,
         client_name: client.name,
         client_email: client.email,
         client_phone: client.phone || "",
         client_nipt: client.nipt || "",
         client_address: client.address || "",
-      });
+      }));
     }
   };
 
@@ -128,10 +126,8 @@ export default function Invoices() {
   const handleCreate = async () => {
     if (!form.client_name || form.items.length === 0) return;
     setSubmitting(true);
-
     const invoiceNumber = await generateInvoiceNumber();
     const { subtotal, vat_amount, amount } = calcTotals(form.items);
-
     const newInvoice = {
       invoice_type: form.invoice_type || "standard",
       invoice_number: invoiceNumber,
@@ -141,9 +137,7 @@ export default function Invoices() {
       client_nipt: form.client_nipt || undefined,
       client_address: form.client_address || undefined,
       items: form.items,
-      subtotal,
-      vat_amount,
-      amount,
+      subtotal, vat_amount, amount,
       payment_method: form.payment_method,
       payment_notes: form.payment_notes || undefined,
       internal_notes: form.internal_notes || undefined,
@@ -155,19 +149,14 @@ export default function Invoices() {
       is_open: true,
       issued_by: currentUser.email,
     };
-
     await base44.entities.Invoice.create(newInvoice);
-
     if (form.payment_method === "cash") {
       const users = await base44.entities.User.filter({ email: currentUser.email });
       if (users.length > 0) {
         const u = users[0];
-        await base44.entities.User.update(u.id, {
-          cash_on_hand: (u.cash_on_hand || 0) + amount,
-        });
+        await base44.entities.User.update(u.id, { cash_on_hand: (u.cash_on_hand || 0) + amount });
       }
     }
-
     setDialogOpen(false);
     setForm(emptyForm());
     setSubmitting(false);
@@ -178,18 +167,10 @@ export default function Invoices() {
   const exportExcel = () => {
     const headers = ["Nr. Fatures", "Klienti", "Email", "Telefon", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Afati", "Data"];
     const rows = filtered.map(inv => [
-      inv.invoice_number,
-      inv.client_name,
-      inv.client_email || "",
-      inv.client_phone || "",
-      (inv.subtotal || 0).toFixed(2),
-      (inv.vat_amount || 0).toFixed(2),
-      (inv.amount || 0).toFixed(2),
-      inv.status || "",
-      inv.is_open !== false ? "Hapur" : "Mbyllur",
-      inv.payment_method || "",
-      inv.due_date || "",
-      inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
+      inv.invoice_number, inv.client_name, inv.client_email || "", inv.client_phone || "",
+      (inv.subtotal || 0).toFixed(2), (inv.vat_amount || 0).toFixed(2), (inv.amount || 0).toFixed(2),
+      inv.status || "", inv.is_open !== false ? "Hapur" : "Mbyllur", inv.payment_method || "",
+      inv.due_date || "", inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
     ]);
     const tableRows = rows.map(r => `<tr>${r.map(v => `<td>${v}</td>`).join("")}</tr>`).join("");
     const html = `<html><head><meta charset="UTF-8"></head><body><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${tableRows}</tbody></table></body></html>`;
@@ -226,14 +207,9 @@ export default function Invoices() {
       if (ri % 2 === 0) { doc.setFillColor(249,250,251); doc.rect(margin, y - 4, W - margin*2, 8, "F"); }
       doc.setTextColor(30,30,30);
       const row = [
-        inv.invoice_number || "",
-        inv.client_name || "",
-        `€${(inv.subtotal||0).toFixed(2)}`,
-        `€${(inv.vat_amount||0).toFixed(2)}`,
-        `€${(inv.amount||0).toFixed(2)}`,
-        inv.status || "",
-        inv.is_open !== false ? "Hapur" : "Mbyllur",
-        inv.payment_method || "",
+        inv.invoice_number || "", inv.client_name || "",
+        `€${(inv.subtotal||0).toFixed(2)}`, `€${(inv.vat_amount||0).toFixed(2)}`, `€${(inv.amount||0).toFixed(2)}`,
+        inv.status || "", inv.is_open !== false ? "Hapur" : "Mbyllur", inv.payment_method || "",
         inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
       ];
       x = margin;
@@ -249,20 +225,10 @@ export default function Invoices() {
   const handleDuplicate = async (inv) => {
     const invoiceNumber = `INV-${Date.now().toString(36).toUpperCase()}`;
     const copy = {
-      invoice_number: invoiceNumber,
-      client_name: inv.client_name,
-      client_email: inv.client_email,
-      client_phone: inv.client_phone,
-      items: inv.items,
-      subtotal: inv.subtotal,
-      vat_amount: inv.vat_amount,
-      amount: inv.amount,
-      payment_method: inv.payment_method,
-      due_date: inv.due_date,
-      description: inv.description,
-      status: "draft",
-      is_open: true,
-      issued_by: currentUser?.email,
+      invoice_number: invoiceNumber, client_name: inv.client_name, client_email: inv.client_email,
+      client_phone: inv.client_phone, items: inv.items, subtotal: inv.subtotal, vat_amount: inv.vat_amount,
+      amount: inv.amount, payment_method: inv.payment_method, due_date: inv.due_date,
+      description: inv.description, status: "draft", is_open: true, issued_by: currentUser?.email,
     };
     await base44.entities.Invoice.create(copy);
     toast.success("Fatura u dyfishua");
@@ -290,38 +256,22 @@ export default function Invoices() {
     const { subtotal, vat_amount, amount } = calcTotals(form.items);
     await base44.entities.Invoice.update(editInvoice.id, {
       invoice_type: form.invoice_type || "standard",
-      client_name: form.client_name,
-      client_email: form.client_email,
-      client_phone: form.client_phone,
-      items: form.items,
-      subtotal, vat_amount, amount,
-      payment_method: form.payment_method,
-      due_date: form.due_date || undefined,
-      description: form.description,
+      client_name: form.client_name, client_email: form.client_email, client_phone: form.client_phone,
+      client_nipt: form.client_nipt, client_address: form.client_address,
+      items: form.items, subtotal, vat_amount, amount,
+      payment_method: form.payment_method, payment_notes: form.payment_notes,
+      due_date: form.due_date || undefined, description: form.description,
       is_recurring: form.is_recurring || false,
       recurring_interval: form.is_recurring ? form.recurring_interval : undefined,
     });
+    setEditInvoice(null);
+    setForm(emptyForm());
+    setSubmitting(false);
     toast.success("Fatura u përditësua");
     loadData();
   };
 
   const formTotals = calcTotals(form.items);
-
-  const statusBadge = (status) => {
-    const styles = {
-      draft: "bg-slate-100 text-slate-600",
-      sent: "bg-blue-100 text-blue-700",
-      paid: "bg-emerald-100 text-emerald-700",
-      overdue: "bg-red-100 text-red-700",
-      cancelled: "bg-muted text-muted-foreground",
-    };
-    const labels = { draft: "Draft", sent: "Dërguar", paid: "Paguar", overdue: "Vonuar", cancelled: "Anuluar" };
-    return (
-      <span className={cn("text-xs font-semibold px-2.5 py-1 rounded-full", styles[status])}>
-        {labels[status] || status}
-      </span>
-    );
-  };
 
   if (loading) {
     return (
@@ -331,23 +281,16 @@ export default function Invoices() {
     );
   }
 
-  const openEdit = async (inv) => {
+  const openEdit = (inv) => {
     setEditInvoice(inv);
     setForm({
       invoice_type: inv.invoice_type || "standard",
-      client_name: inv.client_name,
-      client_email: inv.client_email,
-      client_phone: inv.client_phone,
-      client_nipt: inv.client_nipt,
-      client_address: inv.client_address,
-      payment_method: inv.payment_method,
-      payment_notes: inv.payment_notes || "",
-      internal_notes: inv.internal_notes || "",
-      due_date: inv.due_date || "",
-      description: inv.description || "",
-      is_recurring: inv.is_recurring || false,
-      recurring_interval: inv.recurring_interval || "monthly",
-      items: inv.items || [],
+      client_name: inv.client_name, client_email: inv.client_email, client_phone: inv.client_phone,
+      client_nipt: inv.client_nipt, client_address: inv.client_address,
+      payment_method: inv.payment_method, payment_notes: inv.payment_notes || "",
+      internal_notes: inv.internal_notes || "", due_date: inv.due_date || "",
+      description: inv.description || "", is_recurring: inv.is_recurring || false,
+      recurring_interval: inv.recurring_interval || "monthly", items: inv.items || [],
     });
   };
 
@@ -365,12 +308,10 @@ export default function Invoices() {
     const newPayment = { amount: paymentForm.amount, payment_method: paymentForm.method, paid_date: paymentForm.date, notes: paymentForm.notes };
     const totalPaid = payments.reduce((s, p) => s + p.amount, 0) + paymentForm.amount;
     const remaining = paymentDialog.amount - totalPaid;
-    const newStatus = remaining <= 0 ? "paid" : "partially_paid";
-    const newOpen = remaining > 0;
     await base44.entities.Invoice.update(paymentDialog.id, {
       payment_records: [...payments, newPayment],
-      status: newStatus,
-      is_open: newOpen,
+      status: remaining <= 0 ? "paid" : "partially_paid",
+      is_open: remaining > 0,
     });
     setPaymentDialog(null);
     setPaymentForm({ amount: 0, method: "cash", date: new Date().toISOString().split('T')[0], notes: "" });
@@ -384,10 +325,7 @@ export default function Invoices() {
     setSubmitting(true);
     const invoiceNumber = await generateInvoiceNumber();
     const newInvoice = { ...inv, invoice_type: "standard", invoice_number: invoiceNumber, converted_from_proforma: true, parent_invoice_id: inv.id };
-    delete newInvoice.id;
-    delete newInvoice.created_date;
-    delete newInvoice.updated_date;
-    delete newInvoice.created_by;
+    delete newInvoice.id; delete newInvoice.created_date; delete newInvoice.updated_date; delete newInvoice.created_by;
     await base44.entities.Invoice.create(newInvoice);
     setSubmitting(false);
     toast.success("Proforma u konvertua në faturë standarde");
@@ -396,7 +334,7 @@ export default function Invoices() {
 
   const handleStatusChange = async (inv, newStatus) => {
     if (inv.invoice_type === "proforma" && newStatus === "paid") {
-      toast.error("Proforma nuk mund të shënohet si paguar. Krijoni faturë standarde pasi të konfirmohet.");
+      toast.error("Proforma nuk mund të shënohet si paguar.");
       return;
     }
     await base44.entities.Invoice.update(inv.id, { status: newStatus });
@@ -405,40 +343,27 @@ export default function Invoices() {
   };
 
   const hasActiveFilters = filterClient || filterMonth || filterYear || filterDateFrom || filterDateTo;
+  const activeFilterCount = [filterClient, filterDateFrom, filterDateTo].filter(Boolean).length;
 
   const clearFilters = () => {
-    setFilterClient("");
-    setFilterMonth("");
-    setFilterYear("");
-    setFilterDateFrom("");
-    setFilterDateTo("");
-    setPage(1);
+    setFilterClient(""); setFilterMonth(""); setFilterYear("");
+    setFilterDateFrom(""); setFilterDateTo(""); setPage(1);
   };
 
   const filtered = invoices.filter(inv => {
     const d = new Date(inv.created_date);
     if (filterClient) {
       const q = filterClient.toLowerCase();
-      if (filterSearchType === "client") {
-        if (!inv.client_name?.toLowerCase().includes(q)) return false;
-      } else {
-        if (!inv.invoice_number?.toLowerCase().includes(q)) return false;
-      }
+      if (filterSearchType === "client") { if (!inv.client_name?.toLowerCase().includes(q)) return false; }
+      else { if (!inv.invoice_number?.toLowerCase().includes(q)) return false; }
     }
-    if (filterMonth) {
-      if ((d.getMonth() + 1) !== parseInt(filterMonth)) return false;
-    }
-    if (filterYear) {
-      if (d.getFullYear() !== parseInt(filterYear)) return false;
-    }
-    if (filterDateFrom) {
-      if (d < new Date(filterDateFrom)) return false;
-    }
-    if (filterDateTo) {
-      if (d > new Date(filterDateTo + "T23:59:59")) return false;
-    }
+    if (filterMonth && (d.getMonth() + 1) !== parseInt(filterMonth)) return false;
+    if (filterYear && d.getFullYear() !== parseInt(filterYear)) return false;
+    if (filterDateFrom && d < new Date(filterDateFrom)) return false;
+    if (filterDateTo && d > new Date(filterDateTo + "T23:59:59")) return false;
     return true;
   });
+
   const openCount = invoices.filter(i => i.is_open !== false).length;
   const totalRevenue = invoices.reduce((s, i) => s + (i.amount || 0), 0);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
@@ -487,125 +412,232 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Filter Button */}
-      <Button variant="outline" size="sm" onClick={() => setSearchOpen(true)} className="gap-2 w-fit">
-        <Search className="w-4 h-4" /> Filtrat & Kërkimi
-        {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-primary"></span>}
-      </Button>
+      {/* Filter Trigger Button */}
+      <button
+        onClick={() => setSearchOpen(true)}
+        className={cn(
+          "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
+          hasActiveFilters
+            ? "border-primary bg-primary/5 text-primary"
+            : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
+        )}
+      >
+        <SlidersHorizontal className="w-4 h-4" />
+        Filtrat & Kërkimi
+        {hasActiveFilters && (
+          <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            {activeFilterCount}
+          </span>
+        )}
+      </button>
 
-      {/* Filters Side Panel */}
+      {/* Filters Side Drawer */}
       <SheetComponent open={searchOpen} onOpenChange={setSearchOpen}>
-        <SheetContent side="right" className="w-full sm:w-[420px] p-0 flex flex-col">
-          <SheetHeader className="px-6 py-4 border-b border-border">
-            <div className="flex items-center justify-between">
-              <SheetTitle>Kërkimi & Filtrat</SheetTitle>
-              <SheetClose className="h-6 w-6 rounded-lg hover:bg-muted flex items-center justify-center">
-                <X className="h-4 w-4" />
-              </SheetClose>
+        <SheetContent side="right" className="w-full sm:w-[400px] p-0 flex flex-col">
+          {/* Header */}
+          <div className="px-6 py-5 border-b border-border bg-white flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <SlidersHorizontal className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="font-bold text-[15px]">Filtrat & Kërkimi</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {hasActiveFilters ? `${activeFilterCount} filtër aktiv` : "Filtro dhe kërko faturat"}
+                </p>
+              </div>
             </div>
-          </SheetHeader>
+            <SheetClose className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition">
+              <X className="h-4 w-4" />
+            </SheetClose>
+          </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
-            {/* Search Type */}
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-3">Kërkimi</label>
-              <div className="flex gap-2">
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto bg-background">
+
+            {/* Search Section */}
+            <div className="px-6 pt-6 pb-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Search className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Kërkim</span>
+              </div>
+
+              {/* Search Type Toggle */}
+              <div className="bg-muted rounded-xl p-1 flex gap-1 mb-3">
                 <button
                   onClick={() => { setFilterSearchType("client"); setFilterClient(""); setPage(1); }}
-                  className={cn("flex-1 py-2 px-3 text-sm font-medium rounded-lg border-2 transition", filterSearchType === "client" ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/40")}
-                >Klienti</button>
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded-lg transition-all",
+                    filterSearchType === "client" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <User className="w-3 h-3" /> Klienti
+                </button>
                 <button
                   onClick={() => { setFilterSearchType("invoice"); setFilterClient(""); setPage(1); }}
-                  className={cn("flex-1 py-2 px-3 text-sm font-medium rounded-lg border-2 transition", filterSearchType === "invoice" ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/40")}
-                >Nr. Faturës</button>
+                  className={cn(
+                    "flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-semibold rounded-lg transition-all",
+                    filterSearchType === "invoice" ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Hash className="w-3 h-3" /> Nr. Faturës
+                </button>
+              </div>
+
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
+                  value={filterClient}
+                  onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
+                  className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+                />
+                {filterClient && (
+                  <button
+                    onClick={() => { setFilterClient(""); setPage(1); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Search Input */}
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-2">Teksti</label>
-              <input
-                type="text"
-                placeholder={filterSearchType === "client" ? "Emri i klientit..." : "Nr. faturës..."}
-                value={filterClient}
-                onChange={(e) => { setFilterClient(e.target.value); setPage(1); }}
-                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-transparent"
-              />
-            </div>
+            <div className="h-px bg-border mx-6" />
 
-            {/* Quick Periods */}
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-3">Periudhat e Shpejta</label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  onClick={() => {
-                    const today = new Date().toISOString().split('T')[0];
-                    setFilterDateFrom(today);
-                    setFilterDateTo(today);
-                    setPage(1);
-                  }}
-                  className="py-2 px-2 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-muted transition"
-                >Sot</button>
-                <button
-                  onClick={() => {
-                    const now = new Date();
-                    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-                    const end = now.toISOString().split('T')[0];
-                    setFilterDateFrom(start);
-                    setFilterDateTo(end);
-                    setPage(1);
-                  }}
-                  className="py-2 px-2 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-muted transition"
-                >Muaj</button>
-                <button
-                  onClick={() => {
-                    const now = new Date();
-                    const start = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
-                    const end = now.toISOString().split('T')[0];
-                    setFilterDateFrom(start);
-                    setFilterDateTo(end);
-                    setPage(1);
-                  }}
-                  className="py-2 px-2 text-xs font-semibold rounded-lg border border-border bg-white hover:bg-muted transition"
-                >Vit</button>
+            {/* Period Section */}
+            <div className="px-6 pt-5 pb-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Periudha</span>
               </div>
-            </div>
 
-            {/* Date Range */}
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground block mb-3">Periudha e Plotë</label>
+              {/* Quick Presets */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {[
+                  {
+                    label: "Sot",
+                    action: () => {
+                      const t = new Date().toISOString().split('T')[0];
+                      setFilterDateFrom(t); setFilterDateTo(t); setPage(1);
+                    }
+                  },
+                  {
+                    label: "Ky Muaj",
+                    action: () => {
+                      const now = new Date();
+                      setFilterDateFrom(new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0]);
+                      setFilterDateTo(now.toISOString().split('T')[0]);
+                      setPage(1);
+                    }
+                  },
+                  {
+                    label: "Ky Vit",
+                    action: () => {
+                      const now = new Date();
+                      setFilterDateFrom(new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0]);
+                      setFilterDateTo(now.toISOString().split('T')[0]);
+                      setPage(1);
+                    }
+                  },
+                ].map(p => (
+                  <button
+                    key={p.label}
+                    onClick={p.action}
+                    className="py-2 text-xs font-semibold rounded-xl border border-border bg-white hover:bg-primary hover:text-white hover:border-primary transition-all"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Date Range Inputs */}
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1.5 font-medium">Nga Data</label>
-                  <input
-                    type="date"
-                    value={filterDateFrom}
-                    onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
-                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Nga Data</label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={filterDateFrom}
+                      onChange={(e) => { setFilterDateFrom(e.target.value); setPage(1); }}
+                      className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    {filterDateFrom && (
+                      <button
+                        onClick={() => { setFilterDateFrom(""); setPage(1); }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1.5 font-medium">Deri më Data</label>
-                  <input
-                    type="date"
-                    value={filterDateTo}
-                    onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
-                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
-                  />
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Deri më Data</label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={filterDateTo}
+                      onChange={(e) => { setFilterDateTo(e.target.value); setPage(1); }}
+                      className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    {filterDateTo && (
+                      <button
+                        onClick={() => { setFilterDateTo(""); setPage(1); }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Active Filter Tags */}
+            {hasActiveFilters && (
+              <>
+                <div className="h-px bg-border mx-6" />
+                <div className="px-6 py-4">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Filtrat Aktive</p>
+                  <div className="flex flex-wrap gap-2">
+                    {filterClient && (
+                      <span className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full">
+                        "{filterClient}"
+                        <button onClick={() => { setFilterClient(""); setPage(1); }}><X className="w-3 h-3" /></button>
+                      </span>
+                    )}
+                    {filterDateFrom && (
+                      <span className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full">
+                        Nga {filterDateFrom}
+                        <button onClick={() => { setFilterDateFrom(""); setPage(1); }}><X className="w-3 h-3" /></button>
+                      </span>
+                    )}
+                    {filterDateTo && (
+                      <span className="flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full">
+                        Deri {filterDateTo}
+                        <button onClick={() => { setFilterDateTo(""); setPage(1); }}><X className="w-3 h-3" /></button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Footer Actions */}
-          <div className="border-t border-border px-6 py-4 space-y-2">
+          <div className="border-t border-border px-6 py-4 bg-white space-y-2 shrink-0">
             {hasActiveFilters && (
-              <Button variant="outline" onClick={clearFilters} className="w-full">
-                Pastro Filtrat
+              <Button variant="outline" onClick={clearFilters} className="w-full rounded-xl">
+                Pastro të gjithë Filtrat
               </Button>
             )}
             <SheetClose asChild>
-              <Button className="w-full">Mbyllur</Button>
+              <Button className="w-full rounded-xl">
+                Apliko & Mbyll
+              </Button>
             </SheetClose>
           </div>
         </SheetContent>
@@ -616,7 +648,9 @@ export default function Invoices() {
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
           {hasActiveFilters && (
-            <button onClick={() => setSearchOpen(true)} className="text-xs font-semibold text-primary hover:underline">Redakto Filtrat</button>
+            <button onClick={() => setSearchOpen(true)} className="text-xs font-semibold text-primary hover:underline">
+              Redakto Filtrat
+            </button>
           )}
         </div>
         <div className="overflow-x-auto">
@@ -651,7 +685,7 @@ export default function Invoices() {
                 </tr>
               ) : (
                 paginated.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors group">
+                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</span>
                     </td>
@@ -682,7 +716,7 @@ export default function Invoices() {
                       </select>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.is_open ? 'Haper' : 'Mbyllur'}</span>
+                      <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full">{inv.is_open ? 'Haper' : 'Mbyllur'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.payment_method || "—"}</span>
@@ -714,12 +748,16 @@ export default function Invoices() {
                             <DropdownMenuItem onClick={() => handleSendReminder(inv)}>
                               <Bell className="w-4 h-4 mr-2" /> Kujtesë për Faturën
                             </DropdownMenuItem>
-                            {inv.is_open && <DropdownMenuItem onClick={() => setPaymentDialog(inv)}>
-                              <DollarSign className="w-4 h-4 mr-2" /> Shto Pagesë
-                            </DropdownMenuItem>}
-                            {inv.invoice_type === "proforma" && <DropdownMenuItem onClick={() => handleConvertProforma(inv)}>
-                              <FileText className="w-4 h-4 mr-2" /> Konverto në Faturë
-                            </DropdownMenuItem>}
+                            {inv.is_open && (
+                              <DropdownMenuItem onClick={() => setPaymentDialog(inv)}>
+                                <DollarSign className="w-4 h-4 mr-2" /> Shto Pagesë
+                              </DropdownMenuItem>
+                            )}
+                            {inv.invoice_type === "proforma" && (
+                              <DropdownMenuItem onClick={() => handleConvertProforma(inv)}>
+                                <FileText className="w-4 h-4 mr-2" /> Konverto në Faturë
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleDuplicate(inv)}>
                               <Copy className="w-4 h-4 mr-2" /> Dyfisho
@@ -775,7 +813,6 @@ export default function Invoices() {
             <DialogDescription>Plotëso të dhënat e faturës hap pas hapi</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
-            {/* Step 1: Invoice Type */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</div>
@@ -787,16 +824,10 @@ export default function Invoices() {
                   { value: "proforma", label: "Proforma", desc: "Paraprake" },
                   { value: "credit_note", label: "Kredit Note", desc: "Zbritje/kthim" },
                 ].map(type => (
-                  <button
-                    key={type.value}
-                    onClick={() => setForm({ ...form, invoice_type: type.value })}
-                    className={cn(
-                      "p-2.5 rounded-lg border-2 transition text-left text-xs",
-                      form.invoice_type === type.value
-                        ? "bg-primary text-white border-primary"
-                        : "bg-white border-border hover:border-primary/40"
-                    )}
-                  >
+                  <button key={type.value} onClick={() => setForm({ ...form, invoice_type: type.value })}
+                    className={cn("p-2.5 rounded-lg border-2 transition text-left text-xs",
+                      form.invoice_type === type.value ? "bg-primary text-white border-primary" : "bg-white border-border hover:border-primary/40"
+                    )}>
                     <div className="font-semibold">{type.label}</div>
                     <div className="text-[10px] mt-0.5 opacity-75">{type.desc}</div>
                   </button>
@@ -804,31 +835,26 @@ export default function Invoices() {
               </div>
             </div>
 
-            {/* Step 2: Client Details */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</div>
                 <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
               </div>
               <div className="space-y-3 pl-8">
-                <div>
-                  <Label>Klienti *</Label>
-                  <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
-                    <SelectTrigger className="mt-1"><SelectValue placeholder="Zgjedh klientin" /></SelectTrigger>
-                    <SelectContent>
-                      {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="text-sm" />
+                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
+                  <SelectTrigger><SelectValue placeholder="Zgjedh klientin ekzistues" /></SelectTrigger>
+                  <SelectContent>
+                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Input placeholder="Emri i klientit *" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} />
                 <div className="grid grid-cols-2 gap-3">
-                  <Input placeholder="NIPT" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} className="text-sm" />
-                  <Input placeholder="Adresa" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="text-sm" />
+                  <Input placeholder="NIPT" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} />
+                  <Input placeholder="Adresa" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} />
                 </div>
               </div>
             </div>
 
-            {/* Step 3: Line Items */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
@@ -839,7 +865,6 @@ export default function Invoices() {
               </div>
             </div>
 
-            {/* Step 4: Payment & Notes */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</div>
@@ -860,81 +885,25 @@ export default function Invoices() {
                   </div>
                   <div>
                     <Label className="text-xs">Afat Pagese</Label>
-                    <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1 text-sm" />
+                    <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1" />
                   </div>
                   <div>
                     <Label className="text-xs">Shënime Pagese</Label>
-                    <Input placeholder="Llogaria..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1 text-sm" />
+                    <Input placeholder="Llogaria..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1" />
                   </div>
                 </div>
-                <div>
-                  <Label className="text-xs">Shënime Brendshme (vetëm për ekipin)</Label>
-                  <Textarea placeholder="Shënime të fshehura nga klienti" value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1 text-sm" rows={2} />
-                </div>
-                <div>
-                  <Label className="text-xs">Shënime Shtesë</Label>
-                  <Textarea placeholder="Shënime opsionale" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1 text-sm" rows={2} />
-                </div>
+                <Textarea placeholder="Shënime brendshme (të fshehura nga klienti)" value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} rows={2} />
+                <Textarea placeholder="Shënime shtesë" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} />
               </div>
             </div>
 
-            {/* Totals Summary */}
-            <div className="bg-gradient-to-br from-primary/8 to-primary/4 rounded-xl p-4 space-y-2.5 text-sm border border-primary/15 pl-8">
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Subtotal (pa TVSH)</span>
-                <span className="font-semibold">€{formTotals.subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">TVSH</span>
-                <span className="font-semibold">€{formTotals.vat_amount.toFixed(2)}</span>
-              </div>
+            <div className="bg-gradient-to-br from-primary/8 to-primary/4 rounded-xl p-4 space-y-2.5 text-sm border border-primary/15">
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal (pa TVSH)</span><span className="font-semibold">€{formTotals.subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">TVSH</span><span className="font-semibold">€{formTotals.vat_amount.toFixed(2)}</span></div>
               <div className="border-t border-primary/20 pt-2 flex justify-between">
                 <span className="font-bold">Total me TVSH</span>
                 <span className="text-lg font-bold text-primary">€{formTotals.amount.toFixed(2)}</span>
               </div>
-            </div>
-
-            {/* Recurring */}
-            <div className="space-y-3 pl-8">
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border">
-                <div>
-                  <p className="text-sm font-medium">Fatura Automatike</p>
-                  <p className="text-xs text-muted-foreground">Krijoni në mënyrë automatike në secilin interval</p>
-                </div>
-                <input type="checkbox" checked={form.is_recurring} onChange={(e) => setForm({ ...form, is_recurring: e.target.checked })} className="h-4 w-4 cursor-pointer" />
-              </div>
-              {form.is_recurring && (
-                <div className="space-y-2">
-                  <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label className="text-xs">Intervali</Label>
-                      <Select value={form.recurring_interval || "custom"} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
-                        <SelectTrigger className="text-sm mt-1"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="monthly">Çdo muaj</SelectItem>
-                          <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
-                          <SelectItem value="yearly">Çdo vit</SelectItem>
-                          <SelectItem value="custom">Custom muaj</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {form.recurring_interval === "custom" && (
-                      <div className="flex-1">
-                        <Label className="text-xs">Çdo muajsh</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="12"
-                          value={form.recurring_custom_months || 1}
-                          onChange={(e) => setForm({ ...form, recurring_custom_months: parseInt(e.target.value) || 1 })}
-                          className="text-sm mt-1"
-                          placeholder="2"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
           <DialogFooter className="pt-4 border-t">
@@ -962,27 +931,21 @@ export default function Invoices() {
                   { value: "proforma", label: "Proforma", desc: "Fatura paraprake" },
                   { value: "credit_note", label: "Kredit Note", desc: "Zbritje/kthim" },
                 ].map(type => (
-                  <button
-                    key={type.value}
-                    onClick={() => setForm({ ...form, invoice_type: type.value })}
-                    className={cn(
-                      "p-3 rounded-lg border-2 transition text-left",
-                      form.invoice_type === type.value
-                        ? "bg-primary text-white border-primary shadow-lg"
-                        : "bg-white border-border hover:border-primary/40"
-                    )}
-                  >
+                  <button key={type.value} onClick={() => setForm({ ...form, invoice_type: type.value })}
+                    className={cn("p-3 rounded-lg border-2 transition text-left",
+                      form.invoice_type === type.value ? "bg-primary text-white border-primary shadow-lg" : "bg-white border-border hover:border-primary/40"
+                    )}>
                     <div className="font-medium text-sm">{type.label}</div>
-                    <div className={cn("text-xs mt-1", form.invoice_type === type.value ? "text-primary/80" : "text-muted-foreground")}>
-                      {type.desc}
-                    </div>
+                    <div className={cn("text-xs mt-1", form.invoice_type === type.value ? "opacity-80" : "text-muted-foreground")}>{type.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div><Label>Klienti *</Label>
-               <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
+              <div>
+                <Label>Klienti *</Label>
+                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
                   <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh klientin" /></SelectTrigger>
                   <SelectContent>
                     {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -998,7 +961,8 @@ export default function Invoices() {
               <div><Label>Adresa</Label><Input placeholder="Adresa e klientit" value={form.client_address} onChange={(e) => setForm({ ...form, client_address: e.target.value })} className="mt-1.5" /></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div><Label>Metoda e Pagesës</Label>
+              <div>
+                <Label>Metoda e Pagesës</Label>
                 <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
                   <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -1011,43 +975,21 @@ export default function Invoices() {
               <div><Label>Afati i Pagesës</Label><Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} className="mt-1.5" /></div>
               <div><Label>Shënime Pagese</Label><Input placeholder="Llogarinë, termin e pagesës..." value={form.payment_notes} onChange={(e) => setForm({ ...form, payment_notes: e.target.value })} className="mt-1.5" /></div>
             </div>
-            <div><Label>Shënime të Brendshme (vetëm për ekipin)</Label><Textarea placeholder="Shënime të fshehura nga klienti..." value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1.5" rows={2} /></div>
+            <div><Label>Shënime Brendshme</Label><Textarea placeholder="Shënime të fshehura nga klienti..." value={form.internal_notes} onChange={(e) => setForm({ ...form, internal_notes: e.target.value })} className="mt-1.5" rows={2} /></div>
             <div className="border-t pt-4">
               <Label className="mb-3 block font-semibold text-sm">Artikujt / Shërbimet</Label>
               <InvoiceLineItems items={form.items} onChange={(items) => setForm({ ...form, items })} />
             </div>
             <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-4 space-y-3 text-sm border border-primary/10">
-              <div className="flex justify-between items-center"><span className="text-muted-foreground font-medium">Subtotal (pa TVSH)</span><span className="font-semibold text-foreground text-base">€{calcTotals(form.items).subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between items-center"><span className="text-muted-foreground font-medium">TVSH</span><span className="font-semibold text-foreground text-base">€{calcTotals(form.items).vat_amount.toFixed(2)}</span></div>
-              <div className="border-t border-primary/20 pt-3 flex justify-between"><span className="font-bold text-foreground">Total me TVSH</span><span className="font-bold text-lg text-primary">€{calcTotals(form.items).amount.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground font-medium">Subtotal (pa TVSH)</span><span className="font-semibold text-base">€{calcTotals(form.items).subtotal.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground font-medium">TVSH</span><span className="font-semibold text-base">€{calcTotals(form.items).vat_amount.toFixed(2)}</span></div>
+              <div className="border-t border-primary/20 pt-3 flex justify-between"><span className="font-bold">Total me TVSH</span><span className="font-bold text-lg text-primary">€{calcTotals(form.items).amount.toFixed(2)}</span></div>
             </div>
             <div><Label>Shënime</Label><Textarea placeholder="Shënime opsionale..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="mt-1.5" rows={2} /></div>
-            <div className="border-t pt-4 mt-4">
-              <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
-                <div>
-                  <Label className="mb-1">Fatura Automatike</Label>
-                  <p className="text-xs text-muted-foreground">Krijoni fatura të reja në mënyrë automatike në intervalin e zgjedhur</p>
-                </div>
-                <input type="checkbox" checked={form.is_recurring} onChange={(e) => setForm({ ...form, is_recurring: e.target.checked })} className="h-4 w-4 cursor-pointer" />
-              </div>
-              {form.is_recurring && (
-                <div className="mt-3">
-                  <Label>Intervali</Label>
-                  <Select value={form.recurring_interval} onValueChange={(v) => setForm({ ...form, recurring_interval: v })}>
-                    <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="monthly">Çdo muaj</SelectItem>
-                      <SelectItem value="quarterly">Çdo 3 muaj</SelectItem>
-                      <SelectItem value="yearly">Çdo vit</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setEditInvoice(null); setForm(emptyForm()); }}>Anulo</Button>
-            <Button onClick={handleUpdate} disabled={submitting || !form.client_name}>{ submitting ? "Duke ruajtur..." : "Ruaj Ndryshimet" }</Button>
+            <Button onClick={handleUpdate} disabled={submitting || !form.client_name}>{submitting ? "Duke ruajtur..." : "Ruaj Ndryshimet"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
