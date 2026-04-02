@@ -644,7 +644,12 @@ export default function Quotes() {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Krijo Ofertë Profesionale</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-2xl">Krijo Ofertë Profesionale</DialogTitle>
+              <Button variant="outline" size="sm" onClick={() => setShowTemplateManager(true)} className="gap-2">
+                <FileText className="w-4 h-4" /> Ngarko Shabllon
+              </Button>
+            </div>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
