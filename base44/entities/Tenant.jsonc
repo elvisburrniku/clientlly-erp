@@ -1,0 +1,59 @@
+{
+  "name": "Tenant",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Company/business name"
+    },
+    "code": {
+      "type": "string",
+      "description": "Unique tenant code/slug"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the tenant owner"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "cancelled"
+      ],
+      "default": "active",
+      "description": "Tenant status"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "starter",
+        "pro"
+      ],
+      "default": "free",
+      "description": "Subscription plan"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Company logo URL"
+    },
+    "address": {
+      "type": "string",
+      "description": "Company address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Company phone"
+    },
+    "nipt": {
+      "type": "string",
+      "description": "Company NIPT"
+    }
+  },
+  "required": [
+    "name",
+    "code",
+    "owner_email"
+  ]
+}

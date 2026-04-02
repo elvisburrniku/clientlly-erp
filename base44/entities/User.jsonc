@@ -5,17 +5,20 @@
     "role": {
       "type": "string",
       "enum": [
+        "superadmin",
         "admin",
-        "manager",
-        "accountant",
-        "staff"
+        "user"
       ],
-      "default": "staff"
+      "default": "user",
+      "description": "User role in the system"
     },
-    "cash_on_hand": {
-      "type": "number",
-      "default": 0,
-      "description": "Current cash balance the user holds"
+    "tenant_id": {
+      "type": "string",
+      "description": "ID of the tenant this user belongs to"
+    },
+    "tenant_name": {
+      "type": "string",
+      "description": "Name of the tenant for quick access"
     }
   }
 }

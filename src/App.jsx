@@ -27,6 +27,8 @@ import Transfers from './pages/Transfers';
 import Debtors from './pages/Debtors';
 import DebtorDetail from './pages/DebtorDetail';
 import InvoiceAnalytics from './pages/InvoiceAnalytics';
+import Onboarding from './pages/Onboarding';
+import SuperAdmin from './pages/SuperAdmin';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -76,8 +78,10 @@ const AuthenticatedApp = () => {
         <Route path="/debtor-detail/:debtorName" element={<DebtorDetail />} />
         <Route path="/invoice-analytics" element={<InvoiceAnalytics />} />
         <Route path="/client" element={<ClientPortal />} />
+        <Route path="/super-admin" element={<SuperAdmin />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
+      <Route path="/onboarding" element={<Onboarding />} />
     </Routes>
   );
 };

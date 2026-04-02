@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
-  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle
+  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/AuthContext";
 
 const menuItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/" },
@@ -29,6 +30,7 @@ const performanceItems = [
 
 export default function Sidebar() {
   const location = useLocation();
+  const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -123,6 +125,26 @@ export default function Sidebar() {
             <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
           )}
         </Link>
+
+        {user?.role === "superadmin" && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-400/60 px-3 mb-3 mt-6">Super Admin</p>
+            )}
+            <Link
+              to="/super-admin"
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                location.pathname === '/super-admin'
+                  ? "bg-amber-500/20 text-amber-300 shadow-lg"
+                  : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300"
+              )}
+            >
+              <ShieldCheck className={cn("w-5 h-5 shrink-0")} />
+              {!collapsed && <span className="whitespace-nowrap">Tenantët</span>}
+            </Link>
+          </>
+        )}
       </nav>
 
       {/* Collapse toggle */}
