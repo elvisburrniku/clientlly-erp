@@ -12,6 +12,7 @@ import Expenses from './pages/Expenses';
 import Products from './pages/Products';
 import Reminders from './pages/Reminders';
 import Clients from './pages/Clients';
+import ClientDetail from './pages/ClientDetail';
 import Suppliers from './pages/Suppliers';
 import Cashbox from './pages/Cashbox';
 import CashHandover from './pages/CashHandover';
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/products" element={<Products />} />
         <Route path="/reminders" element={<Reminders />} />
         <Route path="/clients" element={<Clients />} />
+        <Route path="/client-detail/:clientId" element={<ClientDetail />} />
         <Route path="/suppliers" element={<Suppliers />} />
         <Route path="/cashbox" element={<Cashbox />} />
         <Route path="/cash-handover" element={<CashHandover />} />

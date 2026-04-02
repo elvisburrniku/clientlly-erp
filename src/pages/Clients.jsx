@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Pencil, MoreHorizontal, Users, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
 import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
@@ -24,6 +25,7 @@ const emptyForm = () => ({
 });
 
 export default function Clients() {
+  const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -318,9 +320,9 @@ export default function Clients() {
                 </tr>
               ) : (
                 filtered.map((client) => (
-                  <tr key={client.id} className="hover:bg-muted/20 transition-colors">
+                  <tr key={client.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/client-detail/${client.id}`)}>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold">{client.name}</span>
+                      <span className="text-sm font-semibold text-primary hover:underline">{client.name}</span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{client.email}</td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{client.phone || "—"}</td>
