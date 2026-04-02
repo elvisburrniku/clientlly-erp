@@ -8,9 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, FileText, Send, Check, X, Eye, Trash2, Copy, Download } from 'lucide-react';
+import { Plus, FileText, Send, Check, X, Eye, Trash2, Copy, Download, Filter } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import 'jspdf/dist/jspdf.umd.min.js';
 
 const statusColors = {
   draft: 'bg-slate-100 text-slate-800',
@@ -41,6 +43,11 @@ export default function Quotes() {
     validity_days: 30,
     template: 'classic'
   });
+  const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [clientFilter, setClientFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   useEffect(() => {
     fetchQuotes();
@@ -173,6 +180,100 @@ export default function Quotes() {
     }
   };
 
+  const handleDownloadPDF = async (quote) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    let y = 20;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text('OFERTË', pageWidth / 2, y, { align: 'center' });
+    y += 15;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`Nr. Ofertës: ${quote.quote_number}`, 20, y);
+    doc.text(`Data: ${format(new Date(quote.created_date), 'dd.MM.yyyy')}`, pageWidth - 80, y);
+    y += 10;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Të dhënat e Klientit:', 20, y);
+    y += 7;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Emri: ${quote.client_name}`, 20, y);
+    y += 5;
+    doc.text(`Email: ${quote.client_email}`, 20, y);
+    y += 5;
+    doc.text(`Telefon: ${quote.client_phone || '-'}`, 20, y);
+    y += 5;
+    doc.text(`NIPT: ${quote.client_nipt || '-'}`, 20, y);
+    y += 5;
+    doc.text(`Adresa: ${quote.client_address || '-'}`, 20, y, { maxWidth: 160 });
+    y += 15;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    const tableY = y;
+    doc.text('Artikuj', 20, y);
+    y += 8;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    const items = quote.items || [];
+    items.forEach((item, idx) => {
+      if (y > pageHeight - 40) {
+        doc.addPage();
+        y = 20;
+      }
+      const lineTotal = (item.quantity * item.price_ex_vat).toFixed(2);
+      doc.text(`${idx + 1}. ${item.name}`, 20, y);
+      doc.text(`${item.quantity} x €${item.price_ex_vat.toFixed(2)}`, 120, y);
+      doc.text(`€${lineTotal}`, pageWidth - 30, y, { align: 'right' });
+      y += 6;
+    });
+
+    y += 5;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text(`Subtotali: €${(quote.subtotal || 0).toFixed(2)}`, pageWidth - 80, y, { align: 'right' });
+    y += 6;
+    doc.text(`TVSH (20%): €${(quote.vat_amount || 0).toFixed(2)}`, pageWidth - 80, y, { align: 'right' });
+    y += 6;
+    doc.setFontSize(10);
+    doc.text(`GJITHSEJ: €${(quote.amount || 0).toFixed(2)}`, pageWidth - 80, y, { align: 'right' });
+
+    doc.save(`${quote.quote_number}.pdf`);
+  };
+
+  const handleExportExcel = () => {
+    const filteredData = getFilteredQuotes();
+    const csv = [
+      ['Nr. Ofertës', 'Kliente', 'Email', 'Shuma', 'Statusi', 'Valide Deri'],
+      ...filteredData.map(q => [q.quote_number, q.client_name, q.client_email, q.amount, q.status, q.valid_until])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ofertat-${format(new Date(), 'dd.MM.yyyy')}.csv`;
+    a.click();
+  };
+
+  const getFilteredQuotes = () => {
+    return quotes.filter(q => {
+      if (statusFilter !== 'all' && q.status !== statusFilter) return false;
+      if (clientFilter && !q.client_name.toLowerCase().includes(clientFilter.toLowerCase())) return false;
+      if (dateFrom && new Date(q.created_date) < new Date(dateFrom)) return false;
+      if (dateTo && new Date(q.created_date) > new Date(dateTo)) return false;
+      return true;
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -188,10 +289,16 @@ export default function Quotes() {
           <h1 className="text-2xl font-bold text-foreground">Ofertat</h1>
           <p className="text-sm text-muted-foreground">Menaxho dhe krijo oferta për klientët</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Ofertë e Re
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowFilters(true)} className="gap-2">
+            <Filter className="w-4 h-4" />
+            Filtro
+          </Button>
+          <Button onClick={() => setShowForm(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Ofertë e Re
+          </Button>
+        </div>
       </div>
 
       {/* Quotes Table */}
@@ -208,7 +315,7 @@ export default function Quotes() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {quotes.map((quote) => (
+            {getFilteredQuotes().map((quote) => (
               <TableRow key={quote.id} className="hover:bg-slate-50">
                 <TableCell className="font-semibold">{quote.quote_number}</TableCell>
                 <TableCell>{quote.client_name}</TableCell>
@@ -221,8 +328,8 @@ export default function Quotes() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" title="Shiko">
-                      <Eye className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDownloadPDF(quote)} title="Shkarko PDF">
+                      <Download className="w-4 h-4" />
                     </Button>
                     {quote.status !== 'converted' && (
                       <Button 
@@ -396,6 +503,80 @@ export default function Quotes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Filters Sheet */}
+      <Sheet open={showFilters} onOpenChange={setShowFilters}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Filtro Ofertat</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-4 mt-6">
+            <div>
+              <label className="text-sm font-semibold mb-2 block">Statusi</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Të Gjitha</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="sent">E Dërguar</SelectItem>
+                  <SelectItem value="accepted">E Pranuar</SelectItem>
+                  <SelectItem value="rejected">E Refuzuar</SelectItem>
+                  <SelectItem value="expired">E Skaduar</SelectItem>
+                  <SelectItem value="converted">E Konvertuar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold mb-2 block">Kliente</label>
+              <Input
+                placeholder="Emri i klientit"
+                value={clientFilter}
+                onChange={(e) => setClientFilter(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-semibold mb-2 block">Nga Data</label>
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold mb-2 block">Deri Data</label>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setStatusFilter('all');
+                  setClientFilter('');
+                  setDateFrom('');
+                  setDateTo('');
+                }}
+              >
+                Risetimi
+              </Button>
+              <Button className="flex-1" onClick={handleExportExcel}>
+                Eksporto Excel
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
