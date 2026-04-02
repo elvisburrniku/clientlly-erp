@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle, TrendingUp, BanknoteIcon, ChevronRight } from "lucide-react";
+import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle, TrendingUp, BanknoteIcon, ChevronRight, Package, Gift, Calendar, Users2, TrendingUp as TrendingUpIcon } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import RevenueChart from "../components/dashboard/RevenueChart";
 import RecentInvoices from "../components/dashboard/RecentInvoices";
@@ -102,27 +102,33 @@ export default function Dashboard() {
   }
 
   const cardRoutes = {
-    "Total Faturat": "/invoices",
+    "Faturat": "/invoices",
     "Shpenzimet": "/expenses",
     "Borxhi": "/debtors",
-    "Klientët": "/clients",
-    "Fitim Neto": "/invoice-analytics",
-    "Arka": "/cashbox",
+    "Klientet": "/clients",
+    "Stoqet & Prokurimi": "/inventory",
+    "Ofertat": "/reports",
+    "Kalendari": "/reminders",
+    "Burimet Njerezore": "/super-admin",
+    "Performanca Biznesi": "/invoice-analytics",
   };
 
   const cards = [
-    { icon: FileText,   title: "Total Faturat",  value: `€${stats.totalInvoices.toLocaleString()}`,              description: "Totali i faturave të krijuara", color: "blue" },
+    { icon: FileText,   title: "Faturat",  value: `€${stats.totalInvoices.toLocaleString()}`,              description: "Totali i faturave të krijuara", color: "blue" },
     { icon: TrendingDown, title: "Shpenzimet",  value: `€${stats.totalExpenses.toLocaleString()}`,              description: "Totali i shpenzimeve",          color: "rose" },
     { icon: CreditCard, title: "Borxhi",        value: `€${stats.totalDebt.toLocaleString()}`,                  description: "Borxhi i mbetur",               color: "amber" },
-    { icon: Users,      title: "Klientët",       value: stats.clientCount.toString(),                            description: "Numri i klientëve",             color: "violet" },
-    { icon: TrendingUp,  title: "Fitim Neto",   value: `€${stats.netProfit.toLocaleString()}`,                 description: "Fitim pas shpenzimeve",         color: stats.netProfit >= 0 ? "teal" : "rose" },
-    { icon: Wallet,     title: "Arka",           value: `€${stats.cashBalance.toLocaleString()}`,               description: "Bilanci i arkës",               color: "green" },
+    { icon: Users,      title: "Klientet",       value: stats.clientCount.toString(),                            description: "Numri i klientëve",             color: "violet" },
+    { icon: Package,    title: "Stoqet & Prokurimi",  value: "→",  description: "Menaxhimi i stoqeve",        color: "indigo" },
+    { icon: Gift,       title: "Ofertat",       value: "→",  description: "Raporte dhe analize",    color: "pink" },
+    { icon: Calendar,   title: "Kalendari",    value: "→",  description: "Kujtesa dhe plane",     color: "cyan" },
+    { icon: Users2,     title: "Burimet Njerezore", value: "→",  description: "Menaxhimi i përdoruesve",   color: "purple" },
+    { icon: TrendingUpIcon,  title: "Performanca Biznesi", value: `€${stats.netProfit.toLocaleString()}`, description: "Fitim pas shpenzimeve", color: stats.netProfit >= 0 ? "teal" : "rose" },
   ];
 
   const periodLabels = { today: t("today"), month: t("month"), year: t("year") };
 
   return (
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in">
+    <div className="p-6 lg:p-10 w-full space-y-8 animate-fade-in">
       {/* Pending Handover Notification */}
       {pendingHandovers.length > 0 && (
         <button
@@ -180,11 +186,11 @@ export default function Dashboard() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {cards.map((card) => (
           <button
             key={card.title}
-            onClick={() => navigate(cardRoutes[card.title])}
+            onClick={() => cardRoutes[card.title] && navigate(cardRoutes[card.title])}
             className="hover:opacity-80 transition-opacity text-left"
           >
             <StatCard {...card} />
@@ -194,7 +200,7 @@ export default function Dashboard() {
 
 
 
-      {/* Charts */}
+      {/* Charts & Content */}
       <div className="grid grid-cols-1 gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
         <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
           <RevenueChart />
