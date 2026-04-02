@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Download, Send, ToggleLeft, ToggleRight, Building2, Calendar, CreditCard } from "lucide-react";
+import { ArrowLeft, Download, Send, ToggleLeft, ToggleRight, Building2, Calendar, CreditCard, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -24,12 +24,15 @@ const statusConfig = {
   cancelled: { label: "Anuluar",  cls: "bg-muted text-muted-foreground border-border" },
 };
 
+import WarehouseSlip from "../components/invoices/WarehouseSlip";
+
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sendOpen, setSendOpen] = useState(false);
+  const [warehouseSlipOpen, setWarehouseSlipOpen] = useState(false);
 
   useEffect(() => { loadInvoice(); }, [id]);
 
@@ -69,17 +72,22 @@ export default function InvoiceDetail() {
           <ArrowLeft className="w-4 h-4" /> Kthehu te Faturat
         </button>
         <div className="flex items-center gap-2">
-          <button onClick={toggleOpen} className="flex items-center gap-1.5 text-xs font-medium border border-border rounded-lg px-3 py-1.5 hover:bg-muted/50 transition-colors">
-            {invoice.is_open !== false
-              ? <><ToggleRight className="w-4 h-4 text-emerald-500" /><span className="text-emerald-600">Hapur</span></>
-              : <><ToggleLeft className="w-4 h-4 text-muted-foreground" /><span className="text-muted-foreground">Mbyllur</span></>
-            }
-          </button>
-          <InvoicePDFButton invoice={invoice} />
-          <Button size="sm" className="gap-2" onClick={() => setSendOpen(true)}>
-            <Send className="w-3.5 h-3.5" /> Dërgo
-          </Button>
-        </div>
+           <button onClick={toggleOpen} className="flex items-center gap-1.5 text-xs font-medium border border-border rounded-lg px-3 py-1.5 hover:bg-muted/50 transition-colors">
+             {invoice.is_open !== false
+               ? <><ToggleRight className="w-4 h-4 text-emerald-500" /><span className="text-emerald-600">Hapur</span></>
+               : <><ToggleLeft className="w-4 h-4 text-muted-foreground" /><span className="text-muted-foreground">Mbyllur</span></>
+             }
+           </button>
+           {invoice?.items?.some(i => i.type === 'product') && (
+             <Button size="sm" variant="outline" className="gap-2" onClick={() => setWarehouseSlipOpen(true)}>
+               <Package className="w-3.5 h-3.5" /> Fletëdalje
+             </Button>
+           )}
+           <InvoicePDFButton invoice={invoice} />
+           <Button size="sm" className="gap-2" onClick={() => setSendOpen(true)}>
+             <Send className="w-3.5 h-3.5" /> Dërgo
+           </Button>
+         </div>
       </div>
 
       {/* Invoice document */}
@@ -214,6 +222,7 @@ export default function InvoiceDetail() {
       </div>
 
       <SendInvoiceDialog invoice={invoice} open={sendOpen} onClose={() => setSendOpen(false)} />
+      <WarehouseSlip invoice={invoice} open={warehouseSlipOpen} onClose={() => setWarehouseSlipOpen(false)} />
     </div>
   );
 }
