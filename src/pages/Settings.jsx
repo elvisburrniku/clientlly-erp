@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Upload, Loader2, Plus, Trash2, BellRing, Star } from "lucide-react";
+import TemplateSelector from "@/components/invoices/TemplateSelector";
 
 const DEFAULT_UNITS = [
   { name: "Copë", code: "copë", category: "products", is_default: true },
@@ -161,6 +162,7 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({});
   const [invoiceSettings, setInvoiceSettings] = useState(null);
+  const [defaultInvoiceTemplate, setDefaultInvoiceTemplate] = useState("classic");
   const [units, setUnits] = useState([]);
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
@@ -189,7 +191,7 @@ export default function Settings() {
       setUnits(unts);
       if (temps.length > 0) { setTemplate(temps[0]); setForm(temps[0]); }
       else setForm({ company_name: '', company_email: '', company_phone: '', company_address: '', logo_url: '', primary_color: '#4338CA', footer_text: '' });
-      if (invSets.length > 0) setInvoiceSettings(invSets[0]);
+      if (invSets.length > 0) { setInvoiceSettings(invSets[0]); setDefaultInvoiceTemplate(invSets[0].default_template || "classic"); }
       if (cbSets.length > 0) { setCashboxSettings(cbSets[0]); setCashboxForm(cbSets[0]); }
 
       // Auto-seed expense categories if empty
@@ -328,8 +330,9 @@ export default function Settings() {
 
   const handleSaveInvoiceSettings = async () => {
     setSaving(true);
-    if (invoiceSettings?.id) { await base44.entities.InvoiceSettings.update(invoiceSettings.id, invoiceSettings); toast.success('Cilësimet e faturave u përditësuan'); }
-    else { await base44.entities.InvoiceSettings.create(invoiceSettings || { invoice_number_format: 'INV-{###}' }); toast.success('Cilësimet e faturave u krijuan'); }
+    const settingsData = { ...invoiceSettings, default_template: defaultInvoiceTemplate };
+    if (invoiceSettings?.id) { await base44.entities.InvoiceSettings.update(invoiceSettings.id, settingsData); toast.success('Cilësimet e faturave u përditësuan'); }
+    else { await base44.entities.InvoiceSettings.create(settingsData || { invoice_number_format: 'INV-{###}', default_template: 'classic' }); toast.success('Cilësimet e faturave u krijuan'); }
     setSaving(false);
   };
 
@@ -410,6 +413,9 @@ export default function Settings() {
       <div className="bg-card rounded-xl border border-border p-6 space-y-5">
         <h3 className="text-base font-semibold">Cilësimet e Faturave</h3>
         <div className="space-y-4">
+          <div>
+            <TemplateSelector value={defaultInvoiceTemplate} onChange={setDefaultInvoiceTemplate} />
+          </div>
           <div>
             <Label>Format i Numrit të Faturës</Label>
             <p className="text-xs text-muted-foreground mt-1 mb-2">Shembuj: INV-{'{###}'} → INV-001, FAT-{'{###}'} → FAT-001, INV-{'{YYYY}'}-{'{###}'} → INV-2026-001</p>
