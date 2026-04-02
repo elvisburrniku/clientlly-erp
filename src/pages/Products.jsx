@@ -325,6 +325,7 @@ export default function Products() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Rendor</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Emri</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Lloji</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Çmim pa TVSH</th>
@@ -342,8 +343,9 @@ export default function Products() {
                   </td>
                 </tr>
               ) : (
-                filtered.map(prod => (
+                filtered.map((prod, idx) => (
                   <tr key={prod.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{idx + 1}</td>
                     <td className="px-6 py-4"><span className="text-sm font-semibold">{prod.name}</span></td>
                     <td className="px-6 py-4">
                       <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">

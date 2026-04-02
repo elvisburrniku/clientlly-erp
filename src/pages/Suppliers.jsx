@@ -158,6 +158,7 @@ export default function Suppliers() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Rendor</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Emri</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Kontakt</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Kategoria</th>
@@ -174,8 +175,9 @@ export default function Suppliers() {
                   </td>
                 </tr>
               ) : (
-                filtered.map(supplier => (
+                filtered.map((supplier, idx) => (
                   <tr key={supplier.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{idx + 1}</td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold">{supplier.name}</span>
                       {supplier.contact_person && <p className="text-xs text-muted-foreground">{supplier.contact_person}</p>}

@@ -188,8 +188,9 @@ export default function Transfers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {transfers.map(t => (
+              {transfers.map((t, idx) => (
                 <tr key={t.id} className="hover:bg-muted/20 transition-colors">
+                  <td className="px-4 py-3 text-sm text-muted-foreground font-medium">{idx + 1}</td>
                   <td className="px-4 py-3 text-muted-foreground">{t.transfer_date}</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${t.type === "cash_to_bank" ? "bg-blue-100 text-blue-700" : "bg-violet-100 text-violet-700"}`}>

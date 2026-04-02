@@ -443,6 +443,7 @@ export default function Cashbox() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
+                <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Nr. Rendor</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Data</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Tipi</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Debi</th>
@@ -470,8 +471,9 @@ export default function Cashbox() {
                     running += t.type === 'cash_in' ? t.amount : -t.amount;
                     return { ...t, runningBalance: running };
                   });
-                  return withBalance.reverse().map((t) => (
+                  return withBalance.reverse().map((t, idx) => (
                   <tr key={t.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                    <td className="px-5 py-3.5 text-sm text-muted-foreground font-medium">{idx + 1}</td>
                     <td className="px-5 py-3.5 text-sm">{moment(t.created_date).format("DD MMM YYYY, HH:mm")}</td>
                     <td className="px-5 py-3.5">
                       <span className={cn(
