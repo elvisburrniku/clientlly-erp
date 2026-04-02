@@ -689,29 +689,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 2: Të dhënat e Biznesit & Klientit */}
+            {/* Section 2: Të dhënat e Klientit */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</div>
-                <h3 className="font-semibold text-sm">Të dhënat e Biznesit & Klientit</h3>
-              </div>
-              <div className="pl-8 space-y-2">
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Emri i Biznesit *</label><Input value={formData.company_name} onChange={(e) => setFormData({ ...formData, company_name: e.target.value })} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Nr. Unik Identifikues (NUP)</label><Input value={formData.company_nup} onChange={(e) => setFormData({ ...formData, company_nup: e.target.value })} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Nr. i TVSH</label><Input value={formData.company_tvsh} onChange={(e) => setFormData({ ...formData, company_tvsh: e.target.value })} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Qyteti</label><Input value={formData.company_city} onChange={(e) => setFormData({ ...formData, company_city: e.target.value })} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Adresa</label><Textarea value={formData.company_address} onChange={(e) => setFormData({ ...formData, company_address: e.target.value })} rows={2} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Numri Telefonit #1</label><Input value={formData.company_phone1} onChange={(e) => setFormData({ ...formData, company_phone1: e.target.value })} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Numri Telefonit #2</label><Input value={formData.company_phone2} onChange={(e) => setFormData({ ...formData, company_phone2: e.target.value })} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Email</label><Input type="email" value={formData.company_email} onChange={(e) => setFormData({ ...formData, company_email: e.target.value })} className="text-sm" /></div>
-                <div><label className="text-xs font-medium text-muted-foreground block mb-1">Web</label><Input value={formData.company_website} onChange={(e) => setFormData({ ...formData, company_website: e.target.value })} className="text-sm" /></div>
-              </div>
-            </div>
-
-            {/* Section 3: Të dhënat e Klientit */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
                 <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
               </div>
               <div className="pl-8 space-y-2">
@@ -728,10 +709,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 4: Logo/Imazh */}
+            {/* Section 3: Logo/Imazh */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
                 <h3 className="font-semibold text-sm">Logo / Imazh Kompanie</h3>
               </div>
               <div className="pl-8">
@@ -755,10 +736,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 5: Pershkrim i Punes */}
+            {/* Section 4: Pershkrim i Punes */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">5</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</div>
                 <h3 className="font-semibold text-sm">Përshkrimi i Punës / Detajet</h3>
               </div>
               <div className="pl-8 space-y-2">
@@ -792,10 +773,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 6: Artikuj/Shërbimet */}
+            {/* Section 5: Artikuj/Shërbimet */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">5</div>
                 <h3 className="font-semibold text-sm">Artikuj / Shërbimet</h3>
               </div>
               <div className="pl-8 space-y-2">
@@ -831,10 +812,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 7: Shënime dhe Përsonalizim */}
+            {/* Section 6: Shënime dhe Përsonalizim */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</div>
                 <h3 className="font-semibold text-sm">Shënime dhe Përsonalizim</h3>
               </div>
               <div className="pl-8 space-y-2">
@@ -843,10 +824,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 8: Nënshkrimi */}
+            {/* Section 7: Nënshkrimi */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">8</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</div>
                 <h3 className="font-semibold text-sm">Nënshkrimi Digjital</h3>
               </div>
               <div className="pl-8">
@@ -866,10 +847,10 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 9: Cilësime */}
+            {/* Section 8: Cilësime */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">9</div>
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">8</div>
                 <h3 className="font-semibold text-sm">Cilësime të Ofertës</h3>
               </div>
               <div className="grid grid-cols-4 gap-3 pl-8">
