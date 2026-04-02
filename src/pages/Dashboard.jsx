@@ -157,49 +157,27 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground mt-0.5">{new Date().toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Period filter */}
-          <div className="flex bg-white border border-border rounded-xl p-1.5 shadow-sm">
+          <div className="flex gap-1.5 bg-gradient-to-br from-white to-slate-50 border border-border/40 rounded-full p-1 shadow-sm hover:shadow-md transition-shadow">
             {["today","month","year"].map(p => (
               <button key={p} onClick={() => setPeriod(p)}
-                className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
-                  period === p ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                className={cn("px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 whitespace-nowrap",
+                  period === p ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-slate-200/50"
                 )}>{periodLabels[p]}</button>
             ))}
           </div>
           {/* VAT toggle */}
-          <div className="flex bg-white border border-border rounded-xl p-1.5 shadow-sm">
+          <div className="flex gap-1.5 bg-gradient-to-br from-white to-slate-50 border border-border/40 rounded-full p-1 shadow-sm hover:shadow-md transition-shadow">
             <button onClick={() => setVatMode("inc")}
-              className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
-                vatMode === "inc" ? "bg-success text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              className={cn("px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 whitespace-nowrap",
+                vatMode === "inc" ? "bg-success text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-slate-200/50"
               )}>Me TVSH</button>
             <button onClick={() => setVatMode("exc")}
-              className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
-                vatMode === "exc" ? "bg-slate-800 text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              className={cn("px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-200 whitespace-nowrap",
+                vatMode === "exc" ? "bg-slate-800 text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-slate-200/50"
               )}>Pa TVSH</button>
           </div>
-        </div>
-      </div>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-        {cards.map((card) => (
-          <button
-            key={card.title}
-            onClick={() => navigate(cardRoutes[card.title])}
-            className="hover:opacity-80 transition-opacity text-left"
-          >
-            <StatCard {...card} />
-          </button>
-        ))}
-      </div>
-
-
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-        <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
-          <RevenueChart />
         </div>
       </div>
 
