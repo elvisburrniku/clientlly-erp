@@ -8,6 +8,7 @@ import RevenueChart from "../components/dashboard/RevenueChart";
 import RecentInvoices from "../components/dashboard/RecentInvoices";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
 import UpcomingReminders from "../components/dashboard/UpcomingReminders";
+import QuotesSummary from "../components/dashboard/QuotesSummary";
 import LowStockAlert from "../components/dashboard/LowStockAlert";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/useLanguage.jsx";
@@ -107,7 +108,7 @@ export default function Dashboard() {
     "Borxhi": "/debtors",
     "Klientet": "/clients",
     "Stoqet & Prokurimi": "/inventory",
-    "Ofertat": "/reports",
+    "Ofertat": "/quotes",
     "Kalendari": "/reminders",
     "Burimet Njerezore": "/super-admin",
     "Performanca Biznesi": "/invoice-analytics",
@@ -213,7 +214,7 @@ export default function Dashboard() {
         <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
           <RecentInvoices />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="space-y-4">
           <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
             <LowStockAlert />
@@ -224,6 +225,9 @@ export default function Dashboard() {
           <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
             <UndeliveredCashAlert users={undeliveredUsers} />
           </div>
+        </div>
+        <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60 hover:shadow-lg transition-shadow duration-300">
+          <QuotesSummary />
         </div>
       </div>
       </div>
