@@ -224,8 +224,6 @@ export default function Clients() {
     residential: clients.filter(c => c.classification === "residential").length,
   };
 
-  const cardFilteredClients = clients.filter(c => c.name.toLowerCase().includes(cardSearch.toLowerCase()));
-
   return (
     <div className="p-6 lg:p-10 space-y-8">
       {/* Header */}
