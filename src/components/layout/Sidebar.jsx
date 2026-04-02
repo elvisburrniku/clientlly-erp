@@ -23,7 +23,6 @@ const menuItems = [
 const performanceItems = [
   { label: "Performanca e Kompanisë", section: true },
   { label: "Raportet", icon: BarChart3, path: "/reports" },
-  { label: "Analiza Faturave", icon: BarChart3, path: "/invoice-analytics" },
 ];
 
 
