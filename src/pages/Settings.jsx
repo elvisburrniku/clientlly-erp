@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -153,7 +154,7 @@ const DEFAULT_SERVICE_CATEGORIES = [
 ];
 
 export default function Settings() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [template, setTemplate] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -177,8 +178,7 @@ export default function Settings() {
 
   useEffect(() => {
     const loadData = async () => {
-      const [u, temps, invSets, unts, cats, cbSets, svcs] = await Promise.all([
-        base44.auth.me(),
+      const [temps, invSets, unts, cats, cbSets, svcs] = await Promise.all([
         base44.entities.InvoiceTemplate.list('-created_date', 1),
         base44.entities.InvoiceSettings.list('-created_date', 1),
         base44.entities.Unit.list('-created_date', 100).catch(() => []),
@@ -187,7 +187,6 @@ export default function Settings() {
         base44.entities.ServiceCategory.list('-created_date', 200).catch(() => []),
       ]);
       setUnits(unts);
-      setUser(u);
       if (temps.length > 0) { setTemplate(temps[0]); setForm(temps[0]); }
       else setForm({ company_name: '', company_email: '', company_phone: '', company_address: '', logo_url: '', primary_color: '#4338CA', footer_text: '' });
       if (invSets.length > 0) setInvoiceSettings(invSets[0]);
