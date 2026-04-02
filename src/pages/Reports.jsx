@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import moment from "moment";
 
 export default function Reports() {
@@ -15,6 +16,8 @@ export default function Reports() {
   const [cashTransactions, setCashTransactions] = useState([]);
   const [loadingReport, setLoadingReport] = useState(null);
   const [selectedReports, setSelectedReports] = useState(['invoices']);
+  const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
+  const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
 
   useEffect(() => {
     loadReportData();
@@ -59,10 +62,18 @@ export default function Reports() {
     );
   };
 
+  const filterDataByDate = (data, dateField = 'created_date') => {
+    return data.filter(item => {
+      const itemDate = moment(item[dateField]);
+      return itemDate.isBetween(moment(dateFrom), moment(dateTo), null, '[]');
+    });
+  };
+
   const downloadReport = async (type, title, data) => {
     setLoadingReport(type);
     try {
       const { jsPDF } = await import('jspdf');
+      const filteredData = filterDataByDate(data);
       const doc = new jsPDF();
       const W = 210;
       const margin = 14;
@@ -97,7 +108,7 @@ export default function Reports() {
         y += 8;
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'normal');
-        invoices.slice(0, 100).forEach((inv, i) => {
+        filteredData.slice(0, 100).forEach((inv, i) => {
           if (y > 270) { doc.addPage(); y = 20; }
           if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
           doc.text(inv.invoice_number || '', margin + 2, y);
@@ -112,7 +123,7 @@ export default function Reports() {
         y += 8;
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'normal');
-        debtors.slice(0, 100).forEach((d, i) => {
+        filteredData.slice(0, 100).forEach((d, i) => {
           if (y > 270) { doc.addPage(); y = 20; }
           if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
           doc.text(d.name || '', margin + 2, y);
@@ -126,7 +137,7 @@ export default function Reports() {
         y += 8;
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'normal');
-        suppliers.slice(0, 100).forEach((s, i) => {
+        filteredData.slice(0, 100).forEach((s, i) => {
           if (y > 270) { doc.addPage(); y = 20; }
           if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
           doc.text(s.name || '', margin + 2, y);
@@ -141,7 +152,7 @@ export default function Reports() {
         y += 8;
         doc.setTextColor(40, 40, 40);
         doc.setFont('helvetica', 'normal');
-        cashTransactions.slice(0, 100).forEach((t, i) => {
+        filteredData.slice(0, 100).forEach((t, i) => {
           if (y > 270) { doc.addPage(); y = 20; }
           if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
           doc.text(moment(t.created_date).format('DD MMM'), margin + 2, y);
@@ -166,7 +177,22 @@ export default function Reports() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Analiza</p>
           <h1 className="text-3xl font-bold tracking-tight">Raportet Financiare</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Shiko trendet e të ardhurave dhe shpenzimeve përmes grafikëve të avancuar</p>
+        <p className="text-sm text-muted-foreground">Zgjedh periudhën e raportit dhe shkarko në PDF</p>
+      </div>
+
+      {/* Date Filters */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <h3 className="text-base font-semibold mb-4">Periudha e Raportit</h3>
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1">
+            <Label className="text-xs font-semibold mb-2 block">Nga data</Label>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs font-semibold mb-2 block">Deri në datë</Label>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </div>
+        </div>
       </div>
 
       {/* Quick Download Reports */}
