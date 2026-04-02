@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,24 @@ import { Label } from "@/components/ui/label";
 import { Building2 } from "lucide-react";
 
 export default function Onboarding() {
-  const { user } = useAuth();
+  const { user, isLoadingAuth } = useAuth();
   const [form, setForm] = useState({ name: "", code: "", phone: "", address: "", nipt: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!isLoadingAuth && !user) {
+      base44.auth.redirectToLogin(window.location.href);
+    }
+  }, [user, isLoadingAuth]);
+
+  if (isLoadingAuth || !user) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   const generateCode = (name) => {
     return name.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 30);
