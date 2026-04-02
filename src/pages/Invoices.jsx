@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { Plus, FileText, Send, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Trash2, Filter, X, SlidersHorizontal, Calendar, User, Hash } from "lucide-react";
+import { Plus, FileText, Send, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Trash2, Filter, X, SlidersHorizontal, Calendar, User, Hash, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Sheet as SheetComponent, SheetContent, SheetClose } from "@/components/ui/sheet";
@@ -697,7 +697,7 @@ export default function Invoices() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => setSendDialog(inv)}><Send className="w-4 h-4 mr-2" /> Ridërgo Faturën</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleSendReminder(inv)}><Bell className="w-4 h-4 mr-2" /> Kujtese për Faturën</DropdownMenuItem>
-                            {inv.is_open && <DropdownMenuItem onClick={() => setPaymentDialog(inv)}><DollarSign className="w-4 h-4 mr-2" /> Shto Pagesë</DropdownMenuItem>}
+                            {inv.is_open && <DropdownMenuItem onClick={() => setPaymentDialog(inv)}><Banknote className="w-4 h-4 mr-2" /> Shto Pagesë</DropdownMenuItem>}
                             {inv.invoice_type === "proforma" && <DropdownMenuItem onClick={() => handleConvertProforma(inv)}><FileText className="w-4 h-4 mr-2" /> Konverto në Faturë</DropdownMenuItem>}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleDuplicate(inv)}><Copy className="w-4 h-4 mr-2" /> Dyfisho</DropdownMenuItem>
