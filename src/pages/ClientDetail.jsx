@@ -103,82 +103,46 @@ export default function ClientDetail() {
     return ledger;
   };
 
-  const exportAccountCardPDF = () => {
-    const ledgerData = buildLedger();
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const W = 210;
-    const H = 297;
-    const margin = 14;
-    const cw = W - margin * 2;
-
-    // Company header
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(0, 0, 0);
-    doc.text('KARTELA E BLERËSIT', W / 2, 15, { align: 'center' });
-
-    doc.setLineWidth(0.5);
-    doc.line(margin, 18, W - margin, 18);
-
-    // Client Info Section
-    let y = 28;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-
-    const infoRows = [
-      ['Periudha e raportit:', `${moment(dateFrom).format('DD/MM/YYYY')}-${moment(dateTo).format('DD/MM/YYYY')}`],
-      ['Blerësi/Furnitori', client?.name || ''],
-      ['NUI/Nr TVSH', client?.nipt || ''],
-      ['Nr i telefonit:', client?.phone || '']
-    ];
-
-    infoRows.forEach(([label, value]) => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(label, margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.text(value, margin + 60, y);
-      y += 7;
-    });
-
-    y += 5;
-
-    // Table header with borders
+    // Table header
+    const col = [10, 18, 18, 22, 28, 18, 22, 22, 22];
+    const headers = ['Nr.', 'Data Dok.', 'Data Urdh.', 'Lloji', 'Nr Urdh.', 'Metoda', 'Debi (€)', 'Kredia (€)', 'Saldo (€)'];
+    
+    // Header row
     doc.setFillColor(40, 40, 40);
-    doc.rect(margin, y - 5, cw, 8, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 255, 255);
-
-    const colWidths = { nr: 8, date: 16, orderDate: 16, type: 20, ref: 25, method: 16, debi: 20, kredia: 20, saldo: 20 };
-    const headers = ['Nr.', 'Data Dok.', 'Data Urdh.', 'Lloji i Urdh.', 'Nr Urdh.', 'Mënyra e pagesës', 'Debi', 'Kredia', 'Saldo'];
-
+    
     let xPos = margin;
     headers.forEach((h, i) => {
-      const widths = Object.values(colWidths);
-      doc.text(h, xPos + 1, y - 1);
-      xPos += widths[i];
+      doc.rect(xPos, y - 5, col[i], 8, 'F');
+      doc.text(h, xPos + 1, y, { maxWidth: col[i] - 2 });
+      xPos += col[i];
     });
-
-    y += 9;
-
-    // Table rows
-    doc.setFontSize(7.5);
+    
+    y += 10;
+    
+    // Data rows
+    doc.setFontSize(7);
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'normal');
-
+    
     ledgerData.forEach((row, idx) => {
       if (y > H - 20) {
         doc.addPage();
-        y = 15;
+        y = 20;
       }
-
+      
       if (idx % 2 === 0) {
         doc.setFillColor(245, 245, 245);
-        doc.rect(margin, y - 4, cw, 5, 'F');
+        xPos = margin;
+        col.forEach(w => {
+          doc.rect(xPos, y - 4, w, 6, 'F');
+          xPos += w;
+        });
       }
-
+      
       xPos = margin;
-      const widths = Object.values(colWidths);
       const values = [
         row.nr,
         row.date,
@@ -190,44 +154,38 @@ export default function ClientDetail() {
         row.credit > 0 ? row.credit.toFixed(2) : '0.00',
         row.balance.toFixed(2)
       ];
-
+      
       values.forEach((v, i) => {
-        const align = i > 5 ? 'right' : 'left';
-        const xOffset = align === 'right' ? widths[i] - 1 : 1;
-        doc.text(String(v).slice(0, 20), xPos + xOffset, y, { align });
-        xPos += widths[i];
+        const align = i >= 6 ? 'right' : 'left';
+        const txt = String(v).substring(0, col[i] - 2);
+        doc.text(txt, xPos + 1, y, { align, maxWidth: col[i] - 2 });
+        xPos += col[i];
       });
-
-      y += 5;
+      
+      y += 6;
     });
-
-    // Totals row
-    doc.setFillColor(220, 220, 220);
-    doc.rect(margin, y - 4, cw, 5, 'F');
+    
+    // Totals
+    doc.setFillColor(200, 200, 200);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-
+    xPos = margin;
+    col.forEach((w, i) => {
+      doc.rect(xPos, y - 4, w, 6, 'F');
+      xPos += w;
+    });
+    
     const totalDebit = ledgerData.reduce((s, r) => s + r.debit, 0);
     const totalCredit = ledgerData.reduce((s, r) => s + r.credit, 0);
     const finalBalance = ledgerData[ledgerData.length - 1]?.balance || 0;
-
+    
     xPos = margin;
-    const widths = Object.values(colWidths);
-    const totals = [
-      '', '', '', '', '',
-      '',
-      totalDebit.toFixed(2),
-      totalCredit.toFixed(2),
-      finalBalance.toFixed(2)
-    ];
-
+    const totals = ['', '', '', '', '', '', totalDebit.toFixed(2), totalCredit.toFixed(2), finalBalance.toFixed(2)];
     totals.forEach((v, i) => {
       if (v) {
-        const align = i > 5 ? 'right' : 'left';
-        const xOffset = align === 'right' ? widths[i] - 1 : 1;
-        doc.text(v, xPos + xOffset, y + 1, { align });
+        const align = i >= 6 ? 'right' : 'left';
+        doc.text(v, xPos + 1, y, { align, maxWidth: col[i] - 2 });
       }
-      xPos += widths[i];
+      xPos += col[i];
     });
 
     // Footer
@@ -237,7 +195,7 @@ export default function ClientDetail() {
     doc.text('Kjo Kartel e blersit u gjenerua nga: ERP Finance', W / 2, H - 5, { align: 'center' });
 
     doc.save(`kartela_${client?.name?.replace(/\s+/g, '_') || 'klient'}_${dateFrom}_${dateTo}.pdf`);
-  };
+  }
 
   if (loading) {
     return (
