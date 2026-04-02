@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+  import { useParams, useNavigate } from 'react-router-dom';
+  import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Download, ArrowLeft } from 'lucide-react';
 import { jsPDF } from 'jspdf';
@@ -102,6 +102,22 @@ export default function ClientDetail() {
 
     return ledger;
   };
+
+  const exportAccountCardPDF = () => {
+    const ledgerData = buildLedger();
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' });
+    const W = 297;
+    const H = 210;
+    const margin = 14;
+    let y = 40;
+
+    // Title
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Kartela e Bleresit/Furnitorit - ${client?.name || ''}`, margin, 20);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Periudha: ${dateFrom} deri ${dateTo}`, margin, 30);
 
     // Table header
     const col = [10, 18, 18, 22, 28, 18, 22, 22, 22];
