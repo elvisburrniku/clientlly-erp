@@ -1,0 +1,145 @@
+{
+  "name": "Quote",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
+    "quote_number": {
+      "type": "string",
+      "description": "Unique quote number"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client email"
+    },
+    "client_phone": {
+      "type": "string",
+      "description": "Client phone"
+    },
+    "client_nipt": {
+      "type": "string",
+      "description": "Client NIPT"
+    },
+    "client_address": {
+      "type": "string",
+      "description": "Client address"
+    },
+    "items": {
+      "type": "array",
+      "description": "Quote line items",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "product",
+              "service"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "price_ex_vat": {
+            "type": "number"
+          },
+          "vat_rate": {
+            "type": "number"
+          },
+          "price_inc_vat": {
+            "type": "number"
+          },
+          "line_total": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Total without VAT"
+    },
+    "discount_type": {
+      "type": "string",
+      "enum": [
+        "none",
+        "percentage",
+        "fixed"
+      ],
+      "default": "none"
+    },
+    "discount_value": {
+      "type": "number",
+      "default": 0
+    },
+    "discount_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "vat_amount": {
+      "type": "number",
+      "description": "Total VAT amount"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Quote total with VAT"
+    },
+    "description": {
+      "type": "string",
+      "description": "Quote description/notes"
+    },
+    "validity_days": {
+      "type": "number",
+      "default": 30,
+      "description": "Days until quote expires"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "sent",
+        "accepted",
+        "rejected",
+        "expired",
+        "converted"
+      ],
+      "default": "draft"
+    },
+    "template": {
+      "type": "string",
+      "enum": [
+        "classic",
+        "modern"
+      ],
+      "default": "classic"
+    },
+    "converted_to_invoice_id": {
+      "type": "string",
+      "description": "Invoice ID if converted"
+    },
+    "internal_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "quote_number",
+    "client_name",
+    "amount"
+  ]
+}

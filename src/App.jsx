@@ -10,6 +10,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Invoices from './pages/Invoices';
+import Quotes from './pages/Quotes';
 import Expenses from './pages/Expenses';
 import Products from './pages/Products';
 import Reminders from './pages/Reminders';
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Dashboard />} />
         <Route path="/invoices" element={<Invoices />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
+        <Route path="/quotes" element={<Quotes />} />
         <Route path="/expenses" element={<Expenses />} />
         <Route path="/products" element={<Products />} />
         <Route path="/reminders" element={<Reminders />} />
