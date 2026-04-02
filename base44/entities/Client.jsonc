@@ -25,12 +25,12 @@
     "classification": {
       "type": "string",
       "enum": [
-        "regular",
-        "vip",
-        "new"
+        "institutional",
+        "business",
+        "residential"
       ],
       "description": "Klasifikimi i klientit",
-      "default": "new"
+      "default": "business"
     },
     "total_spent": {
       "type": "number",

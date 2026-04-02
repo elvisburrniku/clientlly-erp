@@ -19,7 +19,7 @@ const emptyForm = () => ({
   phone: "",
   nipt: "",
   address: "",
-  classification: "new",
+  classification: "business",
   notes: "",
 });
 
@@ -91,11 +91,11 @@ export default function Clients() {
 
   const classificationBadge = (classification) => {
     const styles = {
-      regular: "bg-blue-100 text-blue-700",
-      vip: "bg-amber-100 text-amber-700",
-      new: "bg-emerald-100 text-emerald-700",
+      institutional: "bg-blue-100 text-blue-700",
+      business: "bg-amber-100 text-amber-700",
+      residential: "bg-emerald-100 text-emerald-700",
     };
-    const labels = { regular: "I Rregullt", vip: "VIP", new: "I Ri" };
+    const labels = { institutional: "Institucional", business: "Biznesor", residential: "Rezidencial" };
     return (
       <span className={cn("text-xs font-semibold px-2.5 py-1 rounded-full", styles[classification])}>
         {labels[classification] || classification}
@@ -170,9 +170,9 @@ export default function Clients() {
 
   const stats = {
     total: clients.length,
-    vip: clients.filter(c => c.classification === "vip").length,
-    regular: clients.filter(c => c.classification === "regular").length,
-    new: clients.filter(c => c.classification === "new").length,
+    institutional: clients.filter(c => c.classification === "institutional").length,
+    business: clients.filter(c => c.classification === "business").length,
+    residential: clients.filter(c => c.classification === "residential").length,
   };
 
   return (
@@ -199,16 +199,16 @@ export default function Clients() {
           <p className="text-2xl font-bold mt-1">{stats.total}</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">VIP</p>
-          <p className="text-2xl font-bold mt-1 text-amber-600">{stats.vip}</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Institucional</p>
+          <p className="text-2xl font-bold mt-1 text-blue-600">{stats.institutional}</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">I Rregullt</p>
-          <p className="text-2xl font-bold mt-1 text-blue-600">{stats.regular}</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Biznesor</p>
+          <p className="text-2xl font-bold mt-1 text-amber-600">{stats.business}</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">I Ri</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">{stats.new}</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rezidencial</p>
+          <p className="text-2xl font-bold mt-1 text-emerald-600">{stats.residential}</p>
         </div>
       </div>
 
@@ -263,7 +263,7 @@ export default function Clients() {
             <div className="px-6 pt-5 pb-5">
               <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Klasifikimi</span>
               <div className="flex bg-muted rounded-xl p-1">
-                {[["","Të gjitha"],["new","I Ri"],["regular","I Rregullt"],["vip","VIP"]].map(([v,l]) => (
+                {[["","Të gjitha"],["institutional","Institucional"],["business","Biznesor"],["residential","Rezidencial"]].map(([v,l]) => (
                   <button key={v} onClick={() => setFilterClassification(v)}
                     className={cn("flex-1 px-2 py-1.5 text-xs font-semibold rounded-lg transition-all",
                       filterClassification === v ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>{l}</button>
@@ -379,9 +379,9 @@ export default function Clients() {
               <Select value={form.classification} onValueChange={(v) => setForm({ ...form, classification: v })}>
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">I Ri</SelectItem>
-                  <SelectItem value="regular">I Rregullt</SelectItem>
-                  <SelectItem value="vip">VIP</SelectItem>
+                  <SelectItem value="institutional">Institucional</SelectItem>
+                  <SelectItem value="business">Biznesor</SelectItem>
+                  <SelectItem value="residential">Rezidencial</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -433,9 +433,9 @@ export default function Clients() {
               <Select value={form.classification} onValueChange={(v) => setForm({ ...form, classification: v })}>
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">I Ri</SelectItem>
-                  <SelectItem value="regular">I Rregullt</SelectItem>
-                  <SelectItem value="vip">VIP</SelectItem>
+                  <SelectItem value="institutional">Institucional</SelectItem>
+                  <SelectItem value="business">Biznesor</SelectItem>
+                  <SelectItem value="residential">Rezidencial</SelectItem>
                 </SelectContent>
               </Select>
             </div>
