@@ -10,9 +10,12 @@ import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
 import UpcomingReminders from "../components/dashboard/UpcomingReminders";
 import LowStockAlert from "../components/dashboard/LowStockAlert";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/useLanguage.jsx";
+import { useEffect, useState } from "react";
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const tenantId = user?.tenant_id;
   const [period, setPeriod] = useState("today");
   const [vatMode, setVatMode] = useState("inc");
@@ -117,7 +120,7 @@ export default function Dashboard() {
     { icon: Wallet,     title: "Arka",           value: `€${stats.cashBalance.toLocaleString()}`,               description: "Bilanci i arkës",               color: "green" },
   ];
 
-  const periodLabels = { today: "Sot", month: "Muaji", year: "Viti" };
+  const periodLabels = { today: t("today"), month: t("month"), year: t("year") };
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8 animate-fade-in">
@@ -149,8 +152,8 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-5xl font-bold tracking-tight text-black">Mirë se vjen</h1>
-            <p className="text-black text-base">Ja çfarë po ndodh sot me biznesin tënd</p>
+            <h1 className="text-5xl font-bold tracking-tight text-black">{t("welcome")}</h1>
+            <p className="text-black text-base">{t("whatHappening")}</p>
           </div>
           <div className="flex gap-4">
             {/* Period filter */}
@@ -167,11 +170,11 @@ export default function Dashboard() {
               <button onClick={() => setVatMode("inc")}
                 className={cn("px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200",
                   vatMode === "inc" ? "bg-white text-success shadow-sm" : "text-muted-foreground hover:text-foreground"
-                )}>Me TVSH</button>
+                )}>{t("withVat")}</button>
               <button onClick={() => setVatMode("exc")}
                 className={cn("px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200",
                   vatMode === "exc" ? "bg-white text-slate-700 shadow-sm" : "text-muted-foreground hover:text-foreground"
-                )}>Pa TVSH</button>
+                )}>{t("withoutVat")}</button>
             </div>
           </div>
         </div>

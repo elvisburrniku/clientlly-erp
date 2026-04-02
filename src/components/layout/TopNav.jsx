@@ -9,6 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import LanguageSwitcher from './LanguageSwitcher';
+import { Search, Bell, ChevronDown, LogOut } from 'lucide-react';
 
 export default function TopNav() {
   const [user, setUser] = useState(null);
@@ -36,10 +38,12 @@ export default function TopNav() {
       </div>
 
       {/* Right side */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        {/* Language Switcher */}
+        <LanguageSwitcher />
         {/* Notifications */}
         <button className="relative w-9 h-9 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
-          <Bell className="w-4.5 h-4.5 text-muted-foreground" />
+          <Bell className="w-4 h-4 text-muted-foreground" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
         </button>
 
