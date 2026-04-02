@@ -653,7 +653,7 @@ export default function Invoices() {
                 </tr>
               ) : (
                 paginated.map((inv, idx) => (
-                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors">
+                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors group">
                     <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{(page - 1) * PAGE_SIZE + idx + 1}</td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</span>
