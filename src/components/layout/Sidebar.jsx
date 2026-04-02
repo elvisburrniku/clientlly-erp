@@ -24,27 +24,11 @@ const menuItems = [
 export default function Sidebar() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const [inactivityTimer, setInactivityTimer] = useState(null);
-
-  const resetInactivityTimer = () => {
-    if (collapsed) return;
-    if (inactivityTimer) clearTimeout(inactivityTimer);
-    const timer = setTimeout(() => setCollapsed(true), 60000);
-    setInactivityTimer(timer);
-  };
-
-  useEffect(() => {
-    window.addEventListener("mousemove", resetInactivityTimer);
-    window.addEventListener("keydown", resetInactivityTimer);
-    return () => {
-      window.removeEventListener("mousemove", resetInactivityTimer);
-      window.removeEventListener("keydown", resetInactivityTimer);
-      if (inactivityTimer) clearTimeout(inactivityTimer);
-    };
-  }, [inactivityTimer, collapsed]);
 
   return (
     <aside
+      onMouseLeave={() => setCollapsed(true)}
+      onMouseEnter={() => setCollapsed(false)}
       className={cn(
         "h-screen sticky top-0 flex flex-col text-[hsl(230,40%,90%)] transition-all duration-300 ease-in-out z-30",
         "bg-gradient-to-b from-slate-900 to-slate-800",
@@ -52,7 +36,7 @@ export default function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div onMouseEnter={() => inactivityTimer && clearTimeout(inactivityTimer)} className="flex items-center gap-3 px-5 h-16 border-b border-white/10">
+      <div className="flex items-center gap-3 px-5 h-16 border-b border-white/10">
         <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
           <span className="text-white font-bold text-sm">E</span>
         </div>
@@ -64,7 +48,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav onMouseEnter={() => inactivityTimer && clearTimeout(inactivityTimer)} className="flex-1 py-5 px-3 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-5 px-3 space-y-0.5 overflow-y-auto">
         {!collapsed && (
           <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3">Menuja</p>
         )}
@@ -92,12 +76,8 @@ export default function Sidebar() {
       </nav>
 
       {/* Collapse toggle */}
-      <button onMouseEnter={() => inactivityTimer && clearTimeout(inactivityTimer)}
-        onClick={() => {
-          setCollapsed(!collapsed);
-          if (inactivityTimer) clearTimeout(inactivityTimer);
-          setInactivityTimer(null);
-        }}
+      <button
+        onClick={() => setCollapsed(!collapsed)}
         className="flex items-center justify-center h-12 border-t border-white/10 text-white/30 hover:text-white transition-colors"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
