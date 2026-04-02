@@ -707,6 +707,7 @@ export default function Quotes() {
                     onChange={(value) => setFormData({ ...formData, work_description: value })}
                     modules={{
                       toolbar: [
+                        [{ 'font': [] }],
                         ['bold', 'italic', 'underline'],
                         [{ 'size': ['small', false, 'large', 'huge'] }],
                         [{ 'color': [] }],
