@@ -87,6 +87,8 @@ export default function Expenses() {
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [mergeDateFrom, setMergeDateFrom] = useState("");
   const [mergeDateTo, setMergeDateTo] = useState("");
+  const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
+  const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '', category: '' });
   const [mergeOpen, setMergeOpen] = useState(false);
 
   useEffect(() => { loadData(); loadCategories(); loadBudgets(); }, []);
@@ -154,6 +156,15 @@ export default function Expenses() {
     await base44.entities.Expense.delete(id);
     toast.success("Shpenzimi u fshi");
     loadData();
+  };
+
+  const handleCreateSupplier = async () => {
+    if (!newSupplier.name?.trim()) return;
+    await base44.entities.Supplier.create(newSupplier);
+    setForm({ ...form, supplier: newSupplier.name });
+    setNewSupplier({ name: '', email: '', phone: '', address: '', category: '' });
+    setSupplierDialogOpen(false);
+    toast.success("Furnitori u krijua");
   };
 
   const getBudgetStatus = (categoryId) => {
@@ -540,14 +551,14 @@ export default function Expenses() {
 
       {/* Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Shto Shpenzim të Ri</DialogTitle>
             <DialogDescription>Plotëso të dhënat. Fatura do të gjenerohet automatikisht.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-4">
             <div>
-              <Label className="text-xs">Kategoria *</Label>
+              <Label>Kategoria *</Label>
               <div className="mt-1.5">
                 <CategorySelector
                   value={form.category}
@@ -559,7 +570,10 @@ export default function Expenses() {
             </div>
             <div>
               <Label>Furnitori</Label>
-              <Input placeholder="Emri i furnitorit" value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} className="mt-1.5 text-sm" />
+              <div className="flex gap-2 mt-1.5">
+                <Input placeholder="Emri i furnitorit" value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} className="text-sm" />
+                <Button variant="outline" onClick={() => setSupplierDialogOpen(true)} className="gap-1 text-xs"><Plus className="w-3.5 h-3.5" /> Shto</Button>
+              </div>
             </div>
             <div>
               <Label>Përshkrimi</Label>
@@ -640,6 +654,42 @@ export default function Expenses() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setMergeOpen(false)}>Anulo</Button>
             <Button onClick={exportMergePDF} className="gap-2"><Layers className="w-4 h-4" /> Gjenero Raport</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Supplier Dialog */}
+      <Dialog open={supplierDialogOpen} onOpenChange={setSupplierDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Krijo Furnitor të Ri</DialogTitle>
+            <DialogDescription>Plotëso të dhënat e furnitorit</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div>
+              <Label>Emri i Furnitorit *</Label>
+              <Input placeholder="Emri" value={newSupplier.name} onChange={(e) => setNewSupplier({...newSupplier, name: e.target.value})} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Email</Label>
+              <Input type="email" placeholder="email@furnitor.com" value={newSupplier.email} onChange={(e) => setNewSupplier({...newSupplier, email: e.target.value})} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Telefon</Label>
+              <Input placeholder="+355 6X XXX XXXX" value={newSupplier.phone} onChange={(e) => setNewSupplier({...newSupplier, phone: e.target.value})} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Adresa</Label>
+              <Input placeholder="Adresa" value={newSupplier.address} onChange={(e) => setNewSupplier({...newSupplier, address: e.target.value})} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Kategoria</Label>
+              <Input placeholder="P.sh. Elektrikë, Makineeri..." value={newSupplier.category} onChange={(e) => setNewSupplier({...newSupplier, category: e.target.value})} className="mt-1.5" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSupplierDialogOpen(false)}>Anulo</Button>
+            <Button onClick={handleCreateSupplier} disabled={!newSupplier.name?.trim()}>Krijo Furnitor</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
