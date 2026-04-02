@@ -691,7 +691,7 @@ export default function Invoices() {
                         <InvoicePDFButton invoice={inv} />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="w-4 h-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="w-4 h-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}><Eye className="w-4 h-4 mr-2" /> Shiko Faturën</DropdownMenuItem>
