@@ -149,8 +149,8 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-5xl font-bold tracking-tight text-foreground">Mirë se vjen</h1>
-            <p className="text-muted-foreground text-base">Ja çfarë po ndodh sot me biznesin tënd</p>
+            <h1 className="text-5xl font-bold tracking-tight text-black">Mirë se vjen</h1>
+            <p className="text-black text-base">Ja çfarë po ndodh sot me biznesin tënd</p>
           </div>
           <div className="flex gap-4">
             {/* Period filter */}
