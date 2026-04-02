@@ -100,6 +100,15 @@ export default function Dashboard() {
     );
   }
 
+  const cardRoutes = {
+    "Total Faturat": "/invoices",
+    "Shpenzimet": "/expenses",
+    "Borxhi": "/debtors",
+    "Klientët": "/clients",
+    "Fitim Neto": "/invoice-analytics",
+    "Arka": "/cashbox",
+  };
+
   const cards = [
     { icon: FileText,   title: "Total Faturat",  value: `€${stats.totalInvoices.toLocaleString()}`,              description: "Totali i faturave të krijuara", color: "blue" },
     { icon: TrendingDown, title: "Shpenzimet",  value: `€${stats.totalExpenses.toLocaleString()}`,              description: "Totali i shpenzimeve",          color: "rose" },
@@ -175,7 +184,13 @@ export default function Dashboard() {
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {cards.map((card) => (
-          <StatCard key={card.title} {...card} />
+          <button
+            key={card.title}
+            onClick={() => navigate(cardRoutes[card.title])}
+            className="hover:opacity-80 transition-opacity text-left"
+          >
+            <StatCard {...card} />
+          </button>
         ))}
       </div>
 
