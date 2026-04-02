@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Plus, Trash2, Pencil, MoreHorizontal, Users, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
+import moment from "moment";
 import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -154,12 +155,18 @@ export default function Clients() {
       doc.text((value || "—").toString().slice(0, 30), 8, y + 4);
       y += 10;
     };
+    const startDate = client.created_date ? moment(client.created_date).format("DD/MM/YYYY") : "—";
+    const endDate = client.created_date ? moment(client.created_date).add(1, "year").format("DD/MM/YYYY") : "—";
+    const year = new Date().getFullYear();
     addField("EMRI", client.name);
     addField("EMAIL", client.email);
     addField("TELEFON", client.phone);
     addField("NIPT", client.nipt);
     addField("ADRESA", client.address);
     addField("KLASIFIKIMI", { institutional: "Institucional", business: "Biznesor", residential: "Rezidencial" }[client.classification]);
+    addField("DATA FILLIMI", startDate);
+    addField("DATA MBARIMI", endDate);
+    addField("VITI", year);
     doc.save(`kartela_${client.name.replace(/\s+/g, "_")}.pdf`);
   };
 
