@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle, TrendingUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTriangle, TrendingUp, BanknoteIcon, ChevronRight } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import MonthlyRevenueBar from "../components/dashboard/MonthlyRevenueBar";
 import RevenueChart from "../components/dashboard/RevenueChart";
@@ -23,8 +24,20 @@ export default function Dashboard() {
   });
   const [undeliveredUsers, setUndeliveredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pendingHandovers, setPendingHandovers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => { loadDashboardData(); }, [period, vatMode]);
+
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      setCurrentUser(u);
+      if (u?.role === 'admin') {
+        base44.entities.CashHandover.filter({ status: 'pending' }).then(setPendingHandovers).catch(() => []);
+      }
+    });
+  }, []);
 
   const loadDashboardData = async () => {
     try {
@@ -95,6 +108,30 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
+      {/* Pending Handover Notification */}
+      {pendingHandovers.length > 0 && (
+        <button
+          onClick={() => navigate('/cash-handover')}
+          className="w-full flex items-center gap-4 bg-amber-50 border-2 border-amber-300 rounded-2xl px-5 py-4 hover:bg-amber-100 transition-all group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-amber-400 flex items-center justify-center shrink-0">
+            <BanknoteIcon className="w-5 h-5 text-white" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-sm font-bold text-amber-900">
+              {pendingHandovers.length === 1
+                ? `1 kërkesë dorëzimi kesh pret aprovimin`
+                : `${pendingHandovers.length} kërkesa dorëzimi kesh presin aprovimin`
+              }
+            </p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              {pendingHandovers.map(h => h.user_name || h.user_email?.split('@')[0]).filter(Boolean).join(', ')}
+            </p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-amber-600 group-hover:translate-x-1 transition-transform" />
+        </button>
+      )}
+
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-start justify-between">
