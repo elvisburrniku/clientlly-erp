@@ -194,6 +194,27 @@ export default function InvoiceDetail() {
               </div>
             </div>
 
+            {/* Warehouse Slip Products */}
+            {items.some(i => i.type === 'product') && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Package className="w-5 h-5 text-blue-600" />
+                  <p className="text-sm font-bold uppercase tracking-widest text-blue-600">Produktet e Fletëdaljes</p>
+                </div>
+                <div className="space-y-2">
+                  {items.filter(i => i.type === 'product').map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-white rounded-lg p-3 border border-blue-100">
+                      <div>
+                        <p className="font-semibold text-foreground text-sm">{item.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Sasia: {item.quantity} {item.unit}</p>
+                      </div>
+                      <span className="text-xs font-bold bg-blue-100 text-blue-700 px-3 py-1 rounded-full">✓ Në Fletëdalje</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Totals */}
             <div className="flex justify-end">
               <div className="w-full max-w-xs space-y-2">
