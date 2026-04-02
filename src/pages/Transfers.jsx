@@ -17,6 +17,7 @@ const TYPE_LABELS = {
 
 export default function Transfers() {
   const [transfers, setTransfers] = useState([]);
+  const [cashBalance, setCashBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -36,8 +37,13 @@ export default function Transfers() {
   }, []);
 
   const loadTransfers = async () => {
-    const data = await base44.entities.Transfer.list("-transfer_date", 100).catch(() => []);
+    const [data, txns] = await Promise.all([
+      base44.entities.Transfer.list("-transfer_date", 100).catch(() => []),
+      base44.entities.CashTransaction.list('-created_date', 1000).catch(() => []),
+    ]);
     setTransfers(data);
+    const balance = txns.reduce((sum, t) => t.type === 'cash_in' ? sum + t.amount : sum - t.amount, 0);
+    setCashBalance(balance);
     setLoading(false);
   };
 
@@ -57,6 +63,10 @@ export default function Transfers() {
     }
     if (parseFloat(form.amount) <= 0) {
       toast.error("Shuma duhet të jetë pozitive");
+      return;
+    }
+    if (form.type === "cash_to_bank" && parseFloat(form.amount) > cashBalance) {
+      toast.error(`Shuma tejkalon bilancin e arkës (${cashBalance.toLocaleString("de-DE", { minimumFractionDigits: 2 })} €)`);
       return;
     }
     setSaving(true);
@@ -120,6 +130,20 @@ export default function Transfers() {
         <Button onClick={() => setShowForm(true)} className="gap-2">
           <Plus className="w-4 h-4" /> Transfertë e Re
         </Button>
+      </div>
+
+      {/* Cash balance banner */}
+      <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+        <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+          <Wallet className="w-4 h-4 text-emerald-600" />
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground">Gjendja Aktuale e Arkës</p>
+          <p className={`text-lg font-bold ${cashBalance < 0 ? 'text-destructive' : 'text-emerald-600'}`}>
+            {cashBalance.toLocaleString("de-DE", { minimumFractionDigits: 2 })} €
+          </p>
+        </div>
+        <p className="text-xs text-muted-foreground ml-auto hidden sm:block">Transferta Arka → Bankë nuk lejohen të tejkalojnë këtë shumë</p>
       </div>
 
       {/* Summary cards */}
@@ -261,8 +285,9 @@ export default function Transfers() {
             </div>
 
             {form.type === "cash_to_bank" && (
-              <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700">
-                ℹ️ Ky veprim do të <strong>minusojë arkën</strong> automatikisht me shumën e specifikuar.
+              <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-700 space-y-1">
+                <div>ℹ️ Ky veprim do të <strong>minusojë arkën</strong> automatikisht me shumën e specifikuar.</div>
+                <div className="font-medium">Gjendja e arkës: {cashBalance.toLocaleString("de-DE", { minimumFractionDigits: 2 })} € — Maksimum i lejuar: {cashBalance.toLocaleString("de-DE", { minimumFractionDigits: 2 })} €</div>
               </div>
             )}
 
