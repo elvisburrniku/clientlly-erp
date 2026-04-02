@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const cw = W - margin * 2;
 
     // ── Header bar ──────────────────────────────────────────────
-    doc.setFillColor(67, 56, 202);
+    doc.setFillColor(107, 114, 126);
     doc.rect(0, 0, W, 38, 'F');
 
     doc.setTextColor(255, 255, 255);
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
       y += 5;
 
       // Table header
-      doc.setFillColor(67, 56, 202);
+      doc.setFillColor(107, 114, 126);
       doc.rect(margin, y - 4, cw, 8, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(8);
@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
 
       y += 2;
       // Total row
-      doc.setFillColor(67, 56, 202);
+      doc.setFillColor(107, 114, 126);
       doc.rect(margin, y - 4, cw, 8, 'F');
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Footer ───────────────────────────────────────────────────
-    doc.setFillColor(67, 56, 202);
+    doc.setFillColor(107, 114, 126);
     doc.rect(0, H - 14, W, 14, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(7);
