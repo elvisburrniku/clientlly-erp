@@ -202,6 +202,7 @@ export default function Royalties() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
+                <th className="text-left py-3 px-4 font-semibold text-muted-foreground w-10">Nr</th>
                 <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Fatura</th>
                 <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Klient</th>
                 <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Pa TVSH (€)</th>
@@ -219,6 +220,7 @@ export default function Royalties() {
                   const royalty = subtotal * (royaltyPercentage / 100);
                   return (
                     <tr key={inv.id} className={i % 2 === 0 ? "bg-muted/30 hover:bg-muted/50" : "hover:bg-muted/30"}>
+                      <td className="py-3 px-4 text-muted-foreground text-sm">{i + 1}</td>
                       <td className="py-3 px-4">{inv.invoice_number}</td>
                       <td className="py-3 px-4">{inv.client_name}</td>
                       <td className="text-right py-3 px-4">€{subtotal.toFixed(2)}</td>
@@ -229,7 +231,7 @@ export default function Royalties() {
               )}
               {filteredInvoices.length > 0 && (
                 <tr className="border-t-2 border-t-foreground font-semibold bg-primary/5">
-                  <td colSpan="2" className="py-3 px-4">Totali</td>
+                  <td colSpan="3" className="py-3 px-4">Totali</td>
                   <td className="text-right py-3 px-4">€{totalSubtotal.toFixed(2)}</td>
                   <td className="text-right py-3 px-4">€{totalRoyalties.toFixed(2)}</td>
                 </tr>
