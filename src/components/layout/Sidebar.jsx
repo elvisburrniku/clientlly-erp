@@ -15,7 +15,7 @@ const menuItems = [
   { label: "Furnitorët", icon: Truck, path: "/suppliers" },
   { label: "Arka", icon: Wallet, path: "/cashbox" },
   { label: "Transfertat", icon: ArrowRightLeft, path: "/transfers" },
-  { label: "Debitorët", icon: AlertCircle, path: "/debtors" },
+  { label: "Borxhet", icon: AlertCircle, path: "/debtors" },
   { label: "Shpenzimet", icon: DollarSign, path: "/expenses" },
   { label: "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover" },
   { label: "Raportet", icon: BarChart3, path: "/reports" },
