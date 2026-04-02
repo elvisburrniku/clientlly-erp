@@ -72,7 +72,9 @@ export default function Onboarding() {
 
     // Refresh auth state to pickup tenant_id
     await checkAppState();
-    window.location.href = "/";
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 500);
     setLoading(false);
   };
 
