@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, MoreHorizontal, Mail, Phone } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Mail, Phone, Download, SlidersHorizontal } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "@/components/ui/sheet";
+import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,9 @@ export default function Suppliers() {
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterActive, setFilterActive] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterPaymentTerms, setFilterPaymentTerms] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -89,10 +94,44 @@ export default function Suppliers() {
   const filtered = suppliers.filter(s => {
     const matchesSearch = s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          s.email.toLowerCase().includes(searchTerm.toLowerCase());
-    if (filterActive === "active") return matchesSearch && s.is_active;
-    if (filterActive === "inactive") return matchesSearch && !s.is_active;
-    return matchesSearch;
+    const matchesActive = filterActive === "all" || (filterActive === "active" ? s.is_active : !s.is_active);
+    const matchesCategory = !filterCategory || s.category === filterCategory;
+    const matchesPaymentTerms = !filterPaymentTerms || s.payment_terms === filterPaymentTerms;
+    return matchesSearch && matchesActive && matchesCategory && matchesPaymentTerms;
   });
+
+  const categories = [...new Set(suppliers.map(s => s.category).filter(Boolean))];
+  const paymentTerms = [...new Set(suppliers.map(s => s.payment_terms).filter(Boolean))];
+  const hasFilters = filterCategory || filterPaymentTerms || filterActive !== "all";
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Lista e Furnitorëve", 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Data: ${new Date().toLocaleDateString("sq-AL")}`, 14, 23);
+    const columns = ["Nr.", "Emri", "Email", "Telefon", "Kategoria", "Status"];
+    const data = filtered.map((s, i) => [i + 1, s.name, s.email, s.phone || "—", s.category || "—", s.is_active ? "Aktiv" : "Jo Aktiv"]);
+    doc.autoTable({ columns, body: data, startY: 30, theme: "grid" });
+    doc.save("Furnitoret.pdf");
+  };
+
+  const exportCSV = () => {
+    const headers = ["Nr.", "Emri", "Email", "Telefon", "Kategoria", "Termat Pagese", "Status"];
+    const rows = filtered.map((s, i) => [i + 1, s.name, s.email, s.phone || "—", s.category || "—", s.payment_terms || "—", s.is_active ? "Aktiv" : "Jo Aktiv"].map(v => `"${v}"`).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const link = document.createElement("a");
+    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    link.download = "Furnitoret.csv";
+    link.click();
+  };
+
+  const clearFilters = () => {
+    setFilterActive("all");
+    setFilterCategory("");
+    setFilterPaymentTerms("");
+    setFilterOpen(false);
+  };
 
   if (loading) {
     return (
@@ -135,24 +174,64 @@ export default function Suppliers() {
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Input placeholder="Kërko sipas emrit ose email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm" />
-          <Select value={filterActive} onValueChange={setFilterActive}>
-            <SelectTrigger className="sm:w-40"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Të gjithë</SelectItem>
-              <SelectItem value="active">Aktiv</SelectItem>
-              <SelectItem value="inactive">Jo Aktiv</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+         <Input placeholder="Kërko sipas emrit ose email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm flex-1" />
+         <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+           <SheetTrigger asChild>
+             <button className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit ${hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50"}`}>
+               <SlidersHorizontal className="w-4 h-4" /> Filtrat
+               {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>}
+             </button>
+           </SheetTrigger>
+           <SheetContent side="right" className="w-full sm:w-[350px]">
+             <SheetHeader className="border-b pb-4">
+               <h3 className="font-bold">Filtrat</h3>
+             </SheetHeader>
+             <div className="space-y-5 py-5">
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-2">Status</label>
+                 <Select value={filterActive} onValueChange={setFilterActive}>
+                   <SelectTrigger><SelectValue /></SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="all">Të gjithë</SelectItem>
+                     <SelectItem value="active">Aktiv</SelectItem>
+                     <SelectItem value="inactive">Jo Aktiv</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-2">Kategoria</label>
+                 <Select value={filterCategory} onValueChange={setFilterCategory}>
+                   <SelectTrigger><SelectValue placeholder="Të gjitha" /></SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value={null}>Të gjitha</SelectItem>
+                     {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-2">Termat e Pagesës</label>
+                 <Select value={filterPaymentTerms} onValueChange={setFilterPaymentTerms}>
+                   <SelectTrigger><SelectValue placeholder="Të gjitha" /></SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value={null}>Të gjitha</SelectItem>
+                     {paymentTerms.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+               {hasFilters && <Button variant="outline" onClick={clearFilters} className="w-full">Pastro Filtrat</Button>}
+             </div>
+           </SheetContent>
+         </Sheet>
+         <Button onClick={exportCSV} variant="outline" className="gap-2"><Download className="w-4 h-4" /> CSV</Button>
+         <Button onClick={exportPDF} variant="outline" className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+       </div>
 
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <p className="font-semibold text-sm">{filtered.length} furnitorë</p>
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
+          <p className="font-semibold text-sm">{filtered.length} furnitorë{hasFilters ? " (filtruara)" : ""}</p>
+          {hasFilters && <button onClick={clearFilters} className="px-3 py-1 text-xs font-semibold rounded-lg border border-destructive/40 text-destructive hover:bg-destructive hover:text-white transition-all">✕ Pastro</button>}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -170,7 +249,7 @@ export default function Suppliers() {
             <tbody className="divide-y divide-border">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8">
+                  <td colSpan={7} className="text-center py-8">
                     <p className="text-sm text-muted-foreground">Asnjë furnitor i gjetshëm</p>
                   </td>
                 </tr>
@@ -181,17 +260,11 @@ export default function Suppliers() {
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold">{supplier.name}</span>
                       {supplier.contact_person && <p className="text-xs text-muted-foreground">{supplier.contact_person}</p>}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="space-y-1">
-                        <a href={`mailto:${supplier.email}`} className="flex items-center gap-1 text-primary hover:underline text-xs">
-                          <Mail className="w-3 h-3" /> {supplier.email}
-                        </a>
-                        {supplier.phone && <a href={`tel:${supplier.phone}`} className="flex items-center gap-1 text-primary hover:underline text-xs">
-                          <Phone className="w-3 h-3" /> {supplier.phone}
-                        </a>}
-                      </div>
-                    </td>
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          <a href={`mailto:${supplier.email}`} className="text-primary hover:underline text-xs">{supplier.email}</a>
+                          {supplier.phone && <p className="text-xs text-muted-foreground mt-0.5">{supplier.phone}</p>}
+                        </td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">{supplier.category || "—"}</td>
                     <td className="px-6 py-4 text-xs text-muted-foreground">{supplier.payment_terms || "—"}</td>
                     <td className="px-6 py-4">
