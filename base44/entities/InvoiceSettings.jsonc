@@ -28,6 +28,11 @@
     },
     "default_payment_notes": {
       "type": "string"
+    },
+    "royalty_percentage": {
+      "type": "number",
+      "default": 6,
+      "description": "Perqindja e royalties"
     }
   },
   "required": []

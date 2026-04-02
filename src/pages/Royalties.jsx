@@ -12,10 +12,22 @@ export default function Royalties() {
   const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
   const [loading, setLoading] = useState(false);
+  const [royaltyPercentage, setRoyaltyPercentage] = useState(6);
+  const [settings, setSettings] = useState(null);
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     loadData();
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    const sets = await base44.entities.InvoiceSettings.list("-created_date", 1);
+    if (sets.length > 0) {
+      setSettings(sets[0]);
+      setRoyaltyPercentage(sets[0].royalty_percentage || 6);
+    }
+  };
 
   const loadData = async () => {
     const data = await base44.entities.Invoice.list("-created_date", 500);
@@ -27,6 +39,26 @@ export default function Royalties() {
       const itemDate = moment(item.created_date);
       return itemDate.isBetween(moment(dateFrom), moment(dateTo), null, '[]');
     });
+  };
+
+  const saveRoyaltyPercentage = async () => {
+    setSavingSettings(true);
+    try {
+      const shouldSave = window.confirm(`Deshironi ta zgjdhni ${royaltyPercentage}% si perqindjen e radhes ne te ardhmen?`);
+      if (shouldSave) {
+        if (settings) {
+          await base44.entities.InvoiceSettings.update(settings.id, { royalty_percentage: royaltyPercentage });
+        } else {
+          await base44.entities.InvoiceSettings.create({ royalty_percentage: royaltyPercentage });
+          await loadSettings();
+        }
+        alert('Perqindja e royalties u ruajt!');
+      }
+    } catch (error) {
+      console.error('Error saving royalty percentage:', error);
+      alert('Gabim gjate ruajtjes');
+    }
+    setSavingSettings(false);
   };
 
   const downloadRoyaltiesPDF = async () => {
@@ -45,7 +77,7 @@ export default function Royalties() {
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text('ROYALTIES (6% PA TVSH)', margin, 15);
+      doc.text(`ROYALTIES (${royaltyPercentage}% PA TVSH)`, margin, 15);
 
       // Date
       doc.setFontSize(8);
@@ -73,7 +105,7 @@ export default function Royalties() {
         if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, cw, 5, 'F'); }
         
         const subtotal = inv.subtotal || (inv.amount / 1.2);
-        const royalty = subtotal * 0.06;
+        const royalty = subtotal * (royaltyPercentage / 100);
         
         doc.text(inv.invoice_number || '', margin + 2, y);
         doc.text((inv.client_name || '').slice(0, 25), margin + 40, y);
@@ -84,7 +116,7 @@ export default function Royalties() {
 
       // Footer with totals
       const totalSubtotal = filteredData.reduce((sum, inv) => sum + (inv.subtotal || inv.amount / 1.2), 0);
-      const totalRoyalties = totalSubtotal * 0.06;
+      const totalRoyalties = totalSubtotal * (royaltyPercentage / 100);
       
       doc.setFillColor(107, 114, 126);
       doc.rect(margin, y + 2, cw, 8, 'F');
@@ -103,7 +135,7 @@ export default function Royalties() {
 
   const filteredInvoices = filterDataByDate(invoices);
   const totalSubtotal = filteredInvoices.reduce((sum, inv) => sum + (inv.subtotal || inv.amount / 1.2), 0);
-  const totalRoyalties = totalSubtotal * 0.06;
+  const totalRoyalties = totalSubtotal * (royaltyPercentage / 100);
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -113,7 +145,21 @@ export default function Royalties() {
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Analiza</p>
           <h1 className="text-3xl font-bold tracking-tight">Royalties</h1>
         </div>
-        <p className="text-sm text-muted-foreground">6% nga vlera pa TVSH e secilit fature</p>
+        <p className="text-sm text-muted-foreground">{royaltyPercentage}% nga vlera pa TVSH e secilit fature</p>
+      </div>
+
+      {/* Royalty Percentage */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <h3 className="text-base font-semibold mb-4">Perqindja e Royalties</h3>
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1 max-w-xs">
+            <Label className="text-xs font-semibold mb-2 block">Perqindja (%)</Label>
+            <Input type="number" min="0" max="100" step="0.1" value={royaltyPercentage} onChange={(e) => setRoyaltyPercentage(parseFloat(e.target.value) || 0)} />
+          </div>
+          <Button onClick={saveRoyaltyPercentage} disabled={savingSettings} variant="outline" className="gap-2">
+            {savingSettings ? 'Duke ruajtur...' : 'Ruaj si Default'}
+          </Button>
+        </div>
       </div>
 
       {/* Date Filters */}
@@ -145,7 +191,7 @@ export default function Royalties() {
           <p className="text-2xl font-bold mt-1 text-primary">€{totalSubtotal.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Royalties</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Royalties ({royaltyPercentage}%)</p>
           <p className="text-2xl font-bold mt-1 text-emerald-600">€{totalRoyalties.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
         </div>
       </div>
@@ -159,7 +205,7 @@ export default function Royalties() {
                 <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Fatura</th>
                 <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Klient</th>
                 <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Pa TVSH (€)</th>
-                <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Royalties (€)</th>
+                <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Royalties ({royaltyPercentage}%) (€)</th>
               </tr>
             </thead>
             <tbody>
@@ -170,7 +216,7 @@ export default function Royalties() {
               ) : (
                 filteredInvoices.map((inv, i) => {
                   const subtotal = inv.subtotal || (inv.amount / 1.2);
-                  const royalty = subtotal * 0.06;
+                  const royalty = subtotal * (royaltyPercentage / 100);
                   return (
                     <tr key={inv.id} className={i % 2 === 0 ? "bg-muted/30 hover:bg-muted/50" : "hover:bg-muted/30"}>
                       <td className="py-3 px-4">{inv.invoice_number}</td>
