@@ -64,11 +64,10 @@ export default function Onboarding() {
       nipt: form.nipt,
     });
 
-    // Update user with tenant_id and role admin
+    // Update user with tenant_id
     await base44.auth.updateMe({
       tenant_id: tenant.id,
       tenant_name: tenant.name,
-      role: "admin",
     });
 
     window.location.href = "/";

@@ -44,7 +44,7 @@ export default function Dashboard() {
       const [invoices, transactions, users, expenses] = await Promise.all([
         base44.entities.Invoice.list(),
         base44.entities.CashTransaction.list(),
-        base44.entities.User.list(),
+        base44.entities.User.list().catch(() => []),
         base44.entities.Expense.list(),
       ]);
 
