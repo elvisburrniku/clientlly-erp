@@ -163,7 +163,7 @@ export default function RevenueChart() {
               key={f.key}
               onClick={() => setPeriodFilter(f.key)}
               className={cn(
-                "px-2.5 py-1.5 text-xs font-medium rounded transition-all duration-200",
+                "px-2 py-0.5 text-xs font-medium rounded transition-all duration-200",
                 periodFilter === f.key
                   ? "bg-white text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -182,7 +182,7 @@ export default function RevenueChart() {
               key={f.key}
               onClick={() => setTvshFilter(f.key)}
               className={cn(
-                "px-2.5 py-1.5 text-xs font-medium rounded transition-all duration-200",
+                "px-2 py-0.5 text-xs font-medium rounded transition-all duration-200",
                 tvshFilter === f.key
                   ? "bg-white text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
