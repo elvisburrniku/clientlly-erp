@@ -252,6 +252,11 @@ export default function Reports() {
                   </tr>
                 );
               })}
+              <tr className="border-t-2 border-t-foreground font-semibold bg-gray-100">
+                <td colSpan="2" className="py-2 px-2">Totali</td>
+                <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (inv.subtotal || inv.amount / 1.2), 0).toFixed(2)}</td>
+                <td className="text-right py-2 px-2">€{filterDataByDate(invoices).reduce((sum, inv) => sum + (royalties[inv.id] || (inv.subtotal || inv.amount / 1.2) * 0.06), 0).toFixed(2)}</td>
+              </tr>
             </tbody>
           </table>
         </div>
