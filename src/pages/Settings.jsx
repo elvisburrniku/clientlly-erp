@@ -318,6 +318,16 @@ export default function Settings() {
     setUploading(false);
   };
 
+  const handleStampUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setForm({ ...form, stamp_url: file_url });
+    toast.success('Vula u ngarkua');
+    setUploading(false);
+  };
+
   const handleSaveTemplate = async () => {
     if (!form.company_name) { toast.error('Emri i kompanisë është i detyrueshëm'); return; }
     setSaving(true);
@@ -376,33 +386,42 @@ export default function Settings() {
       </div>
 
       {/* Shabllon Faturash */}
-      <div className="bg-card rounded-xl border border-border p-6 space-y-5">
-        <h3 className="text-base font-semibold">Shabllon Faturash</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div><Label>Emri i Kompanisë *</Label><Input placeholder="ScentLinq Pro" value={form.company_name || ''} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="mt-1.5" /></div>
-          <div><Label>Email i Kompanisë</Label><Input type="email" placeholder="info@company.com" value={form.company_email || ''} onChange={(e) => setForm({ ...form, company_email: e.target.value })} className="mt-1.5" /></div>
-          <div><Label>Numri i Telefonit</Label><Input placeholder="+355 6X XXX XXXX" value={form.company_phone || ''} onChange={(e) => setForm({ ...form, company_phone: e.target.value })} className="mt-1.5" /></div>
-          <div>
-            <Label>Ngjyra Kryesore</Label>
-            <div className="flex gap-2 mt-1.5">
-              <input type="color" value={form.primary_color || '#4338CA'} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} className="w-12 h-9 rounded-lg cursor-pointer border border-border" />
-              <Input value={form.primary_color || '#4338CA'} onChange={(e) => setForm({ ...form, primary_color: e.target.value })} className="flex-1" />
-            </div>
-          </div>
-        </div>
-        <div><Label>Adresa e Kompanisë</Label><Input placeholder="Tirane, Shqiperi" value={form.company_address || ''} onChange={(e) => setForm({ ...form, company_address: e.target.value })} className="mt-1.5" /></div>
-        <div>
-          <Label>Logo e Kompanisë</Label>
-          <div className="mt-1.5 flex items-center gap-3">
-            {form.logo_url && <img src={form.logo_url} alt="Logo" className="h-12 rounded-lg border border-border" />}
-            <label className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted cursor-pointer transition">
-              <Upload className="w-4 h-4" />
-              {uploading ? 'Duke ngarkuar...' : 'Ngarko Logo'}
-              <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploading} className="hidden" />
-            </label>
-          </div>
-        </div>
-        <div><Label>Teksti në Fund të Faturës</Label><Textarea placeholder="Faleminderit për besimin tuaj!" value={form.footer_text || ''} onChange={(e) => setForm({ ...form, footer_text: e.target.value })} className="mt-1.5" rows={3} /></div>
+       <div className="bg-card rounded-xl border border-border p-6 space-y-5">
+         <h3 className="text-base font-semibold">Shabllon Faturash</h3>
+         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+           <div><Label>Emri i Biznesit *</Label><Input placeholder="ABC Company" value={form.company_name || ''} onChange={(e) => setForm({ ...form, company_name: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Nr. Unik Identifikues (NUP)</Label><Input placeholder="J12345678A" value={form.company_nup || ''} onChange={(e) => setForm({ ...form, company_nup: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Nr. i TVSH</Label><Input placeholder="330032962" value={form.company_tvsh || ''} onChange={(e) => setForm({ ...form, company_tvsh: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Qyteti</Label><Input placeholder="Tiranë" value={form.company_city || ''} onChange={(e) => setForm({ ...form, company_city: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Adresa</Label><Input placeholder="Rruga, Zona" value={form.company_address || ''} onChange={(e) => setForm({ ...form, company_address: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Numri Telefonit #1</Label><Input placeholder="049904000" value={form.company_phone || ''} onChange={(e) => setForm({ ...form, company_phone: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Numri Telefonit #2</Label><Input placeholder="+355..." value={form.company_phone2 || ''} onChange={(e) => setForm({ ...form, company_phone2: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Email</Label><Input type="email" placeholder="info@company.com" value={form.company_email || ''} onChange={(e) => setForm({ ...form, company_email: e.target.value })} className="mt-1.5" /></div>
+           <div><Label>Web</Label><Input placeholder="www.company.com" value={form.company_website || ''} onChange={(e) => setForm({ ...form, company_website: e.target.value })} className="mt-1.5" /></div>
+         </div>
+         <div>
+           <Label>Logo e Kompanisë</Label>
+           <div className="mt-1.5 flex items-center gap-3">
+             {form.logo_url && <img src={form.logo_url} alt="Logo" className="h-12 rounded-lg border border-border" />}
+             <label className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted cursor-pointer transition">
+               <Upload className="w-4 h-4" />
+               {uploading ? 'Duke ngarkuar...' : 'Ngarko Logo'}
+               <input type="file" accept="image/*" onChange={handleLogoUpload} disabled={uploading} className="hidden" />
+             </label>
+           </div>
+         </div>
+         <div>
+           <Label>Vula e Biznesit</Label>
+           <div className="mt-1.5 flex items-center gap-3">
+             {form.stamp_url && <img src={form.stamp_url} alt="Stamp" className="h-16 rounded-lg border border-border" />}
+             <label className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border bg-white hover:bg-muted cursor-pointer transition">
+               <Upload className="w-4 h-4" />
+               {uploading ? 'Duke ngarkuar...' : 'Ngarko Vulë'}
+               <input type="file" accept="image/*" onChange={(e) => handleStampUpload(e)} disabled={uploading} className="hidden" />
+             </label>
+           </div>
+         </div>
+         <div><Label>Teksti në Fund të Faturës</Label><Textarea placeholder="Faleminderit për besimin tuaj!" value={form.footer_text || ''} onChange={(e) => setForm({ ...form, footer_text: e.target.value })} className="mt-1.5" rows={3} /></div>
         <Button onClick={handleSaveTemplate} disabled={saving} className="w-full gap-2">
           {saving && <Loader2 className="w-4 h-4 animate-spin" />}
           {saving ? 'Duke ruajtur...' : 'Ruaj Shabllon'}

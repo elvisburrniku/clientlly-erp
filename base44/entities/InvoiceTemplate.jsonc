@@ -9,24 +9,38 @@
     "company_name": {
       "type": "string"
     },
+    "company_nup": {
+      "type": "string",
+      "description": "Numri Unik Identifikues"
+    },
+    "company_tvsh": {
+      "type": "string",
+      "description": "Numri i TVSH"
+    },
     "company_email": {
       "type": "string"
     },
     "company_phone": {
       "type": "string"
     },
+    "company_phone2": {
+      "type": "string"
+    },
     "company_address": {
+      "type": "string"
+    },
+    "company_city": {
+      "type": "string"
+    },
+    "company_website": {
       "type": "string"
     },
     "logo_url": {
       "type": "string"
     },
-    "bg_image_url": {
-      "type": "string"
-    },
-    "primary_color": {
+    "stamp_url": {
       "type": "string",
-      "default": "#4338CA"
+      "description": "Stamp/seal image URL"
     },
     "footer_text": {
       "type": "string"
