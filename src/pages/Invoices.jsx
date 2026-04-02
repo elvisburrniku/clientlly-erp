@@ -60,6 +60,7 @@ export default function Invoices() {
   const [settings, setSettings] = useState(null);
   const [paymentDialog, setPaymentDialog] = useState(null);
   const [paymentForm, setPaymentForm] = useState({ amount: 0, method: "cash", date: new Date().toISOString().split('T')[0], notes: "" });
+  const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => { loadData(); loadSettings(); loadClients(); }, []);
 
@@ -370,6 +371,8 @@ export default function Invoices() {
     if (filterYear && d.getFullYear() !== parseInt(filterYear)) return false;
     if (filterDateFrom && d < new Date(filterDateFrom)) return false;
     if (filterDateTo && d > new Date(filterDateTo + "T23:59:59")) return false;
+    if (statusFilter === "paid" && inv.status !== "paid") return false;
+    if (statusFilter === "unpaid" && inv.status === "paid") return false;
     return true;
   });
 
@@ -421,23 +424,54 @@ export default function Invoices() {
         </div>
       </div>
 
+      {/* Quick Filter Buttons */}
+      <div className="flex items-center gap-2 flex-wrap">
+       <button
+         onClick={() => { setStatusFilter(""); clearFilters(); }}
+         className={cn(
+           "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all shadow-sm",
+           statusFilter === "" ? "bg-primary/10 border-primary text-primary" : "border-border bg-white text-foreground hover:border-primary/50"
+         )}
+       >
+         Të Gjitha
+       </button>
+       <button
+         onClick={() => { setStatusFilter("paid"); setFilterClient(""); setFilterMonth(""); setFilterYear(""); setFilterDateFrom(""); setFilterDateTo(""); setPage(1); }}
+         className={cn(
+           "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all shadow-sm",
+           statusFilter === "paid" ? "bg-success/10 border-success text-success" : "border-border bg-white text-foreground hover:border-success/50"
+         )}
+       >
+         ✓ Të Paguara
+       </button>
+       <button
+         onClick={() => { setStatusFilter("unpaid"); setFilterClient(""); setFilterMonth(""); setFilterYear(""); setFilterDateFrom(""); setFilterDateTo(""); setPage(1); }}
+         className={cn(
+           "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all shadow-sm",
+           statusFilter === "unpaid" ? "bg-destructive/10 border-destructive text-destructive" : "border-border bg-white text-foreground hover:border-destructive/50"
+         )}
+       >
+         ✕ Të Papaguara
+       </button>
+      </div>
+
       {/* Filter Trigger Button */}
       <button
-        onClick={() => setSearchOpen(true)}
-        className={cn(
-          "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
-          hasActiveFilters
-            ? "border-primary bg-primary/5 text-primary"
-            : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
-        )}
+       onClick={() => setSearchOpen(true)}
+       className={cn(
+         "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit shadow-sm",
+         hasActiveFilters
+           ? "border-primary bg-primary/5 text-primary"
+           : "border-border bg-white text-foreground hover:border-primary/50 hover:shadow-md"
+       )}
       >
-        <SlidersHorizontal className="w-4 h-4" />
-        Filtrat & Kërkimi
-        {hasActiveFilters && (
-          <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {activeFilterCount}
-          </span>
-        )}
+       <SlidersHorizontal className="w-4 h-4" />
+       Filtrat & Kërkimi
+       {hasActiveFilters && (
+         <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+           {activeFilterCount}
+         </span>
+       )}
       </button>
 
       {/* Filters Side Drawer */}
