@@ -117,6 +117,7 @@ export default function Dashboard() {
     { icon: FileText,   title: "Faturat",  value: `€${stats.totalInvoices.toLocaleString()}`,              description: "Totali i faturave të krijuara", color: "blue" },
     { icon: TrendingDown, title: "Shpenzimet",  value: `€${stats.totalExpenses.toLocaleString()}`,              description: "Totali i shpenzimeve",          color: "rose" },
     { icon: CreditCard, title: "Borxhi",        value: `€${stats.totalDebt.toLocaleString()}`,                  description: "Borxhi i mbetur",               color: "amber" },
+    { icon: Wallet,     title: "Arka",           value: `€${stats.cashBalance.toLocaleString()}`,               description: "Bilanci i arkës",               color: "green" },
     { icon: Users,      title: "Klientet",       value: stats.clientCount.toString(),                            description: "Numri i klientëve",             color: "violet" },
     { icon: Package,    title: "Stoqet & Prokurimi",  value: "→",  description: "Menaxhimi i stoqeve",        color: "indigo" },
     { icon: Gift,       title: "Ofertat",       value: "→",  description: "Raporte dhe analize",    color: "pink" },
