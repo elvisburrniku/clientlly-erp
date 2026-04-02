@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, Sheet, Calendar } from "lucide-react";
+import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -189,16 +190,27 @@ export default function Cashbox() {
 
   const handleSubmit = async () => {
     if (!amount || parseFloat(amount) <= 0) return;
+    const val = parseFloat(amount);
+
+    // Block cash_out if insufficient balance
+    if (dialogType === "cash_out" && val > balance) {
+      toast.error(`Nuk ka mjete të mjaftueshme në arkë! Bilanci aktual: €${balance.toFixed(2)}`);
+      return;
+    }
+
     setSubmitting(true);
     await base44.entities.CashTransaction.create({
-      amount: parseFloat(amount),
+      amount: val,
       type: dialogType,
       note,
       reference_type: "manual",
     });
     setDialogOpen(false);
     setSubmitting(false);
-    loadTransactions();
+    await loadTransactions();
+
+    // Check balance threshold and send notification if needed
+    base44.functions.invoke("checkCashboxBalance", {}).catch(() => {});
   };
 
   if (loading) {

@@ -1,0 +1,21 @@
+{
+  "name": "CashboxSettings",
+  "type": "object",
+  "properties": {
+    "min_balance": {
+      "type": "number",
+      "description": "Bilanci minimal i ark\u00ebs para njoftimit",
+      "default": 50
+    },
+    "alert_email": {
+      "type": "string",
+      "description": "Email ku d\u00ebrgohet njoftimi kur bilanci bie n\u00ebn minimum"
+    },
+    "notifications_enabled": {
+      "type": "boolean",
+      "description": "A jan\u00eb aktive njoftimet",
+      "default": true
+    }
+  },
+  "required": []
+}
