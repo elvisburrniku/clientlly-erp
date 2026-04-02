@@ -6,6 +6,7 @@ import { FileText, TrendingDown, CreditCard, Users, BarChart3, Wallet, AlertTria
 import StatCard from "../components/dashboard/StatCard";
 import MonthlyRevenueBar from "../components/dashboard/MonthlyRevenueBar";
 import RevenueChart from "../components/dashboard/RevenueChart";
+import RecentInvoices from "../components/dashboard/RecentInvoices";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
 import UpcomingReminders from "../components/dashboard/UpcomingReminders";
 import LowStockAlert from "../components/dashboard/LowStockAlert";
@@ -189,19 +190,21 @@ export default function Dashboard() {
 
 
 
-      {/* Chart + Alerts */}
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RevenueChart />
+        <MonthlyRevenueBar />
+      </div>
+
+      {/* Recent Invoices + Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <RevenueChart />
+          <RecentInvoices />
         </div>
         <div className="space-y-4">
           <LowStockAlert />
           <UpcomingReminders />
           <UndeliveredCashAlert users={undeliveredUsers} />
-          <div className="bg-card rounded-2xl border border-border p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">Aktiviteti i fundit</p>
-            <p className="text-sm text-muted-foreground">Nuk ka aktivitet të ri.</p>
-          </div>
         </div>
       </div>
     </div>
