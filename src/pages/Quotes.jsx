@@ -6,10 +6,11 @@ import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calendar, User, Upload, Bold, Type } from 'lucide-react';
+import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calendar, User, Upload, Bold, Type, PenTool } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
+import SignatureDialog from '@/components/quotes/SignatureDialog';
 import { cn } from '@/lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -28,6 +29,7 @@ export default function Quotes() {
   const [clientFilter, setClientFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [showSignatureDialog, setShowSignatureDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     client_name: '',
@@ -42,6 +44,7 @@ export default function Quotes() {
     validity_days: 30,
     template: 'classic',
     font_family: 'helvetica',
+    signature_image: null,
   });
 
   const statusColors = {
@@ -77,6 +80,7 @@ export default function Quotes() {
       validity_days: 30,
       template: 'classic',
       font_family: 'helvetica',
+      signature_image: null,
     });
   };
 
@@ -106,6 +110,8 @@ export default function Quotes() {
       status: 'draft',
       template: formData.template,
       font_family: formData.font_family,
+      signature_image: formData.signature_image,
+      signed_date: formData.signature_image ? new Date().toISOString() : null,
     };
 
     await base44.entities.Quote.create(quote);
@@ -236,6 +242,20 @@ export default function Quotes() {
       doc.setFontSize(8);
       const noteText = doc.splitTextToSize(quote.description, 170);
       doc.text(noteText, 20, y);
+    }
+
+    // Signature
+    if (quote.signature_image) {
+      y += 20;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('NËNSHKRIMI I KLIENTIT:', 20, y);
+      y += 8;
+      try {
+        doc.addImage(quote.signature_image, 'PNG', 20, y, 60, 30);
+      } catch (e) {
+        console.error('Error adding signature:', e);
+      }
     }
 
     doc.save(`${quote.quote_number}.pdf`);
@@ -711,10 +731,33 @@ export default function Quotes() {
               </div>
             </div>
 
-            {/* Section 6: Cilësime */}
+            {/* Section 6: Nënshkrimi */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</div>
+                <h3 className="font-semibold text-sm">Nënshkrimi Digjital</h3>
+              </div>
+              <div className="pl-8">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSignatureDialog(true)}
+                  className="gap-2 w-full justify-center"
+                >
+                  <PenTool className="w-4 h-4" />
+                  {formData.signature_image ? 'Ndrysho Nënshkrimin' : 'Shto Nënshkrimin'}
+                </Button>
+                {formData.signature_image && (
+                  <div className="mt-3 p-2 bg-muted rounded-lg">
+                    <img src={formData.signature_image} alt="Signature" className="max-h-20 w-auto" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Section 7: Cilësime */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">7</div>
                 <h3 className="font-semibold text-sm">Cilësime të Ofertës</h3>
               </div>
               <div className="grid grid-cols-3 gap-3 pl-8">
@@ -765,6 +808,13 @@ export default function Quotes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Signature Dialog */}
+      <SignatureDialog
+        open={showSignatureDialog}
+        onOpenChange={setShowSignatureDialog}
+        onSignatureSaved={(signature) => setFormData({ ...formData, signature_image: signature })}
+      />
 
       {/* Convert to Invoice Dialog */}
       <Dialog open={showConvertDialog} onOpenChange={setShowConvertDialog}>

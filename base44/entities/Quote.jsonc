@@ -129,6 +129,20 @@
       ],
       "default": "classic"
     },
+    "font_family": {
+      "type": "string",
+      "default": "helvetica",
+      "description": "Font family for PDF"
+    },
+    "signature_image": {
+      "type": "string",
+      "description": "Base64 encoded signature image"
+    },
+    "signed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date when quote was signed"
+    },
     "converted_to_invoice_id": {
       "type": "string",
       "description": "Invoice ID if converted"
