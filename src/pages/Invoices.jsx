@@ -688,10 +688,10 @@ export default function Invoices() {
                     <td className="px-6 py-4"><span className="text-xs text-muted-foreground">{inv.issued_by ? inv.issued_by.split("@")[0] : "—"}</span></td>
                     <td className="px-6 py-4">
                       <div className="flex gap-1.5 justify-end items-center">
-                       <InvoicePDFButton invoice={inv} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                       <DropdownMenu>
-                         <DropdownMenuTrigger asChild>
-                           <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="w-4 h-4" /></Button>
+                        <InvoicePDFButton invoice={inv} />
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-7 w-7"><MoreHorizontal className="w-4 h-4" /></Button>
                           </DropdownMenuTrigger>
                          <DropdownMenuContent align="end" className="w-48">
                            <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}`)}><Eye className="w-4 h-4 mr-2" /> Shiko Faturën</DropdownMenuItem>
