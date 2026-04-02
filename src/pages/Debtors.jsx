@@ -51,9 +51,11 @@ export default function Debtors() {
         debtorMap[inv.client_name].paid_amount += inv.payment_records?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
         debtorMap[inv.client_name].invoices.push({
           number: inv.invoice_number,
+          client_name: inv.client_name,
           amount: inv.amount,
           due_date: inv.due_date,
-          status: inv.status
+          status: inv.status,
+          created_date: inv.created_date
         });
         debtorMap[inv.client_name].days_overdue = Math.max(debtorMap[inv.client_name].days_overdue, daysOverdue);
         if (!debtorMap[inv.client_name].oldest_invoice_date || new Date(inv.created_date) < new Date(debtorMap[inv.client_name].oldest_invoice_date)) {
@@ -64,8 +66,9 @@ export default function Debtors() {
 
     const debtorsData = Object.values(debtorMap).map(d => ({
       ...d,
-      balance: d.total_amount - d.paid_amount
-    })).sort((a, b) => b.balance - a.balance);
+      balance: d.total_amount - d.paid_amount,
+      invoices: d.invoices.sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+    })).sort((a, b) => new Date(b.oldest_invoice_date) - new Date(a.oldest_invoice_date));
 
     setDebtors(debtorsData);
   };
@@ -409,18 +412,16 @@ export default function Debtors() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-muted/20">
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Rendor</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Debitori</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Email</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shuma Totale</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">E Paguar</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Borxh</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Vonesa</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Fatura</th>
-              </tr>
-            </thead>
+           <thead>
+             <tr className="border-b border-border bg-muted/20">
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Debitori</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Fature</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shuma Totale</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">E Paguar</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Borxh</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Vonesa</th>
+             </tr>
+           </thead>
             <tbody className="divide-y divide-border">
               {paginated.length === 0 ? (
                 <tr>
@@ -434,30 +435,30 @@ export default function Debtors() {
                   </td>
                 </tr>
               ) : (
-                paginated.map((d, idx) => (
+                paginated.flatMap((d) =>
+                  d.invoices.map((inv, invIdx) => (
                   <tr key={d.name} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(d.name)}`)}>
-                    <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{(page - 1) * PAGE_SIZE + idx + 1}</td>
-                    <td className="px-6 py-4">
-                       <span className="text-sm font-bold text-primary hover:underline">{d.name}</span>
-                     </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{d.email}</td>
-                    <td className="px-6 py-4 text-sm font-semibold">€{d.total_amount.toFixed(2)}</td>
-                    <td className="px-6 py-4 text-sm text-success">€{d.paid_amount.toFixed(2)}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-destructive">€{d.balance.toFixed(2)}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {d.days_overdue > 0 ? (
-                        <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
-                          {d.days_overdue} ditë
-                        </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{d.invoices.length}</td>
-                  </tr>
-                ))
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-bold text-primary hover:underline">{d.name}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-muted-foreground">{inv.number}</td>
+                      <td className="px-6 py-4 text-sm font-semibold">€{inv.amount?.toFixed(2) || '0.00'}</td>
+                      <td className="px-6 py-4 text-sm text-success">€{(inv.status === 'paid' ? inv.amount : 0).toFixed(2)}</td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-bold text-destructive">€{(inv.status !== 'paid' ? inv.amount : 0).toFixed(2)}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid' ? (
+                          <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
+                            {Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))} ditë
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    </tr>
+                    ))
+                    )
               )}
             </tbody>
           </table>
