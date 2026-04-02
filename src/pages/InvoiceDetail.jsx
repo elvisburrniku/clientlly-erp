@@ -8,22 +8,6 @@ import { toast } from "sonner";
 import moment from "moment";
 import InvoicePDFButton from "../components/invoices/InvoicePDFButton";
 import SendInvoiceDialog from "../components/invoices/SendInvoiceDialog";
-
-const COMPANY = {
-  name: "ScentLinq Pro",
-  email: "info@scentlinqpro-ks.com",
-  phone: "+383 49 221 223",
-  address: "Kosovë",
-};
-
-const statusConfig = {
-  draft:     { label: "Draft",    cls: "bg-slate-100 text-slate-600 border-slate-200" },
-  sent:      { label: "Dërguar",  cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  paid:      { label: "Paguar",   cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  overdue:   { label: "Vonuar",   cls: "bg-red-50 text-red-700 border-red-200" },
-  cancelled: { label: "Anuluar",  cls: "bg-muted text-muted-foreground border-border" },
-};
-
 import WarehouseSlip from "../components/invoices/WarehouseSlip";
 
 export default function InvoiceDetail() {
