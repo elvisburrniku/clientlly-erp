@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Download, AlertCircle, SlidersHorizontal, X, Filter, Calendar, Eye, Trash2, MoreHorizontal } from 'lucide-react';
+import { Search, Download, AlertCircle, SlidersHorizontal, X, Filter, Calendar } from 'lucide-react';
 import { Sheet as SheetComponent, SheetContent, SheetClose } from '@/components/ui/sheet';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
 export default function Debtors() {
@@ -177,11 +175,6 @@ export default function Debtors() {
     doc.save(`lista_debitoret_${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
-  const handleDeleteInvoice = async (inv) => {
-    if (!window.confirm(`Fshi faturën ${inv.number}?`)) return;
-    toast.success('Fatura u fshi');
-  };
-
   const totalOwed = filtered.reduce((sum, d) => sum + d.balance, 0);
   const overdueCount = filtered.filter(d => d.days_overdue > 0).length;
   
@@ -190,25 +183,25 @@ export default function Debtors() {
   const paginatedInvoices = allInvoices.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-8">
+    <div className="p-6 lg:p-10 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
-          <h1 className="text-4xl font-bold tracking-tight">Debitorët</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Debitorët</h1>
         </div>
         <div className="flex flex-wrap gap-2 self-start sm:self-auto">
-          <Button variant="outline" onClick={exportExcel} className="gap-2 rounded-xl">
+          <Button variant="outline" onClick={exportExcel} className="gap-2">
             Excel
           </Button>
-          <Button variant="outline" onClick={exportPDF} className="gap-2 rounded-xl">
+          <Button variant="outline" onClick={exportPDF} className="gap-2">
             <Download className="w-4 h-4" /> PDF Listë
           </Button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      {/* Summary Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Borxh</p>
           <p className="text-2xl font-bold mt-1 text-destructive">€{totalOwed.toFixed(2)}</p>
@@ -219,7 +212,7 @@ export default function Debtors() {
           <p className="text-2xl font-bold mt-1 text-warning">{overdueCount}</p>
           <p className="text-xs text-muted-foreground mt-0.5">debitorë</p>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 col-span-2 sm:col-span-1">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Debitorë</p>
           <p className="text-2xl font-bold mt-1">{filtered.length}</p>
           <p className="text-xs text-muted-foreground mt-0.5">aktiv</p>
@@ -415,28 +408,27 @@ export default function Debtors() {
       </SheetComponent>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden w-full">
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
           <p className="font-semibold text-sm">{filtered.length} debitorë{hasActiveFilters && ' (filtruara)'}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
+           <thead>
               <tr className="border-b border-border bg-muted/20">
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5 w-12">Nr.</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Debitori</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Fature</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shuma Totale</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">E Paguar</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Borxh</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Vonesa</th>
-                <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
-              </tr>
-            </thead>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Fature</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shuma Totale</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">E Paguar</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Borxh</th>
+               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Vonesa</th>
+             </tr>
+           </thead>
             <tbody className="divide-y divide-border">
               {paginatedInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-16">
+                  <td colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <AlertCircle className="w-7 h-7 text-muted-foreground/50" />
@@ -446,56 +438,32 @@ export default function Debtors() {
                   </td>
                 </tr>
               ) : (
-                paginatedInvoices.map((inv, idx) => {
-                  const rowNum = (page - 1) * PAGE_SIZE + idx + 1;
-                  return (
-                    <tr key={`${inv.client_name}-${inv.number}-${idx}`} className="hover:bg-muted/20 transition-colors">  
-                      <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{rowNum}</td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)}
-                          className="text-sm font-bold text-primary hover:underline"
-                        >
-                          {inv.client_name}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-muted-foreground">{inv.number}</td>
-                      <td className="px-6 py-4 text-sm font-semibold">€{inv.amount?.toFixed(2) || '0.00'}</td>
-                      <td className="px-6 py-4 text-sm text-success">€{(inv.status === 'paid' ? inv.amount : 0).toFixed(2)}</td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-destructive">€{(inv.status !== 'paid' ? inv.amount : 0).toFixed(2)}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid' ? (
-                          <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
-                            {Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))} ditë
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" className="h-7 w-7">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <DropdownMenuItem onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)}>
-                                <Eye className="w-4 h-4 mr-2" /> Shiko Debitorin
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteInvoice(inv)} className="text-destructive focus:text-destructive">
-                                <Trash2 className="w-4 h-4 mr-2" /> Fshi Faturën
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+               paginatedInvoices.map((inv, idx) => {
+                 const rowNum = (page - 1) * PAGE_SIZE + idx + 1;
+                 return (
+                   <tr key={`${inv.client_name}-${inv.number}-${idx}`} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)}>  
+                     <td className="px-6 py-4 text-sm text-muted-foreground font-medium text-right">{rowNum}</td>
+                     <td className="px-6 py-4">
+                       <span className="text-sm font-bold text-primary hover:underline">{inv.client_name}</span>
+                     </td>
+                     <td className="px-6 py-4 text-sm font-medium text-muted-foreground">{inv.number}</td>
+                     <td className="px-6 py-4 text-sm font-semibold">€{inv.amount?.toFixed(2) || '0.00'}</td>
+                     <td className="px-6 py-4 text-sm text-success">€{(inv.status === 'paid' ? inv.amount : 0).toFixed(2)}</td>
+                     <td className="px-6 py-4">
+                       <span className="text-sm font-bold text-destructive">€{(inv.status !== 'paid' ? inv.amount : 0).toFixed(2)}</span>
+                     </td>
+                     <td className="px-6 py-4">
+                       {inv.due_date && new Date(inv.due_date) < new Date() && inv.status !== 'paid' ? (
+                         <span className="text-xs font-semibold bg-destructive/10 text-destructive px-2.5 py-1 rounded-full">
+                           {Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))} ditë
+                         </span>
+                       ) : (
+                         <span className="text-xs text-muted-foreground">—</span>
+                       )}
+                     </td>
+                   </tr>
+                 );
+               })
               )}
             </tbody>
           </table>
