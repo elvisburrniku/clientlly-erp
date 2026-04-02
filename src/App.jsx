@@ -30,6 +30,7 @@ import DebtorDetail from './pages/DebtorDetail';
 import InvoiceAnalytics from './pages/InvoiceAnalytics';
 import Onboarding from './pages/Onboarding';
 import SuperAdmin from './pages/SuperAdmin';
+import ReportTemplates from './pages/ReportTemplates';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -84,6 +85,7 @@ const AuthenticatedApp = () => {
         <Route path="/invoice-analytics" element={<InvoiceAnalytics />} />
         <Route path="/client" element={<ClientPortal />} />
         <Route path="/super-admin" element={<SuperAdmin />} />
+        <Route path="/report-templates" element={<ReportTemplates />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
       <Route path="/onboarding" element={<Onboarding />} />

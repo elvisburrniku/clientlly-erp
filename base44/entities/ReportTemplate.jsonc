@@ -1,0 +1,80 @@
+{
+  "name": "ReportTemplate",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Tenant ID for multi-tenancy"
+    },
+    "name": {
+      "type": "string",
+      "description": "Emri i template-it"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "financial_summary",
+        "invoice_analysis",
+        "expense_breakdown",
+        "cash_flow"
+      ],
+      "description": "Lloji i raportit"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ],
+      "description": "Frekuenca e raportit"
+    },
+    "include_sections": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "summary",
+          "invoices",
+          "expenses",
+          "cash_transactions",
+          "debtors",
+          "charts"
+        ]
+      },
+      "description": "Seksionet q\u00eb duhen p\u00ebrfshir\u00eb n\u00eb raport"
+    },
+    "recipient_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Email-et e marr\u00ebsve"
+    },
+    "send_day_of_month": {
+      "type": "number",
+      "description": "Dita e muajit p\u00ebr t\u00eb d\u00ebrguar raportin (1-31)"
+    },
+    "send_month": {
+      "type": "number",
+      "description": "Muaji p\u00ebr raportin vjetor (1-12)"
+    },
+    "custom_title": {
+      "type": "string",
+      "description": "Titull custom p\u00ebr raport"
+    },
+    "include_company_logo": {
+      "type": "boolean",
+      "default": true
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "name",
+    "report_type",
+    "frequency",
+    "recipient_emails"
+  ]
+}

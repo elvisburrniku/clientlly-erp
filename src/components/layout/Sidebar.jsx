@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
-  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck
+  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ const menuItems = [
 const performanceItems = [
   { label: "Performanca e Kompanisë", section: true },
   { label: "Raportet", icon: BarChart3, path: "/reports" },
+  { label: "Template-e Raporteve", icon: FileBarChart, path: "/report-templates" },
 ];
 
 
