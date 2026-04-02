@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Minus, Wallet, ArrowDownCircle, ArrowUpCircle, Download, FileSpreadsheet, SlidersHorizontal, X } from "lucide-react";
+import { Plus, Minus, Trash2, Wallet, ArrowDownCircle, ArrowUpCircle, Download, FileSpreadsheet, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet as SheetDrawer, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
@@ -237,6 +237,7 @@ export default function Cashbox() {
           <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF Raport</Button>
           <Button onClick={() => openDialog("cash_in")} className="gap-2"><Plus className="w-4 h-4" /> Shto Para</Button>
           <Button onClick={() => openDialog("cash_out")} variant="outline" className="gap-2"><Minus className="w-4 h-4" /> Tërhiq Para</Button>
+          <Button onClick={() => openDialog("cash_delete")} variant="destructive" className="gap-2"><Trash2 className="w-4 h-4" /> Hiq</Button>
         </div>
       </div>
 
