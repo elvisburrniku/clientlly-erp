@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import LanguageSwitcher from './LanguageSwitcher';
-import { Search, Bell, ChevronDown, LogOut } from 'lucide-react';
 
 export default function TopNav() {
   const [user, setUser] = useState(null);

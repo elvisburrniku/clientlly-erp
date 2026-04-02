@@ -11,7 +11,6 @@ import UpcomingReminders from "../components/dashboard/UpcomingReminders";
 import LowStockAlert from "../components/dashboard/LowStockAlert";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/useLanguage.jsx";
-import { useEffect, useState } from "react";
 
 export default function Dashboard() {
   const { user } = useAuth();
