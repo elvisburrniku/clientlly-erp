@@ -447,6 +447,7 @@ export default function Cashbox() {
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Tipi</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Debi</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Kredi</th>
+                <th className="text-right text-xs font-medium text-muted-foreground px-5 py-3">Bilanci</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Shënim</th>
                 <th className="text-left text-xs font-medium text-muted-foreground px-5 py-3">Referenca</th>
               </tr>
@@ -454,12 +455,22 @@ export default function Cashbox() {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center text-sm text-muted-foreground py-12">
+                  <td colSpan={7} className="text-center text-sm text-muted-foreground py-12">
                     Nuk ka transaksione
                   </td>
                 </tr>
               ) : (
-                filtered.map((t) => (
+                (() => {
+                  // Calculate running balance oldest→newest, then display newest first
+                  const sorted = [...filtered].reverse();
+                  let running = transactions
+                    .filter(t => !filtered.find(f => f.id === t.id))
+                    .reduce((s, t) => t.type === 'cash_in' ? s + t.amount : s - t.amount, 0);
+                  const withBalance = sorted.map(t => {
+                    running += t.type === 'cash_in' ? t.amount : -t.amount;
+                    return { ...t, runningBalance: running };
+                  });
+                  return withBalance.reverse().map((t) => (
                   <tr key={t.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                     <td className="px-5 py-3.5 text-sm">{moment(t.created_date).format("DD MMM YYYY, HH:mm")}</td>
                     <td className="px-5 py-3.5">
@@ -476,10 +487,14 @@ export default function Cashbox() {
                     <td className="px-5 py-3.5 text-sm font-semibold text-success">
                       {t.type === "cash_in" ? `€${(t.amount || 0).toLocaleString()}` : "—"}
                     </td>
+                    <td className={cn("px-5 py-3.5 text-sm font-bold text-right", t.runningBalance >= 0 ? "text-primary" : "text-destructive")}>
+                      €{t.runningBalance.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
+                    </td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{t.note || "—"}</td>
                     <td className="px-5 py-3.5 text-xs text-muted-foreground capitalize">{t.reference_type || "manual"}</td>
                   </tr>
-                ))
+                  ));
+                })()
               )}
             </tbody>
           </table>
