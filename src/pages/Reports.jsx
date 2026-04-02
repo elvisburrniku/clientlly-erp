@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { BarChart3, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FinancialSummary from "../components/reports/FinancialSummary";
-import RecentActivities from "../components/reports/RecentActivities";
+
 
 import ReportPDFExport from "../components/reports/ReportPDFExport";
 import { base44 } from "@/api/base44Client";
@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import InvoiceMetrics from "@/components/reports/InvoiceMetrics";
-import InvoiceAnalyticsCharts from "@/components/reports/InvoiceAnalyticsCharts";
 import moment from "moment";
 
 export default function Reports() {
@@ -204,38 +203,32 @@ export default function Reports() {
         <FinancialSummary />
       </div>
 
-      {/* Layout: Recent Activities + Download */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          {/* Quick Download Reports */}
-          <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-            <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-6">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('invoices')}>
-                  <Checkbox checked={selectedReports.includes('invoices')} onChange={() => toggleReport('invoices')} />
-                  <Label className="cursor-pointer">Faturat</Label>
-                </div>
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('debtors')}>
-                  <Checkbox checked={selectedReports.includes('debtors')} onChange={() => toggleReport('debtors')} />
-                  <Label className="cursor-pointer">Borxhet</Label>
-                </div>
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('suppliers')}>
-                  <Checkbox checked={selectedReports.includes('suppliers')} onChange={() => toggleReport('suppliers')} />
-                  <Label className="cursor-pointer">Furnitorët</Label>
-                </div>
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('cashbox')}>
-                  <Checkbox checked={selectedReports.includes('cashbox')} onChange={() => toggleReport('cashbox')} />
-                  <Label className="cursor-pointer">Arka</Label>
-                </div>
-              </div>
-              <Button onClick={handleDownload} disabled={loadingReport !== null || selectedReports.length === 0} className="gap-2" variant="default">
-                <Download className="w-4 h-4" /> {loadingReport ? 'Duke shkarkuar...' : 'Shkarko Të Zgjedhurat'}
-              </Button>
+      {/* Quick Download Reports */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <h3 className="text-base font-semibold mb-4">Shkarkoni Raportet</h3>
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-6">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('invoices')}>
+              <Checkbox checked={selectedReports.includes('invoices')} onChange={() => toggleReport('invoices')} />
+              <Label className="cursor-pointer">Faturat</Label>
+            </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('debtors')}>
+              <Checkbox checked={selectedReports.includes('debtors')} onChange={() => toggleReport('debtors')} />
+              <Label className="cursor-pointer">Borxhet</Label>
+            </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('suppliers')}>
+              <Checkbox checked={selectedReports.includes('suppliers')} onChange={() => toggleReport('suppliers')} />
+              <Label className="cursor-pointer">Furnitorët</Label>
+            </div>
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleReport('cashbox')}>
+              <Checkbox checked={selectedReports.includes('cashbox')} onChange={() => toggleReport('cashbox')} />
+              <Label className="cursor-pointer">Arka</Label>
             </div>
           </div>
+          <Button onClick={handleDownload} disabled={loadingReport !== null || selectedReports.length === 0} className="gap-2" variant="default">
+            <Download className="w-4 h-4" /> {loadingReport ? 'Duke shkarkuar...' : 'Shkarko Të Zgjedhurat'}
+          </Button>
         </div>
-        <RecentActivities />
       </div>
     </div>
   );
