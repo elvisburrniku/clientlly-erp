@@ -10,7 +10,6 @@ import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calenda
 import { useLanguage } from '@/lib/useLanguage';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
-import QRCode from 'qrcode';
 import SignatureDialog from '@/components/quotes/SignatureDialog';
 import QuoteApprovalDialog from '@/components/quotes/QuoteApprovalDialog';
 import QuoteHistory from '@/components/quotes/QuoteHistory';
@@ -283,19 +282,6 @@ export default function Quotes() {
       } catch (e) {
         console.error('Error adding signature:', e);
       }
-    }
-
-    // QR Code
-    try {
-      const qrCodeUrl = await QRCode.toDataURL(`${window.location.origin}/quote-approval/${quote.id}`);
-      y += 40;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.text('Pranoni Ofertën:', 140, y);
-      y += 6;
-      doc.addImage(qrCodeUrl, 'PNG', 140, y, 30, 30);
-    } catch (e) {
-      console.error('Error adding QR code:', e);
     }
 
     doc.save(`${quote.quote_number}.pdf`);
