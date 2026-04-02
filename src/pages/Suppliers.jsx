@@ -130,18 +130,8 @@ export default function Suppliers() {
     setFilterActive("all");
     setFilterCategory("");
     setFilterPaymentTerms("");
-    setSearchTerm("");
     setFilterOpen(false);
   };
-
-  useEffect(() => {
-    if (!filterOpen) {
-      setSearchTerm("");
-      setFilterActive("all");
-      setFilterCategory("");
-      setFilterPaymentTerms("");
-    }
-  }, [filterOpen]);
 
   if (loading) {
     return (
@@ -191,15 +181,7 @@ export default function Suppliers() {
       <Input placeholder="Kërko sipas emrit ose email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm max-w-md" />
 
       {/* Filters Sidebar */}
-      <Sheet open={filterOpen} onOpenChange={(open) => {
-        if (!open) {
-          setSearchTerm("");
-          setFilterActive("all");
-          setFilterCategory("");
-          setFilterPaymentTerms("");
-        }
-        setFilterOpen(open);
-      }}>
+      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
         <SheetTrigger asChild>
           <button className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit ${hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50"}`}>
             <SlidersHorizontal className="w-4 h-4" /> Filtrat
