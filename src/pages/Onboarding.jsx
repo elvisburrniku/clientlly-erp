@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { useTenant } from "@/lib/TenantContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +8,6 @@ import { Building2 } from "lucide-react";
 
 export default function Onboarding() {
   const { user } = useAuth();
-  const { refreshTenant } = useTenant();
   const [form, setForm] = useState({ name: "", code: "", phone: "", address: "", nipt: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -59,7 +57,6 @@ export default function Onboarding() {
       role: "admin",
     });
 
-    await refreshTenant();
     window.location.href = "/";
     setLoading(false);
   };
