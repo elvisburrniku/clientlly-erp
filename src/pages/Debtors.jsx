@@ -411,6 +411,7 @@ export default function Debtors() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Rendor</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Debitori</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Email</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shuma Totale</th>
@@ -433,11 +434,12 @@ export default function Debtors() {
                   </td>
                 </tr>
               ) : (
-                paginated.map(d => (
+                paginated.map((d, idx) => (
                   <tr key={d.name} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(d.name)}`)}>
+                    <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{(page - 1) * PAGE_SIZE + idx + 1}</td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-primary hover:underline">{d.name}</span>
-                    </td>
+                       <span className="text-sm font-bold text-primary hover:underline">{d.name}</span>
+                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{d.email}</td>
                     <td className="px-6 py-4 text-sm font-semibold">€{d.total_amount.toFixed(2)}</td>
                     <td className="px-6 py-4 text-sm text-success">€{d.paid_amount.toFixed(2)}</td>

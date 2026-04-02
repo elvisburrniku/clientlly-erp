@@ -616,7 +616,8 @@ export default function Invoices() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/20">
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr.</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Rendor</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Faturës</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Klienti</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
@@ -632,7 +633,7 @@ export default function Invoices() {
             <tbody className="divide-y divide-border">
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-16">
+                  <td colSpan={12} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <FileText className="w-7 h-7 text-muted-foreground/50" />
@@ -643,8 +644,9 @@ export default function Invoices() {
                   </td>
                 </tr>
               ) : (
-                paginated.map((inv) => (
+                paginated.map((inv, idx) => (
                   <tr key={inv.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{(page - 1) * PAGE_SIZE + idx + 1}</td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>{inv.invoice_number}</span>
                     </td>

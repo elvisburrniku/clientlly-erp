@@ -459,6 +459,7 @@ export default function Expenses() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Rendor</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Kategoria</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Furnitori</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Përshkrimi</th>
@@ -482,10 +483,11 @@ export default function Expenses() {
                   </td>
                 </tr>
               ) : (
-                filtered.map(exp => {
+                filtered.map((exp, idx) => {
                   const budgetStatus = getBudgetStatus(exp.category);
                   return (
                     <tr key={exp.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{idx + 1}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-semibold">{categories.find(c => c.id === exp.category)?.name || exp.category}</span>

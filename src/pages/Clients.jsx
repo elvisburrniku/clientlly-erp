@@ -297,6 +297,7 @@ export default function Clients() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Rendor</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Emri</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Email</th>
                 <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Telefon</th>
@@ -319,8 +320,9 @@ export default function Clients() {
                   </td>
                 </tr>
               ) : (
-                filtered.map((client) => (
+                filtered.map((client, idx) => (
                   <tr key={client.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/client-detail/${client.id}`)}>
+                    <td className="px-6 py-4 text-sm text-muted-foreground font-medium">{idx + 1}</td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-semibold text-primary hover:underline">{client.name}</span>
                     </td>
