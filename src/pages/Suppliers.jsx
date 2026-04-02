@@ -177,22 +177,23 @@ export default function Suppliers() {
         </div>
       </div>
 
-      {/* Search */}
-      <Input placeholder="Kërko sipas emrit ose email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm max-w-md" />
-
-      {/* Filters Sidebar */}
+      {/* Filters & Search Sidebar */}
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
         <SheetTrigger asChild>
           <button className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all w-fit ${hasFilters ? "border-primary bg-primary/5 text-primary" : "border-border bg-white text-foreground hover:border-primary/50"}`}>
-            <SlidersHorizontal className="w-4 h-4" /> Filtrat
+            <SlidersHorizontal className="w-4 h-4" /> Filtrat & Kërkimi
             {hasFilters && <span className="bg-primary text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">3</span>}
           </button>
         </SheetTrigger>
         <SheetContent side="left" className="w-full sm:w-[350px]">
              <SheetHeader className="border-b pb-4">
-               <h3 className="font-bold">Filtrat</h3>
+               <h3 className="font-bold">Filtrat & Kërkimi</h3>
              </SheetHeader>
              <div className="space-y-5 py-5">
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-2">Kërkoni</label>
+                 <Input placeholder="Kërkosi sipas emrit ose email..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm" />
+               </div>
                <div>
                  <label className="text-xs font-medium text-muted-foreground block mb-2">Status</label>
                  <Select value={filterActive} onValueChange={setFilterActive}>
