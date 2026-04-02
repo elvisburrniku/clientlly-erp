@@ -6,11 +6,13 @@ import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calendar, User } from 'lucide-react';
+import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calendar, User, Upload, Bold, Type } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import { cn } from '@/lib/utils';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import 'jspdf/dist/jspdf.umd.min.js';
 
 export default function Quotes() {
@@ -35,6 +37,8 @@ export default function Quotes() {
     client_address: '',
     items: [{ type: 'product', name: '', quantity: 1, unit: 'cope', price_ex_vat: 0, vat_rate: 20 }],
     description: '',
+    work_description: '',
+    logo_url: '',
     validity_days: 30,
     template: 'classic',
   });
@@ -77,6 +81,8 @@ export default function Quotes() {
       vat_amount,
       amount,
       description: formData.description,
+      work_description: formData.work_description,
+      logo_url: formData.logo_url,
       validity_days: formData.validity_days,
       valid_until: valid_until.toISOString().split('T')[0],
       status: 'draft',
@@ -84,17 +90,7 @@ export default function Quotes() {
     };
 
     await base44.entities.Quote.create(quote);
-    setFormData({
-      client_name: '',
-      client_email: '',
-      client_phone: '',
-      client_nipt: '',
-      client_address: '',
-      items: [{ type: 'product', name: '', quantity: 1, unit: 'cope', price_ex_vat: 0, vat_rate: 20 }],
-      description: '',
-      validity_days: 30,
-      template: 'classic',
-    });
+    resetForm();
     setShowForm(false);
     loadQuotes();
   };
@@ -104,62 +100,123 @@ export default function Quotes() {
     const pageHeight = 297;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
+    let y = 15;
+
+    // Logo
+    if (quote.logo_url) {
+      try {
+        doc.addImage(quote.logo_url, 'PNG', 20, y, 40, 20);
+        y += 25;
+      } catch (e) {
+        console.error('Error adding logo:', e);
+      }
+    }
+
+    // Title
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.text('OFERTA', 20, 20);
+    doc.setFontSize(22);
+    doc.text('OFERTA PROFESIONALE', 20, y);
+    y += 12;
 
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    let y = 35;
+    doc.setFontSize(10);
 
     doc.text(`Nr. Ofertës: ${quote.quote_number}`, 20, y);
-    y += 6;
+    y += 5;
     doc.text(`Data: ${format(new Date(quote.created_date), 'dd.MM.yyyy')}`, 20, y);
-    y += 10;
+    y += 5;
+    doc.text(`Vlefshme deri: ${format(new Date(quote.valid_until), 'dd.MM.yyyy')}`, 20, y);
+    y += 12;
 
-    doc.setFont('helvetica', 'bold');
-    doc.text('Kliente:', 20, y);
-    doc.setFont('helvetica', 'normal');
-    y += 6;
-    doc.text(`Emri: ${quote.client_name}`, 20, y);
-    y += 5;
-    doc.text(`Email: ${quote.client_email || '-'}`, 20, y);
-    y += 5;
-    doc.text(`Telefon: ${quote.client_phone || '-'}`, 20, y);
-    y += 5;
-    doc.text(`Adresa: ${quote.client_address || '-'}`, 20, y);
-    y += 15;
-
+    // Client Info
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    const tableY = y;
-    doc.text('Artikuj', 20, y);
-    y += 8;
+    doc.text('KLIENTE:', 20, y);
+    y += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`${quote.client_name}`, 20, y);
+    y += 4;
+    doc.text(`${quote.client_email || ''}`, 20, y);
+    y += 4;
+    doc.text(`${quote.client_phone || ''}`, 20, y);
+    y += 4;
+    doc.text(`${quote.client_address || ''}`, 20, y);
+    y += 10;
+
+    // Work Description
+    if (quote.work_description && quote.work_description !== '<p><br></p>') {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('PËRSHKRIM I PUNËS:', 20, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const plainText = quote.work_description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ');
+      const splitText = doc.splitTextToSize(plainText, 170);
+      doc.text(splitText, 20, y);
+      y += splitText.length * 4 + 5;
+    }
+
+    // Items header
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('ARTIKUJ / SHËRBIMET:', 20, y);
+    y += 6;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     const items = quote.items || [];
+    
+    // Table header
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, y - 3, 170, 5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.text('Pershkrim', 25, y);
+    doc.text('Sasi', 110, y);
+    doc.text('Çmim', 130, y);
+    doc.text('Total', 165, y, { align: 'right' });
+    y += 6;
+    
+    doc.setFont('helvetica', 'normal');
     items.forEach((item, idx) => {
       if (y > pageHeight - 40) {
         doc.addPage();
         y = 20;
       }
       const lineTotal = (item.quantity * item.price_ex_vat).toFixed(2);
-      doc.text(`${idx + 1}. ${item.name}`, 20, y);
-      doc.text(`${item.quantity} x €${item.price_ex_vat.toFixed(2)}`, 120, y);
-      doc.text(`€${lineTotal}`, pageWidth - 30, y, { align: 'right' });
-      y += 6;
+      const itemName = doc.splitTextToSize(item.name, 85);
+      doc.text(itemName, 25, y);
+      doc.text(`${item.quantity} ${item.unit}`, 110, y);
+      doc.text(`€${item.price_ex_vat.toFixed(2)}`, 130, y);
+      doc.text(`€${lineTotal}`, 165, y, { align: 'right' });
+      y += itemName.length > 1 ? itemName.length * 3 + 2 : 5;
     });
 
-    y += 5;
-    doc.setFont('helvetica', 'bold');
+    y += 8;
+    // Totals
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text(`Subtotali: €${(quote.subtotal || 0).toFixed(2)}`, pageWidth - 80, y, { align: 'right' });
+    doc.text(`Subtotal (pa TVSH): €${(quote.subtotal || 0).toFixed(2)}`, 120, y);
+    y += 5;
+    doc.text(`TVSH (20%): €${(quote.vat_amount || 0).toFixed(2)}`, 120, y);
     y += 6;
-    doc.text(`TVSH (20%): €${(quote.vat_amount || 0).toFixed(2)}`, pageWidth - 80, y, { align: 'right' });
-    y += 6;
-    doc.setFontSize(10);
-    doc.text(`GJITHSEJ: €${(quote.amount || 0).toFixed(2)}`, pageWidth - 80, y, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(`SHUMA TOTALE: €${(quote.amount || 0).toFixed(2)}`, 120, y);
+    
+    // Notes
+    if (quote.description) {
+      y += 15;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.text('SHËNIME:', 20, y);
+      y += 4;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const noteText = doc.splitTextToSize(quote.description, 170);
+      doc.text(noteText, 20, y);
+    }
 
     doc.save(`${quote.quote_number}.pdf`);
   };
@@ -498,126 +555,172 @@ export default function Quotes() {
 
       {/* Create Quote Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-2xl max-h-96 overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Krijo Ofertë të Re</DialogTitle>
+            <DialogTitle className="text-2xl">Krijo Ofertë Profesionale</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                placeholder="Emri i Klientit"
-                value={formData.client_name}
-                onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-              />
-              <Input
-                placeholder="Email"
-                type="email"
-                value={formData.client_email}
-                onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
-              />
-              <Input
-                placeholder="Telefon"
-                value={formData.client_phone}
-                onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
-              />
-              <Input
-                placeholder="NIPT"
-                value={formData.client_nipt}
-                onChange={(e) => setFormData({ ...formData, client_nipt: e.target.value })}
-              />
+          <div className="space-y-6 py-4">
+            {/* Section 1: Të dhënat e Klientit */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</div>
+                <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pl-8">
+                <Input placeholder="Emri i Klientit *" value={formData.client_name} onChange={(e) => setFormData({ ...formData, client_name: e.target.value })} />
+                <Input placeholder="Email" type="email" value={formData.client_email} onChange={(e) => setFormData({ ...formData, client_email: e.target.value })} />
+                <Input placeholder="Telefon" value={formData.client_phone} onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })} />
+                <Input placeholder="NIPT" value={formData.client_nipt} onChange={(e) => setFormData({ ...formData, client_nipt: e.target.value })} />
+              </div>
+              <Textarea placeholder="Adresa" value={formData.client_address} onChange={(e) => setFormData({ ...formData, client_address: e.target.value })} className="pl-8" />
             </div>
 
-            <Textarea
-              placeholder="Adresa"
-              value={formData.client_address}
-              onChange={(e) => setFormData({ ...formData, client_address: e.target.value })}
-            />
+            {/* Section 2: Logo/Imazh */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">2</div>
+                <h3 className="font-semibold text-sm">Logo / Imazh Kompanie</h3>
+              </div>
+              <div className="pl-8">
+                <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary/50 bg-muted/20 transition">
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <span className="text-sm font-medium text-muted-foreground">Ngarkoje logon ose imazhun e kompanisë</span>
+                  </div>
+                  <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    if (e.target.files?.[0]) {
+                      const file = e.target.files[0];
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        setFormData({ ...formData, logo_url: event.target?.result });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }} />
+                </label>
+                {formData.logo_url && <div className="mt-2"><img src={formData.logo_url} alt="Logo" className="h-16 object-contain" /></div>}
+              </div>
+            </div>
 
-            <div className="border-t pt-4">
-              <h3 className="font-semibold mb-3">Artikuj</h3>
-              {formData.items.map((item, idx) => (
-                <div key={idx} className="grid grid-cols-5 gap-2 mb-2">
-                  <Input
-                    placeholder="Emërtim"
-                    value={item.name}
-                    onChange={(e) => {
+            {/* Section 3: Pershkrim i Punes */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">3</div>
+                <h3 className="font-semibold text-sm">Përshkrimi i Punës / Detajet</h3>
+              </div>
+              <div className="pl-8 space-y-2">
+                <div className="border border-border rounded-xl overflow-hidden">
+                  <div className="bg-muted p-2 flex gap-1 border-b border-border flex-wrap">
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Bold">
+                      <Bold className="w-4 h-4" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" title="Madhësia e Tekstit">
+                      <Type className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <ReactQuill 
+                    value={formData.work_description} 
+                    onChange={(value) => setFormData({ ...formData, work_description: value })}
+                    modules={{
+                      toolbar: [
+                        ['bold', 'italic', 'underline'],
+                        [{ 'size': ['small', false, 'large', 'huge'] }],
+                        [{ 'color': [] }],
+                        ['bullet', 'ordered'],
+                        ['link'],
+                      ]
+                    }}
+                    theme="snow"
+                    placeholder="Përshkruaj detajet e punës, materialet, kohëzgjatjen, etj..."
+                    className="h-48"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 4: Artikuj/Shërbimet */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">4</div>
+                <h3 className="font-semibold text-sm">Artikuj / Shërbimet</h3>
+              </div>
+              <div className="pl-8 space-y-2">
+                {formData.items.map((item, idx) => (
+                  <div key={idx} className="grid grid-cols-5 gap-2">
+                    <Input placeholder="Emërtim *" value={item.name} onChange={(e) => {
                       const newItems = [...formData.items];
                       newItems[idx].name = e.target.value;
                       setFormData({ ...formData, items: newItems });
-                    }}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Sasi"
-                    value={item.quantity}
-                    onChange={(e) => {
+                    }} />
+                    <Input type="number" placeholder="Sasi" value={item.quantity} onChange={(e) => {
                       const newItems = [...formData.items];
                       newItems[idx].quantity = parseFloat(e.target.value);
                       setFormData({ ...formData, items: newItems });
-                    }}
-                  />
-                  <Input
-                    placeholder="Njësia"
-                    value={item.unit}
-                    onChange={(e) => {
+                    }} />
+                    <Input placeholder="Njësia" value={item.unit} onChange={(e) => {
                       const newItems = [...formData.items];
                       newItems[idx].unit = e.target.value;
                       setFormData({ ...formData, items: newItems });
-                    }}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Çmim"
-                    value={item.price_ex_vat}
-                    onChange={(e) => {
+                    }} />
+                    <Input type="number" placeholder="Çmim" value={item.price_ex_vat} onChange={(e) => {
                       const newItems = [...formData.items];
                       newItems[idx].price_ex_vat = parseFloat(e.target.value);
                       setFormData({ ...formData, items: newItems });
-                    }}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="TVSH %"
-                    value={item.vat_rate}
-                    onChange={(e) => {
+                    }} />
+                    <Input type="number" placeholder="TVSH %" value={item.vat_rate} onChange={(e) => {
                       const newItems = [...formData.items];
                       newItems[idx].vat_rate = parseFloat(e.target.value);
                       setFormData({ ...formData, items: newItems });
-                    }}
-                  />
-                </div>
-              ))}
+                    }} />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <Textarea
-              placeholder="Përshkrim / Shënime"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
+            {/* Section 5: Shënime */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">5</div>
+                <h3 className="font-semibold text-sm">Shënime Shtesë</h3>
+              </div>
+              <div className="pl-8">
+                <Textarea placeholder="Kushte pagese, garancia, etj..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+              </div>
+            </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Input
-                type="number"
-                placeholder="Dita të vlefshme"
-                value={formData.validity_days}
-                onChange={(e) => setFormData({ ...formData, validity_days: parseInt(e.target.value) })}
-              />
-              <Select value={formData.template} onValueChange={(val) => setFormData({ ...formData, template: val })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="classic">Klasik</SelectItem>
-                  <SelectItem value="modern">Modern</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Section 6: Cilësime */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</div>
+                <h3 className="font-semibold text-sm">Cilësime të Ofertës</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pl-8">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Vlefshme për (ditë)</label>
+                  <Input type="number" value={formData.validity_days} onChange={(e) => setFormData({ ...formData, validity_days: parseInt(e.target.value) })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Stil Dokumenti</label>
+                  <Select value={formData.template} onValueChange={(val) => setFormData({ ...formData, template: val })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="classic">Klasik</SelectItem>
+                      <SelectItem value="modern">Modern</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Anulo</Button>
-            <Button onClick={handleAddQuote}>Krijo Ofertë</Button>
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => { setShowForm(false); resetForm(); }}>Anulo</Button>
+            <Button onClick={handleAddQuote} className="gap-2">
+              <Plus className="w-4 h-4" /> Krijo Ofertë
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
