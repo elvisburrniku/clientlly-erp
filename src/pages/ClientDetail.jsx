@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, ArrowLeft, Mail, Phone, MapPin, Send, Eye, Banknote } from 'lucide-react';
+import { Download, ArrowLeft } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import moment from 'moment';
-import InvoicePDFButton from '../components/invoices/InvoicePDFButton';
-import SendInvoiceDialog from '../components/invoices/SendInvoiceDialog';
-import PaymentDialog from '../components/invoices/PaymentDialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function ClientDetail() {
   const { clientId } = useParams();
@@ -15,8 +14,8 @@ export default function ClientDetail() {
   const [client, setClient] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sendDialog, setSendDialog] = useState(null);
-  const [paymentDialog, setPaymentDialog] = useState(null);
+  const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
+  const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
 
   useEffect(() => {
     loadData();
@@ -33,67 +32,179 @@ export default function ClientDetail() {
     setLoading(false);
   };
 
-  const exportInvoicesPDF = () => {
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const W = 297;
-    const margin = 14;
+  const filterDataByDate = (data) => {
+    return data.filter(item => {
+      const itemDate = moment(item.created_date);
+      return itemDate.isBetween(moment(dateFrom), moment(dateTo), null, '[]');
+    });
+  };
+
+  const buildLedger = () => {
+    const filtered = filterDataByDate(invoices);
+    const ledger = [];
+
+    // Get opening balance from transactions before dateFrom
+    const beforePeriod = invoices.filter(inv => moment(inv.created_date).isBefore(moment(dateFrom)));
+    let openingBalance = beforePeriod.reduce((sum, inv) => {
+      if (inv.status === 'paid') return sum;
+      return sum + (inv.amount || 0);
+    }, 0);
+
+    // Add opening balance as first row
+    ledger.push({
+      nr: 1,
+      date: moment(dateFrom).format('DD/MM/YYYY'),
+      orderDate: moment(dateFrom).format('DD/MM/YYYY'),
+      type: 'Gjendja fillestare',
+      reference: '-',
+      debit: 0,
+      credit: 0,
+      balance: openingBalance
+    });
+
+    let balance = openingBalance;
+    let rowNr = 2;
+
+    filtered.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)).forEach(inv => {
+      const amount = inv.amount || 0;
+      const isPayment = inv.status === 'paid' && (inv.payment_records?.length > 0);
+      
+      if (isPayment) {
+        const paidAmount = inv.payment_records.reduce((s, p) => s + p.amount, 0);
+        balance -= paidAmount;
+        ledger.push({
+          nr: rowNr,
+          date: moment(inv.created_date).format('DD/MM/YYYY'),
+          orderDate: moment(inv.created_date).format('DD/MM/YYYY'),
+          type: 'Pagesa',
+          reference: `${inv.invoice_number}`,
+          paymentMethod: inv.payment_method || '-',
+          debit: 0,
+          credit: paidAmount,
+          balance: balance
+        });
+        rowNr++;
+      } else if (inv.status !== 'paid') {
+        balance += amount;
+        ledger.push({
+          nr: rowNr,
+          date: moment(inv.created_date).format('DD/MM/YYYY'),
+          orderDate: moment(inv.created_date).format('DD/MM/YYYY'),
+          type: 'Fatura',
+          reference: inv.invoice_number,
+          debit: amount,
+          credit: 0,
+          balance: balance
+        });
+        rowNr++;
+      }
+    });
+
+    return ledger;
+  };
+
+  const exportAccountCardPDF = () => {
+    const ledger = buildLedger();
+    const doc = new jsPDF();
+    const W = 210;
+    const margin = 12;
+    const cw = W - margin * 2;
+
     doc.setFillColor(67, 56, 202);
-    doc.rect(0, 0, W, 22, 'F');
+    doc.rect(0, 0, W, 45, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
+    doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text(`Faturat e ${client?.name || 'Klientit'}`, margin, 14);
-    doc.setFontSize(9);
+    doc.text('KARTELA E BLERES/FURNITORIT', margin, 12);
+
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Gjeneruar: ${new Date().toLocaleDateString('sq-AL')}`, W - margin, 14, { align: 'right' });
+    doc.text(`Blerësi/Furnitori: ${client?.name || ''}`, margin, 22);
+    doc.text(`Periudha e raportit: ${dateFrom} - ${dateTo}`, margin, 28);
     
-    const headers = ['Nr. Faturës', 'Total', 'TVSH', 'Me TVSH', 'Statusi', 'Data'];
-    const colW = [40, 35, 35, 35, 30, 30];
-    let x = margin;
-    let y = 32;
-    doc.setFillColor(243, 244, 246);
-    doc.rect(margin, y - 5, W - margin * 2, 8, 'F');
+    if (client?.nipt) doc.text(`NUI/Nr TVSH: ${client.nipt}`, margin, 34);
+    if (client?.phone) doc.text(`Nr i telefonit: ${client.phone}`, W - margin - 60, 22);
+    if (client?.email) doc.text(`Email: ${client.email}`, W - margin - 60, 28);
+
+    let y = 48;
+    const headers = ['Nr.', 'Data', 'Data Urdh', 'Lloji', 'Nr Urdh', 'Metoda', 'Debi', 'Kredia', 'Saldo'];
+    const colW = [8, 18, 18, 18, 22, 15, 18, 18, 23];
+
+    doc.setFillColor(200, 200, 200);
+    doc.rect(margin, y - 4, cw, 6, 'F');
     doc.setFontSize(7);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(0, 0, 0);
+    
+    let x = margin;
     headers.forEach((h, i) => {
-      doc.text(h, x + 2, y);
+      doc.text(h, x + 1, y);
       x += colW[i];
     });
-    y += 5;
+
+    y += 7;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    invoices.forEach((inv, ri) => {
-      if (y > 185) {
+    doc.setFontSize(7);
+
+    ledger.forEach((row, idx) => {
+      if (y > 270) {
         doc.addPage();
-        y = 20;
+        y = 10;
       }
-      if (ri % 2 === 0) {
-        doc.setFillColor(249, 250, 251);
-        doc.rect(margin, y - 4, W - margin * 2, 8, 'F');
+
+      if (idx % 2 === 0) {
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, y - 4, cw, 5, 'F');
       }
-      doc.setTextColor(30, 30, 30);
-      const row = [
-        inv.invoice_number || '',
-        `€${(inv.subtotal || 0).toFixed(2)}`,
-        `€${(inv.vat_amount || 0).toFixed(2)}`,
-        `€${(inv.amount || 0).toFixed(2)}`,
-        inv.status || '',
-        moment(inv.created_date).format('DD MMM YY')
+
+      doc.setTextColor(40, 40, 40);
+      const values = [
+        row.nr,
+        row.date,
+        row.orderDate,
+        row.type,
+        row.reference,
+        row.paymentMethod || '-',
+        row.debit > 0 ? row.debit.toFixed(2) : '-',
+        row.credit > 0 ? row.credit.toFixed(2) : '-',
+        row.balance.toFixed(2)
       ];
+
       x = margin;
-      row.forEach((v, i) => {
-        doc.text(String(v).slice(0, Math.floor(colW[i] / 2) + 2), x + 2, y);
+      values.forEach((v, i) => {
+        const align = i > 5 ? 'right' : 'left';
+        doc.text(String(v).slice(0, 20), x + (align === 'right' ? colW[i] - 2 : 1), y, { align });
         x += colW[i];
       });
-      y += 8;
+
+      y += 5;
     });
+
+    // Footer totals
+    y += 2;
+    if (y > 270) {
+      doc.addPage();
+      y = 10;
+    }
+
     doc.setFillColor(67, 56, 202);
-    doc.rect(0, 195, W, 10, 'F');
+    doc.rect(margin, y - 4, cw, 6, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7);
-    doc.text(`Totali: €${invoices.reduce((s, i) => s + (i.amount || 0), 0).toFixed(2)}`, W - margin, 201, { align: 'right' });
-    doc.save(`faturat_${client?.name || 'klient'}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.setFont('helvetica', 'bold');
+
+    const totalDebit = ledger.reduce((s, r) => s + r.debit, 0);
+    const totalCredit = ledger.reduce((s, r) => s + r.credit, 0);
+    const finalBalance = ledger[ledger.length - 1]?.balance || 0;
+
+    x = margin;
+    const footerVals = ['', '', '', 'TOTALI', '', '', totalDebit.toFixed(2), totalCredit.toFixed(2), finalBalance.toFixed(2)];
+    footerVals.forEach((v, i) => {
+      const align = i > 5 ? 'right' : 'left';
+      if (v) doc.text(String(v), x + (align === 'right' ? colW[i] - 2 : 1), y + 2, { align });
+      x += colW[i];
+    });
+
+    doc.save(`kartela_${client?.name || 'klient'}_${dateFrom}_${dateTo}.pdf`);
   };
 
   if (loading) {
@@ -113,175 +224,126 @@ export default function ClientDetail() {
     );
   }
 
-  const totalSpent = invoices.reduce((s, i) => s + (i.amount || 0), 0);
-  const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.amount || 0), 0);
-  const openInvoices = invoices.filter(i => i.is_open).length;
+  const ledger = buildLedger();
+  const finalBalance = ledger[ledger.length - 1]?.balance || 0;
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <button onClick={() => navigate('/clients')} className="p-2 hover:bg-muted rounded-lg transition">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
           <h1 className="text-3xl font-bold">{client.name}</h1>
-          <p className="text-muted-foreground mt-1">Detajet e klientit dhe faturat e tij</p>
+          <p className="text-muted-foreground mt-1">Kartela e Bleres/Furnitorit</p>
         </div>
       </div>
 
-      {/* Client Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-semibold">Informacioni i Klientit</h2>
-          <div className="grid grid-cols-2 gap-4">
+      {/* Client Info Card */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <h2 className="text-lg font-semibold mb-4">Informacioni i Klientit</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Emri</p>
+            <p className="font-semibold">{client.name}</p>
+          </div>
+          {client.nipt && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">NIPT</p>
+              <p className="font-semibold">{client.nipt}</p>
+            </div>
+          )}
+          {client.phone && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Telefon</p>
+              <p className="font-semibold">{client.phone}</p>
+            </div>
+          )}
+          {client.email && (
             <div>
               <p className="text-xs text-muted-foreground mb-1">Email</p>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-muted-foreground" />
-                <p className="text-sm font-medium">{client.email}</p>
-              </div>
-            </div>
-            {client.phone && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Telefon</p>
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">{client.phone}</p>
-                </div>
-              </div>
-            )}
-            {client.nipt && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">NIPT</p>
-                <p className="text-sm font-medium">{client.nipt}</p>
-              </div>
-            )}
-            {client.address && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Adresë</p>
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">{client.address}</p>
-                </div>
-              </div>
-            )}
-          </div>
-          {client.notes && (
-            <div className="border-t pt-4">
-              <p className="text-xs text-muted-foreground mb-2">Shënime</p>
-              <p className="text-sm">{client.notes}</p>
+              <p className="font-semibold">{client.email}</p>
             </div>
           )}
-        </div>
-
-        {/* Stats */}
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-            <p className="text-xs text-muted-foreground mb-2">Shuma Totale</p>
-            <p className="text-2xl font-bold text-primary">€{totalSpent.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-2">{invoices.length} fatura</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-            <p className="text-xs text-muted-foreground mb-2">Te Arketuara</p>
-            <p className="text-2xl font-bold text-success">€{totalPaid.toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-2">Paguar</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-            <p className="text-xs text-muted-foreground mb-2">Në Pritje</p>
-            <p className="text-2xl font-bold text-destructive">€{(totalSpent - totalPaid).toFixed(2)}</p>
-            <p className="text-xs text-muted-foreground mt-2">{openInvoices} fatura hapur</p>
-          </div>
+          {client.address && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Adresa</p>
+              <p className="font-semibold">{client.address}</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Invoices Section */}
+      {/* Date Range */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <h3 className="text-base font-semibold mb-4">Periudha e Raportit</h3>
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1">
+            <Label className="text-xs font-semibold mb-2 block">Nga data</Label>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs font-semibold mb-2 block">Deri në datë</Label>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </div>
+          <Button onClick={exportAccountCardPDF} className="gap-2">
+            <Download className="w-4 h-4" /> Shkarko Kartela PDF
+          </Button>
+        </div>
+      </div>
+
+      {/* Account Ledger */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{invoices.length} Faturat e Klientit</h2>
-          {invoices.length > 0 && (
-            <Button onClick={exportInvoicesPDF} variant="outline" className="gap-2">
-              <Download className="w-4 h-4" /> Eksporto
-            </Button>
-          )}
+        <div className="px-6 py-4 border-b border-border bg-muted/30">
+          <h2 className="text-lg font-semibold">Lëvizjet e Llogaris</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border bg-muted/20">
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Faturës</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Subtotal</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">TVSH</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Total</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Statusi</th>
-                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Data</th>
-                <th className="text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Veprime</th>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left py-3 px-4 font-semibold">Nr</th>
+                <th className="text-left py-3 px-4 font-semibold">Data</th>
+                <th className="text-left py-3 px-4 font-semibold">Data Urdh</th>
+                <th className="text-left py-3 px-4 font-semibold">Lloji</th>
+                <th className="text-left py-3 px-4 font-semibold">Nr Urdh</th>
+                <th className="text-left py-3 px-4 font-semibold">Metoda</th>
+                <th className="text-right py-3 px-4 font-semibold">Debi (€)</th>
+                <th className="text-right py-3 px-4 font-semibold">Kredia (€)</th>
+                <th className="text-right py-3 px-4 font-semibold">Saldo (€)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {invoices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-12">
-                    <FileText className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground">Nuk ka fatura për këtë klient</p>
+              {ledger.map((row, idx) => (
+                <tr key={idx} className={idx % 2 === 0 ? 'bg-muted/20' : 'hover:bg-muted/20'}>
+                  <td className="py-2.5 px-4 text-xs text-muted-foreground">{row.nr}</td>
+                  <td className="py-2.5 px-4 text-xs">{row.date}</td>
+                  <td className="py-2.5 px-4 text-xs">{row.orderDate}</td>
+                  <td className="py-2.5 px-4 text-xs font-medium">{row.type}</td>
+                  <td className="py-2.5 px-4 text-xs">{row.reference}</td>
+                  <td className="py-2.5 px-4 text-xs">{row.paymentMethod || '-'}</td>
+                  <td className="py-2.5 px-4 text-xs text-right">{row.debit > 0 ? `${row.debit.toFixed(2)}` : '-'}</td>
+                  <td className="py-2.5 px-4 text-xs text-right">{row.credit > 0 ? `${row.credit.toFixed(2)}` : '-'}</td>
+                  <td className={`py-2.5 px-4 text-xs text-right font-semibold ${row.balance > 0 ? 'text-destructive' : 'text-success'}`}>
+                    {row.balance.toFixed(2)}
                   </td>
                 </tr>
-              ) : (
-                invoices.map(inv => (
-                  <tr key={inv.id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-primary cursor-pointer hover:underline" onClick={() => navigate(`/invoices/${inv.id}`)}>
-                        {inv.invoice_number}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4 text-sm font-semibold">€{(inv.amount || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">
-                        {inv.status || 'draft'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">{moment(inv.created_date).format('DD MMM YY')}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-1.5 justify-end">
-                        <InvoicePDFButton invoice={inv} />
-                        <button
-                          onClick={() => navigate(`/invoices/${inv.id}`)}
-                          className="p-1.5 hover:bg-muted rounded-lg transition"
-                          title="Shiko Faturën"
-                        >
-                          <Eye className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                        <button
-                          onClick={() => setSendDialog(inv)}
-                          className="p-1.5 hover:bg-muted rounded-lg transition"
-                          title="Dërgo Faturën"
-                        >
-                          <Send className="w-4 h-4 text-muted-foreground" />
-                        </button>
-                        {inv.is_open && (
-                          <button
-                            onClick={() => setPaymentDialog(inv)}
-                            className="p-1.5 hover:bg-muted rounded-lg transition"
-                            title="Shto Pagesë"
-                          >
-                            <Banknote className="w-4 h-4 text-muted-foreground" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
+            {ledger.length > 1 && (
+              <tfoot>
+                <tr className="bg-primary/10 border-t-2 border-t-primary font-semibold">
+                  <td colSpan="6" className="py-3 px-4">TOTALI</td>
+                  <td className="py-3 px-4 text-right">{ledger.reduce((s, r) => s + r.debit, 0).toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right">{ledger.reduce((s, r) => s + r.credit, 0).toFixed(2)}</td>
+                  <td className={`py-3 px-4 text-right ${finalBalance > 0 ? 'text-destructive' : 'text-success'}`}>
+                    {finalBalance.toFixed(2)}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
           </table>
         </div>
       </div>
-
-      {/* Dialogs */}
-      <SendInvoiceDialog invoice={sendDialog} open={!!sendDialog} onClose={() => setSendDialog(null)} />
-      <PaymentDialog invoice={paymentDialog} isOpen={!!paymentDialog} onOpenChange={(o) => { if (!o) setPaymentDialog(null); }} onPaymentAdded={loadData} />
     </div>
   );
 }
