@@ -150,50 +150,6 @@ export default function RevenueChart() {
         </div>
       </div>
 
-      {/* Filter buttons */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <div className="flex gap-1 bg-muted/80 rounded-lg p-1">
-          {[
-            { key: "sot", label: "Sot" },
-            { key: "muaji", label: "Muaji" },
-            { key: "viti", label: "Viti" },
-            { key: "vjetore", label: "Vjetore" }
-          ].map(f => (
-            <button
-              key={f.key}
-              onClick={() => setPeriodFilter(f.key)}
-              className={cn(
-                "px-2 py-0.5 text-xs font-medium rounded transition-all duration-200",
-                periodFilter === f.key
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1 bg-muted/80 rounded-lg p-1">
-          {[
-            { key: "me", label: "Me TVSH" },
-            { key: "pa", label: "Pa TVSH" }
-          ].map(f => (
-            <button
-              key={f.key}
-              onClick={() => setTvshFilter(f.key)}
-              className={cn(
-                "px-2 py-0.5 text-xs font-medium rounded transition-all duration-200",
-                tvshFilter === f.key
-                  ? "bg-white text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Summary pills */}
       <div className="flex gap-3 mb-6">
         {[
