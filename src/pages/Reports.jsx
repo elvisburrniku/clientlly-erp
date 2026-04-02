@@ -3,8 +3,7 @@ import { BarChart3, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FinancialSummary from "../components/reports/FinancialSummary";
 import RecentActivities from "../components/reports/RecentActivities";
-import CategoryFilter from "../components/reports/CategoryFilter";
-import ClientSegmentFilter from "../components/reports/ClientSegmentFilter";
+
 import ReportPDFExport from "../components/reports/ReportPDFExport";
 import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
@@ -15,8 +14,7 @@ import InvoiceAnalyticsCharts from "@/components/reports/InvoiceAnalyticsCharts"
 import moment from "moment";
 
 export default function Reports() {
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [clientSegment, setClientSegment] = useState("all");
+
   const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
   const [chartData, setChartData] = useState([]);
@@ -184,14 +182,6 @@ export default function Reports() {
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6 space-y-6">
         <div>
-          <h3 className="text-base font-semibold mb-4">Filtro sipas Kategorisë</h3>
-          <CategoryFilter value={categoryFilter} onChange={setCategoryFilter} />
-        </div>
-        <div className="border-t border-border pt-6">
-          <h3 className="text-base font-semibold mb-4">Filtro sipas Segmentit të Klientëve</h3>
-          <ClientSegmentFilter value={clientSegment} onChange={setClientSegment} />
-        </div>
-        <div className="border-t border-border pt-6">
           <h3 className="text-base font-semibold mb-4">Zgjedh Periudhën</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
@@ -203,7 +193,7 @@ export default function Reports() {
               <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="mt-1.5" />
             </div>
           </div>
-          <ReportPDFExport dateFrom={dateFrom} dateTo={dateTo} categoryFilter={categoryFilter} chartData={chartData} />
+          <ReportPDFExport dateFrom={dateFrom} dateTo={dateTo} categoryFilter="all" chartData={chartData} />
         </div>
       </div>
 
