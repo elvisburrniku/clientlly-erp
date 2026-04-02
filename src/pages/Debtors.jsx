@@ -413,8 +413,9 @@ export default function Debtors() {
         <div className="overflow-x-auto">
           <table className="w-full">
            <thead>
-             <tr className="border-b border-border bg-muted/20">
-               <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Debitori</th>
+              <tr className="border-b border-border bg-muted/20">
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5 w-12">Nr.</th>
+                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Debitori</th>
                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Nr. Fature</th>
                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">Shuma Totale</th>
                <th className="text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground px-6 py-3.5">E Paguar</th>
@@ -425,7 +426,7 @@ export default function Debtors() {
             <tbody className="divide-y divide-border">
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-16">
+                  <td colSpan={8} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
                         <AlertCircle className="w-7 h-7 text-muted-foreground/50" />
@@ -435,9 +436,12 @@ export default function Debtors() {
                   </td>
                 </tr>
               ) : (
-                paginated.flatMap((d) =>
-                  d.invoices.map((inv, invIdx) => (
-                  <tr key={d.name} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(d.name)}`)}>
+                paginated.flatMap((d, dIdx) =>
+                  d.invoices.map((inv, invIdx) => {
+                    const rowNum = (page - 1) * PAGE_SIZE + dIdx + invIdx + 1;
+                    return (
+                  <tr key={d.name} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(d.name)}`)}>  
+                      <td className="px-6 py-4 text-sm text-muted-foreground font-medium text-right">{(page - 1) * PAGE_SIZE + ((d.invoices || []).indexOf(inv)) + 1}</td>
                       <td className="px-6 py-4">
                         <span className="text-sm font-bold text-primary hover:underline">{d.name}</span>
                       </td>
@@ -457,7 +461,8 @@ export default function Debtors() {
                         )}
                       </td>
                     </tr>
-                    ))
+                    );
+                    })
                     )
               )}
             </tbody>
