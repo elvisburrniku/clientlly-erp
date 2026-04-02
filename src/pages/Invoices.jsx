@@ -424,37 +424,6 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Quick Filter Buttons */}
-      <div className="flex items-center gap-2 flex-wrap">
-       <button
-         onClick={() => { setStatusFilter(""); clearFilters(); }}
-         className={cn(
-           "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all shadow-sm",
-           statusFilter === "" ? "bg-primary/10 border-primary text-primary" : "border-border bg-white text-foreground hover:border-primary/50"
-         )}
-       >
-         Të Gjitha
-       </button>
-       <button
-         onClick={() => { setStatusFilter("paid"); setFilterClient(""); setFilterMonth(""); setFilterYear(""); setFilterDateFrom(""); setFilterDateTo(""); setPage(1); }}
-         className={cn(
-           "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all shadow-sm",
-           statusFilter === "paid" ? "bg-success/10 border-success text-success" : "border-border bg-white text-foreground hover:border-success/50"
-         )}
-       >
-         ✓ Të Paguara
-       </button>
-       <button
-         onClick={() => { setStatusFilter("unpaid"); setFilterClient(""); setFilterMonth(""); setFilterYear(""); setFilterDateFrom(""); setFilterDateTo(""); setPage(1); }}
-         className={cn(
-           "flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all shadow-sm",
-           statusFilter === "unpaid" ? "bg-destructive/10 border-destructive text-destructive" : "border-border bg-white text-foreground hover:border-destructive/50"
-         )}
-       >
-         ✕ Të Papaguara
-       </button>
-      </div>
-
       {/* Filter Trigger Button */}
       <button
        onClick={() => setSearchOpen(true)}
@@ -526,6 +495,42 @@ export default function Invoices() {
                     <X className="w-3.5 h-3.5" />
                   </button>
                 )}
+              </div>
+            </div>
+            <div className="h-px bg-border mx-6" />
+            <div className="px-6 pt-5 pb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Statusi i Pagesës</span>
+              </div>
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => { setStatusFilter(""); setPage(1); }}
+                  className={cn(
+                    "flex-1 py-2 px-3 text-xs font-semibold rounded-lg border transition-all",
+                    statusFilter === "" ? "bg-primary/10 border-primary text-primary" : "border-border bg-white hover:border-primary/30"
+                  )}
+                >
+                  Të Gjitha
+                </button>
+                <button
+                  onClick={() => { setStatusFilter("paid"); setPage(1); }}
+                  className={cn(
+                    "flex-1 py-2 px-3 text-xs font-semibold rounded-lg border transition-all",
+                    statusFilter === "paid" ? "bg-success/10 border-success text-success" : "border-border bg-white hover:border-success/30"
+                  )}
+                >
+                  ✓ Paguar
+                </button>
+                <button
+                  onClick={() => { setStatusFilter("unpaid"); setPage(1); }}
+                  className={cn(
+                    "flex-1 py-2 px-3 text-xs font-semibold rounded-lg border transition-all",
+                    statusFilter === "unpaid" ? "bg-destructive/10 border-destructive text-destructive" : "border-border bg-white hover:border-destructive/30"
+                  )}
+                >
+                  ✕ Paguar jo
+                </button>
               </div>
             </div>
             <div className="h-px bg-border mx-6" />
