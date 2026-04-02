@@ -289,20 +289,7 @@ export default function Quotes() {
     doc.save(`${quote.quote_number}.pdf`);
   };
 
-  const handleExportExcel = () => {
-    const filteredData = getFilteredQuotes();
-    const csv = [
-      ['Nr. Ofertës', 'Kliente', 'Email', 'Shuma', 'Statusi', 'Valide Deri'],
-      ...filteredData.map(q => [q.quote_number, q.client_name, q.client_email, q.amount, q.status, q.valid_until])
-    ].map(row => row.join(',')).join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ofertat-${format(new Date(), 'dd.MM.yyyy')}.csv`;
-    a.click();
-  };
 
   const getFilteredQuotes = () => {
     return quotes.filter(q => {
@@ -346,9 +333,6 @@ export default function Quotes() {
         <div className="flex flex-wrap items-center gap-2 justify-end">
           <Button variant="outline" onClick={() => setShowTemplateManager(true)} className="gap-2 rounded-xl">
             <FileText className="w-4 h-4" /> Shabllonët
-          </Button>
-          <Button variant="outline" onClick={handleExportExcel} className="gap-2 rounded-xl">
-            <Download className="w-4 h-4" /> Eksporto Excel
           </Button>
           <Button onClick={() => setShowForm(true)} className="gap-2 rounded-xl">
             <Plus className="w-4 h-4" /> Ofertë e Re
