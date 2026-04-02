@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 function TenantGate() {
   const { needsOnboarding, isLoadingTenant, tenant } = useTenant();
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,7 +16,7 @@ function TenantGate() {
     }
   }, [needsOnboarding, isLoadingTenant, user]);
 
-  if (isLoadingTenant) {
+  if (isLoadingAuth || isLoadingTenant) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div>

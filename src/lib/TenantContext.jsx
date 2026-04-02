@@ -15,6 +15,7 @@ export const TenantProvider = ({ children }) => {
       if (isAuthenticated && user) {
         loadTenant();
       } else {
+        setNeedsOnboarding(false);
         setIsLoadingTenant(false);
       }
     }
