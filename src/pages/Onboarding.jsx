@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Building2 } from "lucide-react";
 
 export default function Onboarding() {
-  const { user, isLoadingAuth } = useAuth();
+  const { user, isLoadingAuth, checkAppState } = useAuth();
   const [form, setForm] = useState({ name: "", code: "", phone: "", address: "", nipt: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -70,6 +70,8 @@ export default function Onboarding() {
       tenant_name: tenant.name,
     });
 
+    // Refresh auth state to pickup tenant_id
+    await checkAppState();
     window.location.href = "/";
     setLoading(false);
   };
