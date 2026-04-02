@@ -31,6 +31,11 @@
       "description": "A \u00ebsht\u00eb nj\u00ebsia e paracaktuar",
       "default": false
     },
+    "is_favorite": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb nj\u00ebsia e preferuar (p\u00ebrdoret shpesh)",
+      "default": false
+    },
     "description": {
       "type": "string",
       "description": "P\u00ebrshkrimi opsional"

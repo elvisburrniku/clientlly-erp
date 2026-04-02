@@ -5,149 +5,151 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Upload, Loader2, Plus, Trash2, BellRing } from "lucide-react";
+import { Upload, Loader2, Plus, Trash2, BellRing, Star } from "lucide-react";
 
 const DEFAULT_UNITS = [
-  { name: "Piece", code: "pcs", category: "products", is_default: true },
-  { name: "Unit", code: "unit", category: "products", is_default: true },
-  { name: "Pack", code: "pack", category: "products", is_default: true },
-  { name: "Box", code: "box", category: "products", is_default: true },
+  { name: "Copë", code: "copë", category: "products", is_default: true },
+  { name: "Njësi", code: "njësi", category: "products", is_default: true },
+  { name: "Pako", code: "pako", category: "products", is_default: true },
+  { name: "Kuti", code: "kuti", category: "products", is_default: true },
   { name: "Set", code: "set", category: "products", is_default: true },
-  { name: "Pair", code: "pair", category: "products", is_default: true },
+  { name: "Çift", code: "çift", category: "products", is_default: true },
   { name: "Kilogram", code: "kg", category: "weight", is_default: true },
   { name: "Gram", code: "g", category: "weight", is_default: true },
   { name: "Ton", code: "ton", category: "weight", is_default: true },
-  { name: "Liter", code: "l", category: "volume", is_default: true },
-  { name: "Milliliter", code: "ml", category: "volume", is_default: true },
-  { name: "Meter", code: "m", category: "length", is_default: true },
-  { name: "Centimeter", code: "cm", category: "length", is_default: true },
-  { name: "Square Meter", code: "m2", category: "length", is_default: true },
-  { name: "Cubic Meter", code: "m3", category: "length", is_default: true },
-  { name: "Kilometer", code: "km", category: "logistics", is_default: true },
-  { name: "Hour", code: "hr", category: "time", is_default: true },
-  { name: "Day", code: "day", category: "time", is_default: true },
-  { name: "Week", code: "week", category: "time", is_default: true },
-  { name: "Month", code: "month", category: "time", is_default: true },
-  { name: "Year", code: "year", category: "time", is_default: true },
-  { name: "Project", code: "project", category: "time", is_default: true },
-  { name: "Service", code: "service", category: "time", is_default: true },
-  { name: "User", code: "user", category: "it_saas", is_default: true },
-  { name: "License", code: "license", category: "it_saas", is_default: true },
-  { name: "Subscription", code: "sub", category: "it_saas", is_default: true },
-  { name: "Module", code: "module", category: "it_saas", is_default: true },
-  { name: "API Request", code: "api_req", category: "it_saas", is_default: true },
-  { name: "Gigabyte", code: "GB", category: "it_saas", is_default: true },
-  { name: "Megabyte", code: "MB", category: "it_saas", is_default: true },
-  { name: "Shipment", code: "ship", category: "logistics", is_default: true },
-  { name: "Pallet", code: "pallet", category: "logistics", is_default: true },
-  { name: "Container", code: "cont", category: "logistics", is_default: true },
-  { name: "Contract", code: "contract", category: "business", is_default: true },
-  { name: "Transaction", code: "txn", category: "business", is_default: true },
-  { name: "Fee", code: "fee", category: "business", is_default: true },
-  { name: "Percentage", code: "%", category: "business", is_default: true },
+  { name: "Litër", code: "l", category: "volume", is_default: true },
+  { name: "Mililiter", code: "ml", category: "volume", is_default: true },
+  { name: "Metër", code: "m", category: "length", is_default: true },
+  { name: "Centimetër", code: "cm", category: "length", is_default: true },
+  { name: "Metër katror", code: "m²", category: "length", is_default: true },
+  { name: "Metër kub", code: "m³", category: "length", is_default: true },
+  { name: "Kilometër", code: "km", category: "logistics", is_default: true },
+  { name: "Ari", code: "ar", category: "length", is_default: true },
+  { name: "Hektar", code: "ha", category: "length", is_default: true },
+  { name: "Orë", code: "orë", category: "time", is_default: true },
+  { name: "Ditë", code: "ditë", category: "time", is_default: true },
+  { name: "Javë", code: "javë", category: "time", is_default: true },
+  { name: "Muaj", code: "muaj", category: "time", is_default: true },
+  { name: "Vit", code: "vit", category: "time", is_default: true },
+  { name: "Projekt", code: "projekt", category: "time", is_default: true },
+  { name: "Shërbim", code: "shërbim", category: "time", is_default: true },
+  { name: "Përdorues", code: "usr", category: "it_saas", is_default: true },
+  { name: "Liçensë", code: "liç", category: "it_saas", is_default: true },
+  { name: "Abonament", code: "abo", category: "it_saas", is_default: true },
+  { name: "Modul", code: "modul", category: "it_saas", is_default: true },
+  { name: "Kërkesë API", code: "api", category: "it_saas", is_default: true },
+  { name: "Gigabajt", code: "GB", category: "it_saas", is_default: true },
+  { name: "Megabajt", code: "MB", category: "it_saas", is_default: true },
+  { name: "Dërgesë", code: "dërgim", category: "logistics", is_default: true },
+  { name: "Paletë", code: "paletë", category: "logistics", is_default: true },
+  { name: "Kontejner", code: "kont", category: "logistics", is_default: true },
+  { name: "Kontratë", code: "kontr", category: "business", is_default: true },
+  { name: "Transaksion", code: "trans", category: "business", is_default: true },
+  { name: "Tarifë", code: "tarife", category: "business", is_default: true },
+  { name: "Përqindje", code: "%", category: "business", is_default: true },
 ];
 
 const DEFAULT_EXPENSE_CATEGORIES = [
-  { name: "Rent", parent_category: "Operating Expenses", type: "fixed" },
-  { name: "Electricity", parent_category: "Operating Expenses", type: "fixed" },
-  { name: "Water", parent_category: "Operating Expenses", type: "fixed" },
-  { name: "Internet & Phone", parent_category: "Operating Expenses", type: "fixed" },
-  { name: "Office Maintenance", parent_category: "Operating Expenses", type: "variable" },
-  { name: "Salaries", parent_category: "Payroll & HR", type: "fixed" },
-  { name: "Bonuses", parent_category: "Payroll & HR", type: "variable" },
-  { name: "Employee Benefits", parent_category: "Payroll & HR", type: "fixed" },
-  { name: "Training", parent_category: "Payroll & HR", type: "variable" },
-  { name: "Recruitment", parent_category: "Payroll & HR", type: "one-time" },
-  { name: "Online Ads", parent_category: "Marketing & Advertising", type: "variable" },
-  { name: "Branding", parent_category: "Marketing & Advertising", type: "one-time" },
-  { name: "Graphic Design", parent_category: "Marketing & Advertising", type: "variable" },
-  { name: "Events & Promotions", parent_category: "Marketing & Advertising", type: "one-time" },
-  { name: "Fuel", parent_category: "Transport & Logistics", type: "variable" },
-  { name: "Transportation", parent_category: "Transport & Logistics", type: "variable" },
-  { name: "Shipping", parent_category: "Transport & Logistics", type: "variable" },
-  { name: "Vehicle Maintenance", parent_category: "Transport & Logistics", type: "variable" },
-  { name: "Equipment Purchase", parent_category: "Equipment & Assets", type: "one-time" },
-  { name: "Office Furniture", parent_category: "Equipment & Assets", type: "one-time" },
-  { name: "Computers & Hardware", parent_category: "Equipment & Assets", type: "one-time" },
-  { name: "Tools", parent_category: "Equipment & Assets", type: "one-time" },
-  { name: "SaaS Subscriptions", parent_category: "Software & IT", type: "fixed" },
+  { name: "Qira", parent_category: "Shpenzime Operative", type: "fixed" },
+  { name: "Energji Elektrike", parent_category: "Shpenzime Operative", type: "fixed" },
+  { name: "Ujë", parent_category: "Shpenzime Operative", type: "fixed" },
+  { name: "Internet & Telefon", parent_category: "Shpenzime Operative", type: "fixed" },
+  { name: "Mirëmbajtje Zyre", parent_category: "Shpenzime Operative", type: "variable" },
+  { name: "Paga", parent_category: "Pagat & Burimet Njerëzore", type: "fixed" },
+  { name: "Bonuse", parent_category: "Pagat & Burimet Njerëzore", type: "variable" },
+  { name: "Përfitime Punonjësish", parent_category: "Pagat & Burimet Njerëzore", type: "fixed" },
+  { name: "Trajnim", parent_category: "Pagat & Burimet Njerëzore", type: "variable" },
+  { name: "Rekrutim", parent_category: "Pagat & Burimet Njerëzore", type: "one-time" },
+  { name: "Reklama Online", parent_category: "Marketing & Reklamim", type: "variable" },
+  { name: "Branding", parent_category: "Marketing & Reklamim", type: "one-time" },
+  { name: "Dizajn Grafik", parent_category: "Marketing & Reklamim", type: "variable" },
+  { name: "Evente & Promovime", parent_category: "Marketing & Reklamim", type: "one-time" },
+  { name: "Karburant", parent_category: "Transport & Logjistikë", type: "variable" },
+  { name: "Transport", parent_category: "Transport & Logjistikë", type: "variable" },
+  { name: "Dërgesa", parent_category: "Transport & Logjistikë", type: "variable" },
+  { name: "Mirëmbajtje Automjeti", parent_category: "Transport & Logjistikë", type: "variable" },
+  { name: "Blerje Pajisje", parent_category: "Pajisje & Asete", type: "one-time" },
+  { name: "Mobilje Zyre", parent_category: "Pajisje & Asete", type: "one-time" },
+  { name: "Kompjuterë & Hardware", parent_category: "Pajisje & Asete", type: "one-time" },
+  { name: "Vegla Pune", parent_category: "Pajisje & Asete", type: "one-time" },
+  { name: "Abonime SaaS", parent_category: "Software & IT", type: "fixed" },
   { name: "Hosting", parent_category: "Software & IT", type: "fixed" },
   { name: "Domain", parent_category: "Software & IT", type: "fixed" },
-  { name: "Software Licenses", parent_category: "Software & IT", type: "fixed" },
-  { name: "Development Costs", parent_category: "Software & IT", type: "variable" },
-  { name: "Bank Fees", parent_category: "Financial Expenses", type: "variable" },
-  { name: "Interest", parent_category: "Financial Expenses", type: "fixed" },
-  { name: "Loan Payments", parent_category: "Financial Expenses", type: "fixed" },
-  { name: "Transaction Fees", parent_category: "Financial Expenses", type: "variable" },
-  { name: "Legal Services", parent_category: "Legal & Professional", type: "variable" },
-  { name: "Accounting", parent_category: "Legal & Professional", type: "fixed" },
-  { name: "Consulting", parent_category: "Legal & Professional", type: "variable" },
-  { name: "Audit", parent_category: "Legal & Professional", type: "one-time" },
-  { name: "Office Supplies", parent_category: "Supplies", type: "variable" },
-  { name: "Consumables", parent_category: "Supplies", type: "variable" },
-  { name: "Cleaning Supplies", parent_category: "Supplies", type: "variable" },
-  { name: "Raw Materials", parent_category: "COGS", type: "variable" },
-  { name: "Production Costs", parent_category: "COGS", type: "variable" },
-  { name: "Packaging", parent_category: "COGS", type: "variable" },
-  { name: "Business Insurance", parent_category: "Insurance & Health", type: "fixed" },
-  { name: "Health Insurance", parent_category: "Insurance & Health", type: "fixed" },
-  { name: "Vehicle Insurance", parent_category: "Insurance & Health", type: "fixed" },
-  { name: "Courses", parent_category: "Education & Development", type: "variable" },
-  { name: "Seminars", parent_category: "Education & Development", type: "one-time" },
-  { name: "Books", parent_category: "Education & Development", type: "variable" },
-  { name: "Flights", parent_category: "Travel & Entertainment", type: "variable" },
-  { name: "Hotels", parent_category: "Travel & Entertainment", type: "variable" },
-  { name: "Meals", parent_category: "Travel & Entertainment", type: "variable" },
-  { name: "Client Meetings", parent_category: "Travel & Entertainment", type: "variable" },
-  { name: "VAT", parent_category: "Taxes & Government", type: "variable" },
-  { name: "Corporate Tax", parent_category: "Taxes & Government", type: "fixed" },
-  { name: "Local Taxes", parent_category: "Taxes & Government", type: "fixed" },
-  { name: "Repairs", parent_category: "Maintenance & Repairs", type: "variable" },
-  { name: "Equipment Servicing", parent_category: "Maintenance & Repairs", type: "variable" },
-  { name: "Technical Maintenance", parent_category: "Maintenance & Repairs", type: "variable" },
-  { name: "Asset Depreciation", parent_category: "Depreciation", type: "fixed" },
-  { name: "Vehicle Depreciation", parent_category: "Depreciation", type: "fixed" },
+  { name: "Liçensa Software", parent_category: "Software & IT", type: "fixed" },
+  { name: "Kosto Zhvillimi", parent_category: "Software & IT", type: "variable" },
+  { name: "Tarifa Bankare", parent_category: "Shpenzime Financiare", type: "variable" },
+  { name: "Interesa", parent_category: "Shpenzime Financiare", type: "fixed" },
+  { name: "Pagesa Kredie", parent_category: "Shpenzime Financiare", type: "fixed" },
+  { name: "Tarifa Transaksioni", parent_category: "Shpenzime Financiare", type: "variable" },
+  { name: "Shërbime Ligjore", parent_category: "Juridike & Profesionale", type: "variable" },
+  { name: "Kontabilitet", parent_category: "Juridike & Profesionale", type: "fixed" },
+  { name: "Konsulencë", parent_category: "Juridike & Profesionale", type: "variable" },
+  { name: "Auditim", parent_category: "Juridike & Profesionale", type: "one-time" },
+  { name: "Materiale Zyre", parent_category: "Materiale & Furnitura", type: "variable" },
+  { name: "Konsumabëlë", parent_category: "Materiale & Furnitura", type: "variable" },
+  { name: "Materiale Pastrimi", parent_category: "Materiale & Furnitura", type: "variable" },
+  { name: "Lëndë të Para", parent_category: "Kosto të Drejtpërdrejta", type: "variable" },
+  { name: "Kosto Prodhimi", parent_category: "Kosto të Drejtpërdrejta", type: "variable" },
+  { name: "Paketim", parent_category: "Kosto të Drejtpërdrejta", type: "variable" },
+  { name: "Sigurim Biznesi", parent_category: "Sigurime", type: "fixed" },
+  { name: "Sigurim Shëndetësor", parent_category: "Sigurime", type: "fixed" },
+  { name: "Sigurim Automjeti", parent_category: "Sigurime", type: "fixed" },
+  { name: "Kurse", parent_category: "Arsim & Zhvillim", type: "variable" },
+  { name: "Seminare", parent_category: "Arsim & Zhvillim", type: "one-time" },
+  { name: "Libra", parent_category: "Arsim & Zhvillim", type: "variable" },
+  { name: "Biletë Avioni", parent_category: "Udhëtime & Argëtim", type: "variable" },
+  { name: "Hotel", parent_category: "Udhëtime & Argëtim", type: "variable" },
+  { name: "Ushqim", parent_category: "Udhëtime & Argëtim", type: "variable" },
+  { name: "Takime me Klientë", parent_category: "Udhëtime & Argëtim", type: "variable" },
+  { name: "TVSH", parent_category: "Taksa & Shteti", type: "variable" },
+  { name: "Tatim Korporativ", parent_category: "Taksa & Shteti", type: "fixed" },
+  { name: "Taksa Lokale", parent_category: "Taksa & Shteti", type: "fixed" },
+  { name: "Riparime", parent_category: "Mirëmbajtje & Riparime", type: "variable" },
+  { name: "Servisim Pajisje", parent_category: "Mirëmbajtje & Riparime", type: "variable" },
+  { name: "Mirëmbajtje Teknike", parent_category: "Mirëmbajtje & Riparime", type: "variable" },
+  { name: "Amortizim Asetesh", parent_category: "Amortizim", type: "fixed" },
+  { name: "Amortizim Automjeti", parent_category: "Amortizim", type: "fixed" },
 ];
 
 const DEFAULT_SERVICE_CATEGORIES = [
-  { name: "Software Development", category: "IT & Software", subcategory: "", billing_type: "project" },
-  { name: "System Maintenance", category: "IT & Software", subcategory: "", billing_type: "recurring" },
-  { name: "Technical Support", category: "IT & Software", subcategory: "", billing_type: "hourly" },
+  { name: "Zhvillim Software", category: "IT & Software", subcategory: "", billing_type: "project" },
+  { name: "Mirëmbajtje Sistemesh", category: "IT & Software", subcategory: "", billing_type: "recurring" },
+  { name: "Mbështetje Teknike", category: "IT & Software", subcategory: "", billing_type: "hourly" },
   { name: "Hosting", category: "IT & Software", subcategory: "", billing_type: "recurring" },
-  { name: "API Integration", category: "IT & Software", subcategory: "", billing_type: "project" },
-  { name: "Graphic Design", category: "Design & Creative", subcategory: "", billing_type: "project" },
-  { name: "Branding", category: "Design & Creative", subcategory: "", billing_type: "project" },
-  { name: "UI/UX Design", category: "Design & Creative", subcategory: "", billing_type: "project" },
-  { name: "Video Editing", category: "Design & Creative", subcategory: "", billing_type: "hourly" },
-  { name: "Social Media Management", category: "Marketing", subcategory: "", billing_type: "recurring" },
-  { name: "Paid Ads (Facebook, Google)", category: "Marketing", subcategory: "", billing_type: "recurring" },
+  { name: "Integrim API", category: "IT & Software", subcategory: "", billing_type: "project" },
+  { name: "Dizajn Grafik", category: "Dizajn & Krijues", subcategory: "", billing_type: "project" },
+  { name: "Branding", category: "Dizajn & Krijues", subcategory: "", billing_type: "project" },
+  { name: "Dizajn UI/UX", category: "Dizajn & Krijues", subcategory: "", billing_type: "project" },
+  { name: "Montim Video", category: "Dizajn & Krijues", subcategory: "", billing_type: "hourly" },
+  { name: "Menaxhim Social Media", category: "Marketing", subcategory: "", billing_type: "recurring" },
+  { name: "Reklama të Paguara (Facebook, Google)", category: "Marketing", subcategory: "", billing_type: "recurring" },
   { name: "SEO", category: "Marketing", subcategory: "", billing_type: "recurring" },
-  { name: "Content Creation", category: "Marketing", subcategory: "", billing_type: "project" },
-  { name: "Consulting", category: "Business & Professional", subcategory: "", billing_type: "hourly" },
-  { name: "Accounting", category: "Business & Professional", subcategory: "", billing_type: "recurring" },
-  { name: "Legal Services", category: "Business & Professional", subcategory: "", billing_type: "hourly" },
-  { name: "Audit", category: "Business & Professional", subcategory: "", billing_type: "one-time" },
-  { name: "Shipping", category: "Transport & Logistics", subcategory: "", billing_type: "one-time" },
-  { name: "Transportation", category: "Transport & Logistics", subcategory: "", billing_type: "one-time" },
-  { name: "Storage", category: "Transport & Logistics", subcategory: "", billing_type: "recurring" },
-  { name: "Equipment Repair", category: "Maintenance & Repairs", subcategory: "", billing_type: "one-time" },
-  { name: "Technical Maintenance", category: "Maintenance & Repairs", subcategory: "", billing_type: "recurring" },
-  { name: "Facility Maintenance", category: "Maintenance & Repairs", subcategory: "", billing_type: "recurring" },
-  { name: "Surface Disinfection", category: "Pest Control Services", subcategory: "Disinfection", billing_type: "one-time" },
-  { name: "Air Disinfection", category: "Pest Control Services", subcategory: "Disinfection", billing_type: "one-time" },
-  { name: "Industrial Disinfection", category: "Pest Control Services", subcategory: "Disinfection", billing_type: "one-time" },
-  { name: "Residential Disinfection", category: "Pest Control Services", subcategory: "Disinfection", billing_type: "one-time" },
-  { name: "Flying Insects (flies, mosquitoes)", category: "Pest Control Services", subcategory: "Disinsection", billing_type: "one-time" },
-  { name: "Crawling Insects (cockroaches, ants)", category: "Pest Control Services", subcategory: "Disinsection", billing_type: "one-time" },
-  { name: "Bed Bugs Treatment", category: "Pest Control Services", subcategory: "Disinsection", billing_type: "one-time" },
-  { name: "Wasps & Bees Control", category: "Pest Control Services", subcategory: "Disinsection", billing_type: "one-time" },
-  { name: "Mice Control", category: "Pest Control Services", subcategory: "Deratization", billing_type: "one-time" },
-  { name: "Rat Control", category: "Pest Control Services", subcategory: "Deratization", billing_type: "one-time" },
-  { name: "Rodent Monitoring & Prevention", category: "Pest Control Services", subcategory: "Deratization", billing_type: "recurring" },
-  { name: "Birds Control (pigeons)", category: "Pest Control Services", subcategory: "Other Pest", billing_type: "one-time" },
-  { name: "Reptiles Control", category: "Pest Control Services", subcategory: "Other Pest", billing_type: "one-time" },
-  { name: "Wildlife Control", category: "Pest Control Services", subcategory: "Other Pest", billing_type: "one-time" },
-  { name: "Snakes Control", category: "Pest Control Services", subcategory: "Other Pest", billing_type: "one-time" },
+  { name: "Krijim Përmbajtje", category: "Marketing", subcategory: "", billing_type: "project" },
+  { name: "Konsulencë", category: "Biznes & Profesionale", subcategory: "", billing_type: "hourly" },
+  { name: "Kontabilitet", category: "Biznes & Profesionale", subcategory: "", billing_type: "recurring" },
+  { name: "Shërbime Ligjore", category: "Biznes & Profesionale", subcategory: "", billing_type: "hourly" },
+  { name: "Auditim", category: "Biznes & Profesionale", subcategory: "", billing_type: "one-time" },
+  { name: "Dërgesa", category: "Transport & Logjistikë", subcategory: "", billing_type: "one-time" },
+  { name: "Transport", category: "Transport & Logjistikë", subcategory: "", billing_type: "one-time" },
+  { name: "Magazinim", category: "Transport & Logjistikë", subcategory: "", billing_type: "recurring" },
+  { name: "Riparim Pajisje", category: "Mirëmbajtje & Riparime", subcategory: "", billing_type: "one-time" },
+  { name: "Mirëmbajtje Teknike", category: "Mirëmbajtje & Riparime", subcategory: "", billing_type: "recurring" },
+  { name: "Mirëmbajtje Objekti", category: "Mirëmbajtje & Riparime", subcategory: "", billing_type: "recurring" },
+  { name: "Dezinfektim Sipërfaqesh", category: "Shërbime Mbrojtjes", subcategory: "Dezinfektim", billing_type: "one-time" },
+  { name: "Dezinfektim Ajri", category: "Shërbime Mbrojtjes", subcategory: "Dezinfektim", billing_type: "one-time" },
+  { name: "Dezinfektim Industrial", category: "Shërbime Mbrojtjes", subcategory: "Dezinfektim", billing_type: "one-time" },
+  { name: "Dezinfektim Banesash", category: "Shërbime Mbrojtjes", subcategory: "Dezinfektim", billing_type: "one-time" },
+  { name: "Insekte Fluturuese (mizë, mushkonjë)", category: "Shërbime Mbrojtjes", subcategory: "Dezinsektim", billing_type: "one-time" },
+  { name: "Insekte Zvarranikë (bleta, milingona)", category: "Shërbime Mbrojtjes", subcategory: "Dezinsektim", billing_type: "one-time" },
+  { name: "Trajtim Ploshtash", category: "Shërbime Mbrojtjes", subcategory: "Dezinsektim", billing_type: "one-time" },
+  { name: "Kontrolli Grerëzave & Bletëve", category: "Shërbime Mbrojtjes", subcategory: "Dezinsektim", billing_type: "one-time" },
+  { name: "Kontrolli Minjve", category: "Shërbime Mbrojtjes", subcategory: "Deratizim", billing_type: "one-time" },
+  { name: "Kontrolli Rateve", category: "Shërbime Mbrojtjes", subcategory: "Deratizim", billing_type: "one-time" },
+  { name: "Monitorim & Parandalim Brejtësish", category: "Shërbime Mbrojtjes", subcategory: "Deratizim", billing_type: "recurring" },
+  { name: "Kontrolli Zogjve (pëllumba)", category: "Shërbime Mbrojtjes", subcategory: "Dëmkëmbës të Tjerë", billing_type: "one-time" },
+  { name: "Kontrolli Reptilëve", category: "Shërbime Mbrojtjes", subcategory: "Dëmkëmbës të Tjerë", billing_type: "one-time" },
+  { name: "Kontrolli Kafshëve të Egra", category: "Shërbime Mbrojtjes", subcategory: "Dëmkëmbës të Tjerë", billing_type: "one-time" },
+  { name: "Kontrolli Gjarpërinjve", category: "Shërbime Mbrojtjes", subcategory: "Dëmkëmbës të Tjerë", billing_type: "one-time" },
 ];
 
 export default function Settings() {
@@ -288,6 +290,21 @@ export default function Settings() {
     await base44.entities.ServiceCategory.delete(id);
     setServices(services.filter(s => s.id !== id));
     toast.success("Shërbimi u fshi");
+  };
+
+  const toggleFavoriteUnit = async (u) => {
+    await base44.entities.Unit.update(u.id, { is_favorite: !u.is_favorite });
+    setUnits(units.map(x => x.id === u.id ? { ...x, is_favorite: !x.is_favorite } : x));
+  };
+
+  const toggleFavoriteCategory = async (c) => {
+    await base44.entities.ExpenseCategory.update(c.id, { is_favorite: !c.is_favorite });
+    setCategories(categories.map(x => x.id === c.id ? { ...x, is_favorite: !x.is_favorite } : x));
+  };
+
+  const toggleFavoriteService = async (s) => {
+    await base44.entities.ServiceCategory.update(s.id, { is_favorite: !s.is_favorite });
+    setServices(services.map(x => x.id === s.id ? { ...x, is_favorite: !x.is_favorite } : x));
   };
 
   const handleLogoUpload = async (e) => {
@@ -445,14 +462,17 @@ export default function Settings() {
       <div className="bg-card rounded-xl border border-border p-6 space-y-5">
         <h3 className="text-base font-semibold">Njësitë e Matjes</h3>
         <div className="space-y-3 max-h-80 overflow-y-auto">
-          {units.map(u => (
+          {[...units].sort((a, b) => (b.is_favorite ? 1 : 0) - (a.is_favorite ? 1 : 0)).map(u => (
             <div key={u.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border">
               <div className="flex items-center gap-3 min-w-0">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${CATEGORY_COLORS[u.category] || CATEGORY_COLORS.custom}`}>{u.code || u.name}</span>
                 <span className="text-sm font-medium truncate">{u.name}</span>
                 {u.category && <span className="text-xs text-muted-foreground hidden sm:inline">{CATEGORY_LABELS[u.category] || u.category}</span>}
               </div>
-              <button onClick={() => deleteUnit(u.id)} className="text-destructive/60 hover:text-destructive ml-2 shrink-0"><Trash2 className="w-4 h-4" /></button>
+              <div className="flex items-center gap-1 ml-2 shrink-0">
+                <button onClick={() => toggleFavoriteUnit(u)} className={u.is_favorite ? "text-amber-400" : "text-muted-foreground/30 hover:text-amber-400"}><Star className="w-4 h-4" fill={u.is_favorite ? "currentColor" : "none"} /></button>
+                <button onClick={() => deleteUnit(u.id)} className="text-destructive/60 hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+              </div>
             </div>
           ))}
         </div>
@@ -482,13 +502,16 @@ export default function Settings() {
       <div className="bg-card rounded-xl border border-border p-6 space-y-5">
         <h3 className="text-base font-semibold">Kategoriat e Shpenzimeve</h3>
         <div className="space-y-3 max-h-80 overflow-y-auto">
-          {categories.map(c => (
+          {[...categories].sort((a, b) => (b.is_favorite ? 1 : 0) - (a.is_favorite ? 1 : 0)).map(c => (
             <div key={c.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border">
-              <div className="min-w-0">
+              <div className="min-w-0 flex items-center gap-2">
                 <span className="text-sm font-medium">{c.name}</span>
-                {c.parent_category && <span className="text-xs text-muted-foreground ml-2">{c.parent_category}</span>}
+                {c.parent_category && <span className="text-xs text-muted-foreground">{c.parent_category}</span>}
               </div>
-              <button onClick={() => deleteCategory(c.id)} className="text-destructive/60 hover:text-destructive ml-2 shrink-0"><Trash2 className="w-4 h-4" /></button>
+              <div className="flex items-center gap-1 ml-2 shrink-0">
+                <button onClick={() => toggleFavoriteCategory(c)} className={c.is_favorite ? "text-amber-400" : "text-muted-foreground/30 hover:text-amber-400"}><Star className="w-4 h-4" fill={c.is_favorite ? "currentColor" : "none"} /></button>
+                <button onClick={() => deleteCategory(c.id)} className="text-destructive/60 hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+              </div>
             </div>
           ))}
         </div>
@@ -510,7 +533,7 @@ export default function Settings() {
       <div className="bg-card rounded-xl border border-border p-6 space-y-5">
         <h3 className="text-base font-semibold">Shërbimet & Llojet</h3>
         <div className="space-y-3 max-h-80 overflow-y-auto">
-          {services.map(s => (
+          {[...services].sort((a, b) => (b.is_favorite ? 1 : 0) - (a.is_favorite ? 1 : 0)).map(s => (
             <div key={s.id} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 bg-violet-100 text-violet-700">
@@ -519,7 +542,10 @@ export default function Settings() {
                 <span className="text-sm font-medium truncate">{s.name}</span>
                 <span className="text-xs text-muted-foreground hidden sm:inline shrink-0">{s.category}{s.subcategory ? " · " + s.subcategory : ""}</span>
               </div>
-              <button onClick={() => deleteService(s.id)} className="text-destructive/60 hover:text-destructive ml-2 shrink-0"><Trash2 className="w-4 h-4" /></button>
+              <div className="flex items-center gap-1 ml-2 shrink-0">
+                <button onClick={() => toggleFavoriteService(s)} className={s.is_favorite ? "text-amber-400" : "text-muted-foreground/30 hover:text-amber-400"}><Star className="w-4 h-4" fill={s.is_favorite ? "currentColor" : "none"} /></button>
+                <button onClick={() => deleteService(s.id)} className="text-destructive/60 hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+              </div>
             </div>
           ))}
         </div>

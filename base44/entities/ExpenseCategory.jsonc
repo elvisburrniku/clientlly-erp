@@ -31,6 +31,11 @@
       "description": "A \u00ebsht\u00eb kategoria e paracaktuar",
       "default": false
     },
+    "is_favorite": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb kategoria e preferuar (p\u00ebrdoret shpesh)",
+      "default": false
+    },
     "is_active": {
       "type": "boolean",
       "description": "A \u00ebsht\u00eb kategoria aktive",

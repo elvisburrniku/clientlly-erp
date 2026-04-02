@@ -12,7 +12,7 @@
     },
     "subcategory": {
       "type": "string",
-      "description": "N\u00ebnkategoria (p.sh. Disinfection)"
+      "description": "N\u00ebnkategoria (p.sh. Dezinfektim)"
     },
     "description": {
       "type": "string",
@@ -36,6 +36,11 @@
     "is_default": {
       "type": "boolean",
       "description": "A \u00ebsht\u00eb sh\u00ebrbim i paracaktuar i sistemit",
+      "default": false
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "description": "A \u00ebsht\u00eb sh\u00ebrbimi i preferuar (p\u00ebrdoret shpesh)",
       "default": false
     },
     "is_active": {
