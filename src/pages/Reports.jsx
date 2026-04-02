@@ -18,10 +18,22 @@ export default function Reports() {
   const [selectedReports, setSelectedReports] = useState(['invoices']);
   const [dateFrom, setDateFrom] = useState(() => moment().subtract(12, 'months').format('YYYY-MM-DD'));
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
+  const [royalties, setRoyalties] = useState({});
+  const [savingRoyalties, setSavingRoyalties] = useState(false);
 
   useEffect(() => {
     loadReportData();
   }, []);
+
+  useEffect(() => {
+    const royaltyMap = {};
+    invoices.forEach(inv => {
+      if (!royaltyMap[inv.id]) {
+        royaltyMap[inv.id] = inv.royalties !== undefined ? inv.royalties : (inv.subtotal || (inv.amount / 1.2)) * 0.06;
+      }
+    });
+    setRoyalties(royaltyMap);
+  }, [invoices]);
 
   const loadReportData = async () => {
     const [invs, exps, sups, cashTxns] = await Promise.all([
@@ -67,6 +79,21 @@ export default function Reports() {
       const itemDate = moment(item[dateField]);
       return itemDate.isBetween(moment(dateFrom), moment(dateTo), null, '[]');
     });
+  };
+
+  const saveRoyalties = async () => {
+    setSavingRoyalties(true);
+    try {
+      const updates = invoices
+        .filter(inv => royalties[inv.id] !== undefined)
+        .map(inv => base44.entities.Invoice.update(inv.id, { royalties: royalties[inv.id] }));
+      await Promise.all(updates);
+      alert('Royalties saved successfully!');
+    } catch (error) {
+      console.error('Error saving royalties:', error);
+      alert('Error saving royalties');
+    }
+    setSavingRoyalties(false);
   };
 
   const downloadReport = async (type, title, data) => {
@@ -192,6 +219,46 @@ export default function Reports() {
             <Label className="text-xs font-semibold mb-2 block">Deri në datë</Label>
             <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </div>
+        </div>
+      </div>
+
+      {/* Royalties Section */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <h3 className="text-base font-semibold mb-4">Royalties (6% nga vlera pa TVSH)</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 px-2">Fatura</th>
+                <th className="text-left py-2 px-2">Klient</th>
+                <th className="text-right py-2 px-2">Pa TVSH (€)</th>
+                <th className="text-right py-2 px-2">Royalties (€)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filterDataByDate(invoices).map(inv => (
+                <tr key={inv.id} className="border-b hover:bg-gray-50">
+                  <td className="py-2 px-2">{inv.invoice_number}</td>
+                  <td className="py-2 px-2">{inv.client_name}</td>
+                  <td className="text-right py-2 px-2">€{(inv.subtotal || (inv.amount / 1.2)).toFixed(2)}</td>
+                  <td className="text-right py-2 px-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={royalties[inv.id] || 0}
+                      onChange={(e) => setRoyalties(prev => ({ ...prev, [inv.id]: parseFloat(e.target.value) }))}
+                      className="w-24 text-right"
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="mt-4">
+          <Button onClick={saveRoyalties} disabled={savingRoyalties} variant="default">
+            {savingRoyalties ? 'Duke ruajtur...' : 'Ruaj Royalties'}
+          </Button>
         </div>
       </div>
 
