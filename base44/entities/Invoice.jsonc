@@ -20,6 +20,15 @@
       "default": "standard",
       "description": "Type of invoice"
     },
+    "template": {
+      "type": "string",
+      "enum": [
+        "classic",
+        "modern"
+      ],
+      "default": "classic",
+      "description": "Invoice template style"
+    },
     "client_name": {
       "type": "string",
       "description": "Client name"
