@@ -386,21 +386,19 @@ export default function Invoices() {
           </div>
           <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2 rounded-xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" onClick={exportExcel} className="gap-2 rounded-xl">
+            <Sheet className="w-4 h-4" /> Excel
+          </Button>
+          <Button variant="outline" onClick={exportPDFList} className="gap-2 rounded-xl">
+            <Download className="w-4 h-4" /> PDF
+          </Button>
+          <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2 rounded-xl">
+            <Layers className="w-4 h-4" /> Merge
+          </Button>
+          <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2 rounded-xl ml-auto">
             <Plus className="w-4 h-4" /> Faturë e Re
           </Button>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={exportExcel} className="gap-2 rounded-xl">
-              <Sheet className="w-4 h-4" /> Excel
-            </Button>
-            <Button variant="outline" onClick={exportPDFList} className="gap-2 rounded-xl">
-              <Download className="w-4 h-4" /> PDF
-            </Button>
-            <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2 rounded-xl">
-              <Layers className="w-4 h-4" /> Merge
-            </Button>
-          </div>
         </div>
         </div>
 
