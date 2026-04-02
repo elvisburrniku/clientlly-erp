@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { useLanguage } from "@/lib/useLanguage";
 import { Plus, FileText, Send, Search, Download, Sheet, Layers, MoreHorizontal, Eye, Bell, Copy, Pencil, Trash2, Filter, X, SlidersHorizontal, Calendar, User, Hash, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -40,6 +41,7 @@ const emptyForm = () => ({
 
 export default function Invoices() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const tenantId = user?.tenant_id;
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -381,23 +383,23 @@ export default function Invoices() {
       <div className="space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Menaxhimi</p>
-            <h1 className="text-4xl font-bold tracking-tight">Faturat</h1>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">{t('manage')}</p>
+            <h1 className="text-4xl font-bold tracking-tight">{t('invoices')}</h1>
           </div>
           <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 justify-end">
           <Button variant="outline" onClick={exportExcel} className="gap-2 rounded-xl">
-            <Sheet className="w-4 h-4" /> Excel
+            <Sheet className="w-4 h-4" /> {t('exportExcel')}
           </Button>
           <Button variant="outline" onClick={exportPDFList} className="gap-2 rounded-xl">
-            <Download className="w-4 h-4" /> PDF
+            <Download className="w-4 h-4" /> {t('exportPDF')}
           </Button>
           <Button variant="outline" onClick={() => setMergePDFOpen(true)} className="gap-2 rounded-xl">
             <Layers className="w-4 h-4" /> Merge
           </Button>
           <Button onClick={() => { setForm({ ...emptyForm(), due_date: getDefaultDueDate(settings) }); setDialogOpen(true); }} className="gap-2 rounded-xl">
-            <Plus className="w-4 h-4" /> Faturë e Re
+            <Plus className="w-4 h-4" /> {t('newInvoice')}
           </Button>
         </div>
         </div>
@@ -405,19 +407,19 @@ export default function Invoices() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('total')}</p>
           <p className="text-2xl font-bold mt-1">{invoices.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">fatura</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('invoices')}</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Hapura</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('openInvoices')}</p>
           <p className="text-2xl font-bold mt-1 text-emerald-600">{openCount}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">pa u paguar</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('unpaid')}</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 col-span-2 sm:col-span-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Totali</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('total')}</p>
           <p className="text-2xl font-bold mt-1 text-primary">€{totalRevenue.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">me TVSH</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('withVat')}</p>
         </div>
       </div>
 
