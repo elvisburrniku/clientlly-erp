@@ -18,8 +18,6 @@ const menuItems = [
   { label: "Borxhet", icon: AlertCircle, path: "/debtors" },
   { label: "Shpenzimet", icon: DollarSign, path: "/expenses" },
   { label: "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover" },
-  { label: "Raportet", icon: BarChart3, path: "/reports" },
-  { label: "Analiza Faturave", icon: BarChart3, path: "/invoice-analytics" },
 ];
 
 const performanceItems = [
@@ -28,11 +26,7 @@ const performanceItems = [
   { label: "Analiza Faturave", icon: BarChart3, path: "/invoice-analytics" },
 ];
 
-const allMenuItems = [
-  ...menuItems.slice(0, 10),
-  ...performanceItems.filter(item => !item.section),
-  { label: "Settings", icon: Settings, path: "/settings" },
-];
+
 
 export default function Sidebar() {
   const location = useLocation();
