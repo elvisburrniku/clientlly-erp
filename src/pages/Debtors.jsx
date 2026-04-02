@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 
 export default function Debtors() {
+  const navigate = useNavigate();
   const [debtors, setDebtors] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -432,9 +434,9 @@ export default function Debtors() {
                 </tr>
               ) : (
                 paginated.map(d => (
-                  <tr key={d.name} className="hover:bg-muted/20 transition-colors">
+                  <tr key={d.name} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => navigate(`/debtor-detail/${encodeURIComponent(d.name)}`)}>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-primary">{d.name}</span>
+                      <span className="text-sm font-bold text-primary hover:underline">{d.name}</span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{d.email}</td>
                     <td className="px-6 py-4 text-sm font-semibold">€{d.total_amount.toFixed(2)}</td>

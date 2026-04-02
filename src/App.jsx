@@ -25,6 +25,7 @@ import ClientPortal from './pages/ClientPortal';
 import ProductCatalog from './pages/ProductCatalog.jsx';
 import Transfers from './pages/Transfers';
 import Debtors from './pages/Debtors';
+import DebtorDetail from './pages/DebtorDetail';
 import InvoiceAnalytics from './pages/InvoiceAnalytics';
 
 const AuthenticatedApp = () => {
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/catalog" element={<ProductCatalog />} />
         <Route path="/transfers" element={<Transfers />} />
         <Route path="/debtors" element={<Debtors />} />
+        <Route path="/debtor-detail/:debtorName" element={<DebtorDetail />} />
         <Route path="/invoice-analytics" element={<InvoiceAnalytics />} />
         <Route path="/client" element={<ClientPortal />} />
         <Route path="*" element={<PageNotFound />} />
