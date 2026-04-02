@@ -33,7 +33,9 @@ export default function Products() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterType, setFilterType] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [filterSearch, setFilterSearch] = useState("");
+  const [filterName, setFilterName] = useState("");
+  const [nameQuery, setNameQuery] = useState("");
+  const [showNameDrop, setShowNameDrop] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -92,13 +94,17 @@ export default function Products() {
     if (filterType && p.type !== filterType) return false;
     if (filterStatus === "active" && !p.is_active) return false;
     if (filterStatus === "inactive" && p.is_active) return false;
-    if (filterSearch && !p.name?.toLowerCase().includes(filterSearch.toLowerCase())) return false;
+    if (filterName && p.name !== filterName) return false;
     return true;
   });
 
-  const hasFilters = filterType || filterStatus || filterSearch;
-  const activeFilterCount = [filterType, filterStatus, filterSearch].filter(Boolean).length;
-  const clearFilters = () => { setFilterType(""); setFilterStatus(""); setFilterSearch(""); };
+  const hasFilters = filterType || filterStatus || filterName;
+  const activeFilterCount = [filterType, filterStatus, filterName].filter(Boolean).length;
+  const clearFilters = () => { setFilterType(""); setFilterStatus(""); setFilterName(""); setNameQuery(""); };
+
+  const nameSuggestions = nameQuery
+    ? products.filter(p => p.name?.toLowerCase().includes(nameQuery.toLowerCase()))
+    : products.slice(0, 8);
 
   const exportExcel = () => {
     const headers = ["Emri", "Lloji", "Çmim pa TVSH", "TVSH %", "Çmim me TVSH", "Njësia", "Statusi"];
@@ -225,16 +231,29 @@ export default function Products() {
           </div>
           <div className="flex-1 overflow-y-auto bg-background">
             <div className="px-6 pt-6 pb-5">
-              <div className="flex items-center gap-2 mb-3">
-                <Search className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Kërkim</span>
-              </div>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Kërkim</span>
+              <label className="text-xs font-medium text-muted-foreground block mb-1.5">Emri i Produktit / Shërbimit</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                <input type="text" placeholder="Emri i produktit..." value={filterSearch}
-                  onChange={e => setFilterSearch(e.target.value)}
+                <input type="text" placeholder="Kërko produktin..." value={filterName || nameQuery}
+                  onChange={e => { setNameQuery(e.target.value); setFilterName(""); setShowNameDrop(true); }}
+                  onFocus={() => setShowNameDrop(true)}
+                  onBlur={() => setTimeout(() => setShowNameDrop(false), 150)}
                   className="w-full pl-10 pr-9 py-2.5 text-sm border border-border rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                {filterSearch && <button onClick={() => setFilterSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+                {(filterName || nameQuery) && <button onMouseDown={e => { e.preventDefault(); setFilterName(""); setNameQuery(""); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="w-3.5 h-3.5" /></button>}
+                {showNameDrop && nameSuggestions.length > 0 && (
+                  <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+                    {nameSuggestions.map(p => (
+                      <button key={p.id} onMouseDown={() => { setFilterName(p.name); setNameQuery(p.name); setShowNameDrop(false); }}
+                        className={cn("w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition flex items-center gap-3", filterName === p.name && "bg-primary/10 font-semibold text-primary")}>
+                        <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded", p.type === "product" ? "bg-blue-100 text-blue-700" : "bg-violet-100 text-violet-700")}>
+                          {p.type === "product" ? "P" : "S"}
+                        </span>
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="h-px bg-border mx-6" />
