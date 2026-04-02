@@ -22,7 +22,7 @@ export default function Reports() {
   const [suppliers, setSuppliers] = useState([]);
   const [cashTransactions, setCashTransactions] = useState([]);
   const [loadingReport, setLoadingReport] = useState(null);
-  const [selectedReport, setSelectedReport] = useState('all');
+  const [selectedReport, setSelectedReport] = useState('invoices');
 
   useEffect(() => {
     loadReportData();
@@ -52,12 +52,7 @@ export default function Reports() {
   };
 
   const handleDownload = () => {
-    if (selectedReport === 'all') {
-      downloadReport('invoices', 'Faturat', invoices);
-      setTimeout(() => downloadReport('debtors', 'Borxhet', debtors), 500);
-      setTimeout(() => downloadReport('suppliers', 'Furnitorët', suppliers), 1000);
-      setTimeout(() => downloadReport('cashbox', 'Arka', cashTransactions), 1500);
-    } else if (selectedReport === 'invoices') {
+    if (selectedReport === 'invoices') {
       downloadReport('invoices', 'Faturat', invoices);
     } else if (selectedReport === 'debtors') {
       downloadReport('debtors', 'Borxhet', debtors);
@@ -215,7 +210,6 @@ export default function Reports() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Të Gjitha Raportet</SelectItem>
                 <SelectItem value="invoices">Faturat</SelectItem>
                 <SelectItem value="debtors">Borxhet</SelectItem>
                 <SelectItem value="suppliers">Furnitorët</SelectItem>
