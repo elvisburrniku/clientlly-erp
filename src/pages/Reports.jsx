@@ -247,15 +247,7 @@ export default function Reports() {
                   <tr key={inv.id} className="border-b hover:bg-gray-50">
                     <td className="py-2 px-2">{inv.invoice_number}</td>
                     <td className="py-2 px-2">{inv.client_name}</td>
-                    <td className="text-right py-2 px-2">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={subtotal}
-                        onChange={(e) => handleAmountChange(inv.id, parseFloat(e.target.value))}
-                        className="w-32 text-right"
-                      />
-                    </td>
+                    <td className="text-right py-2 px-2">€{subtotal.toFixed(2)}</td>
                     <td className="text-right py-2 px-2">€{(royalties[inv.id] || subtotal * 0.06).toFixed(2)}</td>
                   </tr>
                 );
