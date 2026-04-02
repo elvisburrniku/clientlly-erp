@@ -41,6 +41,7 @@ export default function Quotes() {
     logo_url: '',
     validity_days: 30,
     template: 'classic',
+    font_family: 'helvetica',
   });
 
   const statusColors = {
@@ -695,23 +696,42 @@ export default function Quotes() {
                 <div className="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">6</div>
                 <h3 className="font-semibold text-sm">Cilësime të Ofertës</h3>
               </div>
-              <div className="grid grid-cols-2 gap-3 pl-8">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Vlefshme për (ditë)</label>
-                  <Input type="number" value={formData.validity_days} onChange={(e) => setFormData({ ...formData, validity_days: parseInt(e.target.value) })} />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1.5">Stil Dokumenti</label>
-                  <Select value={formData.template} onValueChange={(val) => setFormData({ ...formData, template: val })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="classic">Klasik</SelectItem>
-                      <SelectItem value="modern">Modern</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="grid grid-cols-3 gap-3 pl-8">
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-1.5">Vlefshme për (ditë)</label>
+                 <Input type="number" value={formData.validity_days} onChange={(e) => setFormData({ ...formData, validity_days: parseInt(e.target.value) })} />
+               </div>
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-1.5">Stil Dokumenti</label>
+                 <Select value={formData.template} onValueChange={(val) => setFormData({ ...formData, template: val })}>
+                   <SelectTrigger>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="classic">Klasik</SelectItem>
+                     <SelectItem value="modern">Modern</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div>
+                 <label className="text-xs font-medium text-muted-foreground block mb-1.5">Font</label>
+                 <Select value={formData.font_family} onValueChange={(val) => setFormData({ ...formData, font_family: val })}>
+                   <SelectTrigger>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="helvetica">Helvetica</SelectItem>
+                     <SelectItem value="arial">Arial</SelectItem>
+                     <SelectItem value="times">Times New Roman</SelectItem>
+                     <SelectItem value="courier">Courier</SelectItem>
+                     <SelectItem value="georgia">Georgia</SelectItem>
+                     <SelectItem value="verdana">Verdana</SelectItem>
+                     <SelectItem value="trebuchet">Trebuchet MS</SelectItem>
+                     <SelectItem value="palatino">Palatino</SelectItem>
+                     <SelectItem value="garamond">Garamond</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
               </div>
             </div>
           </div>
