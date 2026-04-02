@@ -599,7 +599,7 @@ export default function Invoices() {
       </SheetComponent>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden transition-shadow hover:shadow-md w-full">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
           <p className="font-semibold text-sm">{filtered.length} fatura{hasActiveFilters && " (filtruara)"}</p>
           <div className="flex items-center gap-1.5 ml-auto">
