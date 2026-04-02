@@ -206,9 +206,7 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Invoice Analytics */}
-      <InvoiceMetrics invoices={invoices} expenses={expenses} />
-      <InvoiceAnalyticsCharts invoices={invoices} expenses={expenses} />
+
 
       {/* Quick Download Reports */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
