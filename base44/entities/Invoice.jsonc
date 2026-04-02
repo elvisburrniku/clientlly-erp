@@ -128,6 +128,11 @@
       "description": "Is the invoice open (unpaid)",
       "default": true
     },
+    "hand_delivered": {
+      "type": "boolean",
+      "description": "Was the invoice delivered by hand to the client",
+      "default": false
+    },
     "payment_method": {
       "type": "string",
       "enum": [

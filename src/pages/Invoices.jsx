@@ -335,6 +335,12 @@ export default function Invoices() {
     loadData();
   };
 
+  const handleMarkHandDelivered = async (inv) => {
+    await base44.entities.Invoice.update(inv.id, { hand_delivered: true });
+    toast.success(`Fatura u shënua si e dorëzuar në dorë`);
+    loadData();
+  };
+
   const hasActiveFilters = filterClient || filterMonth || filterYear || filterDateFrom || filterDateTo;
   const activeFilterCount = [filterClient, filterDateFrom, filterDateTo].filter(Boolean).length;
 
@@ -654,14 +660,17 @@ export default function Invoices() {
                     <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
                     <td className="px-6 py-4"><span className="text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</span></td>
                     <td className="px-6 py-4">
-                      <select value={inv.status || "draft"} onChange={(e) => handleStatusChange(inv, e.target.value)}
-                        className="text-xs font-semibold px-2.5 py-1 rounded-full border-0 bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200 transition">
-                        <option value="draft">Draft</option>
-                        <option value="sent">Dërguar</option>
-                        <option value="paid">Paguar</option>
-                        <option value="overdue">Vonuar</option>
-                        <option value="cancelled">Anuluar</option>
-                      </select>
+                      <div className="flex items-center gap-2">
+                        <select value={inv.status || "draft"} onChange={(e) => handleStatusChange(inv, e.target.value)}
+                          className="text-xs font-semibold px-2.5 py-1 rounded-full border-0 bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200 transition">
+                          <option value="draft">Draft</option>
+                          <option value="sent">Dërguar</option>
+                          <option value="paid">Paguar</option>
+                          <option value="overdue">Vonuar</option>
+                          <option value="cancelled">Anuluar</option>
+                        </select>
+                        {inv.hand_delivered && <span className="text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded">✓ në dorë</span>}
+                      </div>
                     </td>
                     <td className="px-6 py-4"><span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full">{inv.is_open ? 'Haper' : 'Mbyllur'}</span></td>
                     <td className="px-6 py-4"><span className="text-xs font-medium bg-muted px-2.5 py-1 rounded-full capitalize">{inv.payment_method || "—"}</span></td>
@@ -680,6 +689,7 @@ export default function Invoices() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => setSendDialog(inv)}><Send className="w-4 h-4 mr-2" /> Ridërgo Faturën</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleSendReminder(inv)}><Bell className="w-4 h-4 mr-2" /> Kujtese për Faturën</DropdownMenuItem>
+                            {!inv.hand_delivered && <DropdownMenuItem onClick={() => handleMarkHandDelivered(inv)}><FileText className="w-4 h-4 mr-2" /> Shëno si Dorëzuar në Dorë</DropdownMenuItem>}
                             {inv.is_open && <DropdownMenuItem onClick={() => setPaymentDialog(inv)}><Banknote className="w-4 h-4 mr-2" /> Shto Pagesë</DropdownMenuItem>}
                             {inv.invoice_type === "proforma" && <DropdownMenuItem onClick={() => handleConvertProforma(inv)}><FileText className="w-4 h-4 mr-2" /> Konverto në Faturë</DropdownMenuItem>}
                             <DropdownMenuSeparator />
