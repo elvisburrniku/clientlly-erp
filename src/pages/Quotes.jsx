@@ -13,6 +13,7 @@ import jsPDF from 'jspdf';
 import SignatureDialog from '@/components/quotes/SignatureDialog';
 import QuoteApprovalDialog from '@/components/quotes/QuoteApprovalDialog';
 import QuoteHistory from '@/components/quotes/QuoteHistory';
+import QuoteTemplateManager from '@/components/quotes/QuoteTemplateManager';
 import { cn } from '@/lib/utils';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -34,6 +35,7 @@ export default function Quotes() {
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
 
   const [formData, setFormData] = useState({
     client_name: '',
@@ -342,6 +344,9 @@ export default function Quotes() {
           <p className="text-sm text-muted-foreground pt-1">{new Date().toLocaleDateString('sq-AL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 justify-end">
+          <Button variant="outline" onClick={() => setShowTemplateManager(true)} className="gap-2 rounded-xl">
+            <FileText className="w-4 h-4" /> Shabllonët
+          </Button>
           <Button variant="outline" onClick={handleExportExcel} className="gap-2 rounded-xl">
             <Download className="w-4 h-4" /> Eksporto Excel
           </Button>
@@ -884,6 +889,14 @@ export default function Quotes() {
         onOpenChange={setShowApprovalDialog}
         quote={selectedQuote}
         onApprovalChange={() => loadQuotes()}
+      />
+
+      {/* Template Manager */}
+      <QuoteTemplateManager
+        isOpen={showTemplateManager}
+        onClose={() => setShowTemplateManager(false)}
+        onLoad={(templateData) => setFormData({ ...formData, ...templateData })}
+        formData={formData}
       />
 
       {/* Convert to Invoice Dialog */}
