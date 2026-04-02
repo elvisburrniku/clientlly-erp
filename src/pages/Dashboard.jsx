@@ -177,15 +177,13 @@ export default function Dashboard() {
         {cards.map((card) => (
           <StatCard key={card.title} {...card} />
         ))}
-        {stats.undeliveredCash > 0 && (
-          <StatCard
-            icon={AlertTriangle}
-            title="Kesh i pa dorëzuar"
-            value={`€${stats.undeliveredCash.toLocaleString()}`}
-            description="Para që duhet dorëzuar në arkë"
-            variant="warning"
-          />
-        )}
+        <StatCard
+          icon={AlertTriangle}
+          title="Kesh i pa dorëzuar"
+          value={`€${stats.undeliveredCash.toLocaleString()}`}
+          description="Para që duhet dorëzuar në arkë"
+          variant={stats.undeliveredCash > 0 ? "warning" : "default"}
+        />
       </div>
 
 
