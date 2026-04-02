@@ -147,36 +147,32 @@ export default function Dashboard() {
 
       {/* Header */}
       <div className="space-y-6">
-        <div className="flex items-start justify-between">
+        <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-5xl font-bold tracking-tight text-foreground">Mirë se vjen</h1>
             <p className="text-muted-foreground text-base">Ja çfarë po ndodh sot me biznesin tënd</p>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-semibold text-primary">{new Date().toLocaleDateString('sq-AL', { weekday: 'long' })}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{new Date().toLocaleDateString('sq-AL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-          </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Period filter */}
-          <div className="flex bg-white border border-border rounded-xl p-1.5 shadow-sm">
-            {["today","month","year"].map(p => (
-              <button key={p} onClick={() => setPeriod(p)}
-                className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
-                  period === p ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                )}>{periodLabels[p]}</button>
-            ))}
-          </div>
-          {/* VAT toggle */}
-          <div className="flex bg-white border border-border rounded-xl p-1.5 shadow-sm">
-            <button onClick={() => setVatMode("inc")}
-              className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
-                vatMode === "inc" ? "bg-success text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}>Me TVSH</button>
-            <button onClick={() => setVatMode("exc")}
-              className={cn("px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200",
-                vatMode === "exc" ? "bg-slate-800 text-white shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              )}>Pa TVSH</button>
+          <div className="flex gap-3">
+            {/* Period filter */}
+            <div className="flex gap-1 border-b border-border/40">
+              {["today","month","year"].map(p => (
+                <button key={p} onClick={() => setPeriod(p)}
+                  className={cn("px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 border-b-2 -mb-px",
+                    period === p ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+                  )}>{periodLabels[p]}</button>
+              ))}
+            </div>
+            {/* VAT toggle */}
+            <div className="flex gap-1 border-b border-border/40">
+              <button onClick={() => setVatMode("inc")}
+                className={cn("px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 border-b-2 -mb-px",
+                  vatMode === "inc" ? "border-success text-success" : "border-transparent text-muted-foreground hover:text-foreground"
+                )}>Me TVSH</button>
+              <button onClick={() => setVatMode("exc")}
+                className={cn("px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 border-b-2 -mb-px",
+                  vatMode === "exc" ? "border-slate-700 text-slate-700" : "border-transparent text-muted-foreground hover:text-foreground"
+                )}>Pa TVSH</button>
+            </div>
           </div>
         </div>
       </div>
