@@ -71,15 +71,18 @@ export default function RecentInvoices() {
         <p className="text-sm text-muted-foreground py-8">Nuk ka faturat e fundit.</p>
       ) : (
         <div className="space-y-3">
-           {invoices.map((inv, idx) => (
+          {invoices.map((inv) => (
             <button
               key={inv.id}
               onClick={() => navigate(`/invoices/${inv.id}`)}
               className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
             >
-              <div className="text-left">
+              <div className="text-left flex-1">
                 <p className="text-sm font-medium text-foreground">
-                  {idx + 1}. {inv.invoice_number}
+                  {inv.invoice_number}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {inv.client_name}
                 </p>
               </div>
               <div className="flex items-center gap-3">
