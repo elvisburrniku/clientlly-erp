@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Architects+Daughter:wght@400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&display=swap');
 
@@ -9,8 +9,8 @@
 @layer base {
   :root {
     --font-inter: 'Sora', sans-serif;
-    --font-marker: 'Sora', sans-serif;
-    --font-script: 'Sora', sans-serif;
+    --font-marker: 'Architects Daughter', system-ui;
+    --font-script: 'Architects Daughter', system-ui;
     --background: 230 40% 97%;
     --foreground: 235 45% 12%;
     --card: 0 0% 100%;
