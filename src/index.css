@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&display=swap');
 
@@ -8,7 +8,7 @@
 
 @layer base {
   :root {
-    --font-inter: 'Architects Daughter', system-ui;
+    --font-inter: 'Sora', sans-serif;
     --font-marker: 'Permanent Marker', cursive;
     --font-script: 'Dancing Script', cursive;
     --background: 230 40% 97%;
