@@ -9,8 +9,8 @@
 @layer base {
   :root {
     --font-inter: 'Sora', sans-serif;
-    --font-marker: 'Permanent Marker', cursive;
-    --font-script: 'Dancing Script', cursive;
+    --font-marker: 'Sora', sans-serif;
+    --font-script: 'Sora', sans-serif;
     --background: 230 40% 97%;
     --foreground: 235 45% 12%;
     --card: 0 0% 100%;
