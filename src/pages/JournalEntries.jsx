@@ -26,7 +26,7 @@ export default function JournalEntries() {
   const [viewEntry, setViewEntry] = useState(null);
   const [viewLines, setViewLines] = useState([]);
   const [viewOpen, setViewOpen] = useState(false);
-  const [filterJournal, setFilterJournal] = useState('all');
+  const [filterType, setFilterType] = useState('all');
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -128,11 +128,11 @@ export default function JournalEntries() {
           journal_id: form.journal_id || null,
         }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error);
+        throw new Error(data.error);
       }
-      toast({ title: 'Regjistrimi u krijua me sukses' });
+      toast({ title: `Regjistrimi u krijua: ${data.entry_number}`, description: data.description || '' });
       setDialogOpen(false);
       await loadData();
     } catch (err) {
@@ -165,9 +165,22 @@ export default function JournalEntries() {
 
   const journalMap = Object.fromEntries(journals.map(j => [j.id, j]));
 
-  const filteredEntries = filterJournal === 'all'
+  const JOURNAL_TYPE_LABELS = {
+    sale: 'Shitje',
+    purchase: 'Blerje',
+    bank: 'Bankë',
+    cash: 'Arkë',
+    general: 'Ndryshime',
+  };
+
+  const presentTypes = [...new Set(journals.map(j => j.type))].filter(Boolean);
+
+  const filteredEntries = filterType === 'all'
     ? entries
-    : entries.filter(e => e.journal_id === filterJournal);
+    : entries.filter(e => {
+        const journal = journalMap[e.journal_id];
+        return journal?.type === filterType;
+      });
 
   if (loading) {
     return <div className="flex items-center justify-center h-96"><div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" /></div>;
@@ -203,26 +216,26 @@ export default function JournalEntries() {
 
       <div className="flex items-center gap-3 flex-wrap" data-testid="journal-filter-bar">
         <Filter className="w-4 h-4 text-muted-foreground" />
-        <span className="text-sm text-muted-foreground">Filtro sipas librit:</span>
+        <span className="text-sm text-muted-foreground">Filtro sipas tipit:</span>
         <div className="flex gap-2 flex-wrap">
           <button
-            onClick={() => setFilterJournal('all')}
-            className={`text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors ${filterJournal === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-border text-muted-foreground hover:bg-muted/30'}`}
+            onClick={() => setFilterType('all')}
+            className={`text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors ${filterType === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-border text-muted-foreground hover:bg-muted/30'}`}
             data-testid="filter-all"
           >
             Të Gjitha ({entries.length})
           </button>
-          {journals.map(j => {
-            const count = entries.filter(e => e.journal_id === j.id).length;
-            const colorClass = JOURNAL_TYPE_COLORS[j.type] || JOURNAL_TYPE_COLORS.general;
+          {presentTypes.map(type => {
+            const count = entries.filter(e => journalMap[e.journal_id]?.type === type).length;
+            const colorClass = JOURNAL_TYPE_COLORS[type] || JOURNAL_TYPE_COLORS.general;
             return (
               <button
-                key={j.id}
-                onClick={() => setFilterJournal(j.id)}
-                className={`text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors ${filterJournal === j.id ? 'bg-primary text-primary-foreground border-primary' : `${colorClass} border-transparent hover:opacity-80`}`}
-                data-testid={`filter-journal-${j.id}`}
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors ${filterType === type ? 'bg-primary text-primary-foreground border-primary' : `${colorClass} border-transparent hover:opacity-80`}`}
+                data-testid={`filter-type-${type}`}
               >
-                {j.sequence_prefix} – {j.name} ({count})
+                {JOURNAL_TYPE_LABELS[type] || type} ({count})
               </button>
             );
           })}

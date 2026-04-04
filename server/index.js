@@ -1155,9 +1155,10 @@ app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, 
         'SELECT id, sequence_prefix FROM journals WHERE id = $1 AND tenant_id = $2',
         [resolvedJournalId, tenantId]
       );
-      if (journalRow.rows.length > 0) {
-        sequencePrefix = journalRow.rows[0].sequence_prefix;
+      if (journalRow.rows.length === 0) {
+        return res.status(400).json({ error: 'Journal not found or access denied' });
       }
+      sequencePrefix = journalRow.rows[0].sequence_prefix;
     }
 
     const client = await tPool.connect();
@@ -1580,6 +1581,10 @@ app.delete('/api/accounting/account-groups/:id', requireAuth, requireAdmin, asyn
     const tenantId = req.session.user.tenant_id;
     const { id } = req.params;
     const tPool = await getPoolForReq(req);
+    await tPool.query(
+      'UPDATE chart_of_accounts SET account_group_id = NULL WHERE account_group_id = $1 AND tenant_id = $2',
+      [id, tenantId]
+    );
     await tPool.query('DELETE FROM account_groups WHERE id=$1 AND tenant_id=$2', [id, tenantId]);
     res.json({ success: true });
   } catch (err) {
