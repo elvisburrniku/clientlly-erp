@@ -744,7 +744,6 @@ CREATE TABLE IF NOT EXISTS milestones (
   due_date DATE,
   status VARCHAR(50) DEFAULT 'pending',
   completed_at TIMESTAMP,
-  sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -878,6 +877,206 @@ CREATE TABLE IF NOT EXISTS revenues (
   payment_method VARCHAR(100),
   reference VARCHAR(255),
   notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ============ SERVICE & FLEET MODULE ============
+
+-- Service Appointments
+CREATE TABLE IF NOT EXISTS service_appointments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  client_id UUID,
+  client_name VARCHAR(255),
+  assigned_to VARCHAR(255),
+  assigned_user_id UUID,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP,
+  status VARCHAR(50) DEFAULT 'scheduled',
+  priority VARCHAR(50) DEFAULT 'medium',
+  service_type VARCHAR(255),
+  location VARCHAR(500),
+  notes TEXT,
+  color VARCHAR(50),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Asset Types
+CREATE TABLE IF NOT EXISTS asset_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  depreciation_rate DECIMAL(5,2) DEFAULT 0,
+  depreciation_method VARCHAR(50) DEFAULT 'straight_line',
+  useful_life_years INTEGER DEFAULT 5,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Assets
+CREATE TABLE IF NOT EXISTS assets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  asset_type_id UUID,
+  asset_type_name VARCHAR(255),
+  serial_number VARCHAR(255),
+  purchase_date DATE,
+  purchase_price DECIMAL(15,2) DEFAULT 0,
+  current_value DECIMAL(15,2) DEFAULT 0,
+  depreciation_rate DECIMAL(5,2) DEFAULT 0,
+  location VARCHAR(500),
+  status VARCHAR(50) DEFAULT 'active',
+  assigned_to VARCHAR(255),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Vehicles
+CREATE TABLE IF NOT EXISTS vehicles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  make VARCHAR(255),
+  model VARCHAR(255),
+  year INTEGER,
+  plate_number VARCHAR(100),
+  vin VARCHAR(100),
+  color VARCHAR(100),
+  fuel_type VARCHAR(50) DEFAULT 'diesel',
+  odometer DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'available',
+  purchase_date DATE,
+  purchase_price DECIMAL(15,2) DEFAULT 0,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Vehicle Insurance
+CREATE TABLE IF NOT EXISTS vehicle_insurance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  vehicle_id UUID,
+  policy_number VARCHAR(255),
+  provider VARCHAR(255),
+  coverage_type VARCHAR(100),
+  start_date DATE,
+  end_date DATE,
+  premium DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'active',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Vehicle Registration
+CREATE TABLE IF NOT EXISTS vehicle_registration (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  vehicle_id UUID,
+  registration_number VARCHAR(255),
+  issue_date DATE,
+  expiry_date DATE,
+  issuing_authority VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'active',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Drivers
+CREATE TABLE IF NOT EXISTS drivers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  full_name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  phone VARCHAR(100),
+  license_number VARCHAR(255),
+  license_type VARCHAR(100),
+  license_expiry DATE,
+  status VARCHAR(50) DEFAULT 'active',
+  assigned_vehicle_id UUID,
+  assigned_vehicle_plate VARCHAR(100),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Vehicle Reservations
+CREATE TABLE IF NOT EXISTS vehicle_reservations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  vehicle_id UUID,
+  vehicle_plate VARCHAR(100),
+  driver_id UUID,
+  driver_name VARCHAR(255),
+  purpose TEXT,
+  start_date TIMESTAMP,
+  end_date TIMESTAMP,
+  pickup_odometer DECIMAL(15,2),
+  return_odometer DECIMAL(15,2),
+  status VARCHAR(50) DEFAULT 'reserved',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Vehicle Maintenance
+CREATE TABLE IF NOT EXISTS vehicle_maintenance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  vehicle_id UUID,
+  vehicle_plate VARCHAR(100),
+  maintenance_type VARCHAR(255),
+  description TEXT,
+  service_date DATE,
+  next_service_date DATE,
+  odometer_at_service DECIMAL(15,2),
+  cost DECIMAL(15,2) DEFAULT 0,
+  provider VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'completed',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Fuel Logs
+CREATE TABLE IF NOT EXISTS fuel_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  vehicle_id UUID,
+  vehicle_plate VARCHAR(100),
+  driver_id UUID,
+  driver_name VARCHAR(255),
+  fuel_date DATE,
+  fuel_type VARCHAR(50),
+  liters DECIMAL(10,2) DEFAULT 0,
+  price_per_liter DECIMAL(10,2) DEFAULT 0,
+  total_cost DECIMAL(15,2) DEFAULT 0,
+  odometer DECIMAL(15,2) DEFAULT 0,
+  station VARCHAR(255),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Custom Fields
+CREATE TABLE IF NOT EXISTS custom_fields (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  entity_type VARCHAR(100) NOT NULL,
+  field_name VARCHAR(255) NOT NULL,
+  field_label VARCHAR(255),
+  field_type VARCHAR(50) DEFAULT 'text',
+  options JSONB DEFAULT '[]',
+  is_required BOOLEAN DEFAULT false,
+  sort_order INTEGER DEFAULT 0,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

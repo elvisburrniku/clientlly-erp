@@ -5,7 +5,8 @@ import {
   UserCheck, Clock, CalendarDays, CalendarOff, Banknote, HandCoins, CalendarHeart,
   FolderKanban, Timer, Bug,
   FileMinus, FilePlus, Receipt, ClipboardCheck, TrendingUp,
-  Target, StickyNote, Megaphone
+  Target, StickyNote, Megaphone,
+  HardDrive, Car, Wrench, Fuel, PieChart, Settings2
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,17 @@ export default function Sidebar() {
     { label: "Festat", icon: CalendarHeart, path: "/holidays", module: "hr" },
   ];
 
+  const serviceFleetItems = [
+    { label: "Kalendari i Shërbimeve", icon: CalendarDays, path: "/service-calendar", module: "service_calendar" },
+    { label: "Asetet", icon: HardDrive, path: "/assets", module: "assets" },
+    { label: "Automjetet", icon: Car, path: "/vehicles", module: "vehicles" },
+    { label: "Shoferët & Rezervimet", icon: Users, path: "/drivers", module: "drivers" },
+    { label: "Mirëmbajtja", icon: Wrench, path: "/vehicle-maintenance", module: "vehicle_maintenance" },
+    { label: "Karburanti", icon: Fuel, path: "/fuel-logs", module: "fuel_logs" },
+    { label: "Raportet e Flotës", icon: PieChart, path: "/fleet-reports", module: "fleet_reports" },
+    { label: "Fushat e Personalizuara", icon: Settings2, path: "/custom-fields", module: "custom_fields" },
+  ];
+
   const performanceItems = [
     { label: t('reports') || "Raportet", icon: BarChart3, path: "/reports", module: "reports" },
     { label: "Royalties", icon: DollarSign, path: "/royalties", module: "royalties" },
@@ -70,6 +82,7 @@ export default function Sidebar() {
   ];
 
   const visibleMenuItems = menuItems.filter(item => fullAccess || canView(item.module));
+  const visibleFleetItems = serviceFleetItems.filter(item => fullAccess || canView(item.module));
   const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
   const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
 
@@ -129,6 +142,15 @@ export default function Sidebar() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Burimet Njerëzore</p>
             )}
             {visibleHrItems.map(renderLink)}
+          </>
+        )}
+
+        {visibleFleetItems.length > 0 && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Shërbime & Flotë</p>
+            )}
+            {visibleFleetItems.map(renderLink)}
           </>
         )}
 

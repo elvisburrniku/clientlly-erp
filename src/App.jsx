@@ -56,6 +56,14 @@ import Notes from './pages/Notes';
 import Announcements from './pages/Announcements';
 import ClientPortalPublic from './pages/ClientPortalPublic';
 import VendorPortal from './pages/VendorPortal';
+import ServiceCalendar from './pages/ServiceCalendar';
+import Assets from './pages/Assets';
+import Vehicles from './pages/Vehicles';
+import Drivers from './pages/Drivers';
+import VehicleMaintenance from './pages/VehicleMaintenance';
+import FuelLogs from './pages/FuelLogs';
+import FleetReports from './pages/FleetReports';
+import CustomFields from './pages/CustomFields';
 import Login from './pages/Login';
 import ActivityLog from './pages/ActivityLog';
 import RoleManagement from './pages/RoleManagement';
@@ -134,6 +142,14 @@ const AuthenticatedApp = () => {
           <Route path="/leads" element={<PermissionGuard module="leads"><Leads /></PermissionGuard>} />
           <Route path="/notes" element={<PermissionGuard module="notes"><Notes /></PermissionGuard>} />
           <Route path="/announcements" element={<PermissionGuard module="announcements"><Announcements /></PermissionGuard>} />
+          <Route path="/service-calendar" element={<PermissionGuard module="service_calendar"><ServiceCalendar /></PermissionGuard>} />
+          <Route path="/assets" element={<PermissionGuard module="assets"><Assets /></PermissionGuard>} />
+          <Route path="/vehicles" element={<PermissionGuard module="vehicles"><Vehicles /></PermissionGuard>} />
+          <Route path="/drivers" element={<PermissionGuard module="drivers"><Drivers /></PermissionGuard>} />
+          <Route path="/vehicle-maintenance" element={<PermissionGuard module="vehicle_maintenance"><VehicleMaintenance /></PermissionGuard>} />
+          <Route path="/fuel-logs" element={<PermissionGuard module="fuel_logs"><FuelLogs /></PermissionGuard>} />
+          <Route path="/fleet-reports" element={<PermissionGuard module="fleet_reports"><FleetReports /></PermissionGuard>} />
+          <Route path="/custom-fields" element={<PermissionGuard module="custom_fields"><CustomFields /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
         <Route path="/onboarding" element={<Onboarding />} />

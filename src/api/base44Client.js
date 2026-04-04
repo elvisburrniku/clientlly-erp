@@ -140,6 +140,17 @@ export const base44 = {
     Note: createEntityClient('Note'),
     Announcement: createEntityClient('Announcement'),
     PortalToken: createEntityClient('PortalToken'),
+    ServiceAppointment: createEntityClient('ServiceAppointment'),
+    AssetType: createEntityClient('AssetType'),
+    Asset: createEntityClient('Asset'),
+    Vehicle: createEntityClient('Vehicle'),
+    VehicleInsurance: createEntityClient('VehicleInsurance'),
+    VehicleRegistration: createEntityClient('VehicleRegistration'),
+    Driver: createEntityClient('Driver'),
+    VehicleReservation: createEntityClient('VehicleReservation'),
+    VehicleMaintenance: createEntityClient('VehicleMaintenance'),
+    FuelLog: createEntityClient('FuelLog'),
+    CustomField: createEntityClient('CustomField'),
   },
 
   portal: {

@@ -34,9 +34,9 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
-## Entities (54 total)
+## Entities (75 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue, ServiceAppointment, AssetType, Asset, Vehicle, VehicleInsurance, VehicleRegistration, Driver, VehicleReservation, VehicleMaintenance, FuelLog, CustomField
 
 ## Roles & Permissions
 
@@ -119,6 +119,14 @@ npm start      # Run Express server only (serves built frontend)
 - **Vendor Portal:** Token-based public portal for suppliers to view bills and payments
 - **Inventory:** Stock management
 - **Reports:** Financial summaries, charts (Recharts)
+- **Service Calendar:** Appointment scheduling with monthly/weekly/daily views, status tracking, team assignment
+- **Assets:** Asset tracking with types, depreciation, value summaries
+- **Fleet Management:** Vehicle CRUD, insurance/registration tracking with expiry alerts
+- **Drivers & Reservations:** Driver management, license tracking, vehicle reservation with pickup/return workflow
+- **Vehicle Maintenance:** Maintenance logging, scheduling, cost tracking per vehicle
+- **Fuel Logs:** Fuel consumption tracking with cost analytics per vehicle
+- **Fleet Reports:** Dashboard with costs by vehicle, fuel trends, usage stats, document expiry alerts
+- **Custom Fields:** Tenant-scoped custom field definitions for any entity type
 - **Settings:** Tenant configuration, invoice templates
 - **HR Module:** Employee profiles, departments, job positions, attendance tracking, shift scheduling, leave management with approval workflow, payroll processing with PDF/CSV export, employee advances with repayment tracking, holiday calendar
 - **Projects:** Project management with client linking, status workflow, team members

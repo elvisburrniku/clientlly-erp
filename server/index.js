@@ -527,6 +527,17 @@ const entityTableMap = {
   Note: 'notes',
   Announcement: 'announcements',
   PortalToken: 'portal_tokens',
+  ServiceAppointment: 'service_appointments',
+  AssetType: 'asset_types',
+  Asset: 'assets',
+  Vehicle: 'vehicles',
+  VehicleInsurance: 'vehicle_insurance',
+  VehicleRegistration: 'vehicle_registration',
+  Driver: 'drivers',
+  VehicleReservation: 'vehicle_reservations',
+  VehicleMaintenance: 'vehicle_maintenance',
+  FuelLog: 'fuel_logs',
+  CustomField: 'custom_fields',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);
