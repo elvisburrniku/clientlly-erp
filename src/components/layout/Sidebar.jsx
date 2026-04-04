@@ -2,7 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
   ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield,
-  UserCheck, Clock, CalendarDays, CalendarOff, Banknote, HandCoins, CalendarHeart
+  UserCheck, Clock, CalendarDays, CalendarOff, Banknote, HandCoins, CalendarHeart,
+  FolderKanban, Timer, Bug
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,9 @@ export default function Sidebar() {
     { label: t('debtors') || "Borxhet", icon: AlertCircle, path: "/debtors", module: "debtors" },
     { label: t('expenses') || "Shpenzimet", icon: DollarSign, path: "/expenses", module: "expenses" },
     { label: t('cashHandover') || "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover", module: "cash_handover" },
+    { label: "Projektet", icon: FolderKanban, path: "/projects", module: "projects" },
+    { label: "Oraret", icon: Timer, path: "/timesheets", module: "timesheets" },
+    { label: "Bug-et", icon: Bug, path: "/bugs", module: "bugs" },
   ];
 
   const hrItems = [
@@ -60,7 +64,7 @@ export default function Sidebar() {
   const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
 
   const renderLink = (item) => {
-    const isActive = location.pathname === item.path;
+    const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
     return (
       <Link
         key={item.path}

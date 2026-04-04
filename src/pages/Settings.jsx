@@ -154,8 +154,139 @@ const DEFAULT_SERVICE_CATEGORIES = [
   { name: "Kontrolli Gjarpërinjve", category: "Shërbime Mbrojtjes", subcategory: "Dëmkëmbës të Tjerë", billing_type: "one-time" },
 ];
 
+function ProjectSettings({ tenantId }) {
+  const [stages, setStages] = useState([]);
+  const [labels, setLabels] = useState([]);
+  const [newStage, setNewStage] = useState({ name: "", color: "#6366f1", stage_type: "task" });
+  const [newLabel, setNewLabel] = useState({ name: "", color: "#6366f1" });
+  const [showNewStage, setShowNewStage] = useState(false);
+  const [showNewLabel, setShowNewLabel] = useState(false);
+
+  useEffect(() => {
+    if (tenantId) loadProjectSettings();
+  }, [tenantId]);
+
+  const loadProjectSettings = async () => {
+    try {
+      const [stageData, labelData] = await Promise.all([
+        base44.entities.ProjectStage.filter({ tenant_id: tenantId }, "sort_order"),
+        base44.entities.ProjectLabel.filter({ tenant_id: tenantId }),
+      ]);
+      setStages(stageData);
+      setLabels(labelData);
+    } catch (e) {}
+  };
+
+  const addStage = async () => {
+    if (!newStage.name) return;
+    try {
+      await base44.entities.ProjectStage.create({ ...newStage, tenant_id: tenantId, sort_order: stages.length });
+      setNewStage({ name: "", color: "#6366f1", stage_type: "task" });
+      setShowNewStage(false);
+      loadProjectSettings();
+      toast.success("Faza u shtua");
+    } catch (e) {
+      toast.error("Gabim");
+    }
+  };
+
+  const deleteStage = async (id) => {
+    try {
+      await base44.entities.ProjectStage.delete(id);
+      loadProjectSettings();
+    } catch (e) {
+      toast.error("Gabim");
+    }
+  };
+
+  const addLabel = async () => {
+    if (!newLabel.name) return;
+    try {
+      await base44.entities.ProjectLabel.create({ ...newLabel, tenant_id: tenantId });
+      setNewLabel({ name: "", color: "#6366f1" });
+      setShowNewLabel(false);
+      loadProjectSettings();
+      toast.success("Etiketa u shtua");
+    } catch (e) {
+      toast.error("Gabim");
+    }
+  };
+
+  const deleteLabel = async (id) => {
+    try {
+      await base44.entities.ProjectLabel.delete(id);
+      loadProjectSettings();
+    } catch (e) {
+      toast.error("Gabim");
+    }
+  };
+
+  return (
+    <div className="bg-card rounded-xl border border-border p-6 space-y-4">
+      <h3 className="text-base font-semibold">Parametrat e Projekteve</h3>
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium">Fazat e Projektit</h4>
+        {stages.map((s) => (
+          <div key={s.id} className="flex items-center gap-3 p-2 bg-muted/30 rounded-lg" data-testid={`card-stage-${s.id}`}>
+            <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+            <span className="text-sm flex-1">{s.name}</span>
+            <span className="text-xs text-muted-foreground capitalize">{s.stage_type}</span>
+            <button onClick={() => deleteStage(s.id)} className="text-destructive/60 hover:text-destructive" data-testid={`button-delete-stage-${s.id}`}>
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+        {!showNewStage ? (
+          <Button onClick={() => setShowNewStage(true)} variant="outline" size="sm" className="gap-1" data-testid="button-add-stage">
+            <Plus className="w-3 h-3" /> Fazë e Re
+          </Button>
+        ) : (
+          <div className="flex gap-2 items-end">
+            <Input placeholder="Emri i fazës" value={newStage.name} onChange={(e) => setNewStage({ ...newStage, name: e.target.value })} className="text-sm flex-1" data-testid="input-stage-name" />
+            <Input type="color" value={newStage.color} onChange={(e) => setNewStage({ ...newStage, color: e.target.value })} className="w-10 h-9 p-1" data-testid="input-stage-color" />
+            <select value={newStage.stage_type} onChange={(e) => setNewStage({ ...newStage, stage_type: e.target.value })} className="h-9 px-2 text-sm border border-input rounded-md bg-transparent" data-testid="select-stage-type">
+              <option value="task">Detyrë</option>
+              <option value="bug">Bug</option>
+            </select>
+            <Button size="sm" variant="outline" onClick={addStage} className="px-3" data-testid="button-confirm-stage">✓</Button>
+            <Button size="sm" variant="outline" onClick={() => setShowNewStage(false)} className="px-2">✕</Button>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-3 pt-2 border-t">
+        <h4 className="text-sm font-medium">Etiketat</h4>
+        <div className="flex flex-wrap gap-2">
+          {labels.map((l) => (
+            <div key={l.id} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border" style={{ borderColor: l.color, color: l.color }} data-testid={`card-label-${l.id}`}>
+              {l.name}
+              <button onClick={() => deleteLabel(l.id)} className="hover:opacity-70" data-testid={`button-delete-label-${l.id}`}>
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+        {!showNewLabel ? (
+          <Button onClick={() => setShowNewLabel(true)} variant="outline" size="sm" className="gap-1" data-testid="button-add-label">
+            <Plus className="w-3 h-3" /> Etiketë e Re
+          </Button>
+        ) : (
+          <div className="flex gap-2 items-end">
+            <Input placeholder="Emri i etiketës" value={newLabel.name} onChange={(e) => setNewLabel({ ...newLabel, name: e.target.value })} className="text-sm flex-1" data-testid="input-label-name" />
+            <Input type="color" value={newLabel.color} onChange={(e) => setNewLabel({ ...newLabel, color: e.target.value })} className="w-10 h-9 p-1" data-testid="input-label-color" />
+            <Button size="sm" variant="outline" onClick={addLabel} className="px-3" data-testid="button-confirm-label">✓</Button>
+            <Button size="sm" variant="outline" onClick={() => setShowNewLabel(false)} className="px-2">✕</Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Settings() {
   const { user } = useAuth();
+  const tenantId = user?.tenant_id;
   const [loading, setLoading] = useState(true);
   const [template, setTemplate] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -598,6 +729,9 @@ export default function Settings() {
           </div>
         )}
       </div>
+
+      {/* Parametrat e Projekteve */}
+      <ProjectSettings tenantId={tenantId} />
 
       {/* Aksionet */}
       <div className="bg-card rounded-xl border border-border p-6 space-y-4">

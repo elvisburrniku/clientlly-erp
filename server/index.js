@@ -508,6 +508,15 @@ const entityTableMap = {
   Payroll: 'payroll',
   EmployeeAdvance: 'employee_advances',
   Holiday: 'holidays',
+  ProjectStage: 'project_stages',
+  ProjectLabel: 'project_labels',
+  Project: 'projects',
+  ProjectMember: 'project_members',
+  Milestone: 'milestones',
+  Task: 'tasks',
+  TaskComment: 'task_comments',
+  Timesheet: 'timesheets',
+  Bug: 'bugs',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);

@@ -122,6 +122,15 @@ export const base44 = {
     Payroll: createEntityClient('Payroll'),
     EmployeeAdvance: createEntityClient('EmployeeAdvance'),
     Holiday: createEntityClient('Holiday'),
+    ProjectStage: createEntityClient('ProjectStage'),
+    ProjectLabel: createEntityClient('ProjectLabel'),
+    Project: createEntityClient('Project'),
+    ProjectMember: createEntityClient('ProjectMember'),
+    Milestone: createEntityClient('Milestone'),
+    Task: createEntityClient('Task'),
+    TaskComment: createEntityClient('TaskComment'),
+    Timesheet: createEntityClient('Timesheet'),
+    Bug: createEntityClient('Bug'),
   },
 
   functions: {

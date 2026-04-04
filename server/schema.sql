@@ -569,3 +569,145 @@ CREATE TABLE IF NOT EXISTS holidays (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- ============ PROJECT MANAGEMENT MODULE ============
+
+-- Project Stages
+CREATE TABLE IF NOT EXISTS project_stages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  color VARCHAR(50) DEFAULT '#6366f1',
+  sort_order INTEGER DEFAULT 0,
+  stage_type VARCHAR(50) DEFAULT 'task',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Project Labels
+CREATE TABLE IF NOT EXISTS project_labels (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  color VARCHAR(50) DEFAULT '#6366f1',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Projects
+CREATE TABLE IF NOT EXISTS projects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  client_id UUID,
+  client_name VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'planning',
+  priority VARCHAR(50) DEFAULT 'medium',
+  start_date DATE,
+  end_date DATE,
+  labels JSONB DEFAULT '[]',
+  created_by UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Project Members
+CREATE TABLE IF NOT EXISTS project_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  project_id UUID,
+  user_id UUID,
+  user_name VARCHAR(255),
+  user_email VARCHAR(255),
+  role VARCHAR(50) DEFAULT 'member',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Milestones
+CREATE TABLE IF NOT EXISTS milestones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  project_id UUID,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  due_date DATE,
+  status VARCHAR(50) DEFAULT 'pending',
+  completed_at TIMESTAMP,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tasks
+CREATE TABLE IF NOT EXISTS tasks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  project_id UUID,
+  milestone_id UUID,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  stage VARCHAR(100) DEFAULT 'to_do',
+  assignee_id UUID,
+  assignee_name VARCHAR(255),
+  priority VARCHAR(50) DEFAULT 'medium',
+  due_date DATE,
+  labels JSONB DEFAULT '[]',
+  checklist JSONB DEFAULT '[]',
+  sort_order INTEGER DEFAULT 0,
+  created_by UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Task Comments
+CREATE TABLE IF NOT EXISTS task_comments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  task_id UUID,
+  user_id UUID,
+  user_name VARCHAR(255),
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Timesheets
+CREATE TABLE IF NOT EXISTS timesheets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  project_id UUID,
+  project_name VARCHAR(255),
+  task_id UUID,
+  task_title VARCHAR(255),
+  user_id UUID,
+  user_name VARCHAR(255),
+  date DATE,
+  hours DECIMAL(5,2) DEFAULT 0,
+  description TEXT,
+  billable BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Bugs
+CREATE TABLE IF NOT EXISTS bugs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  project_id UUID,
+  project_name VARCHAR(255),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  severity VARCHAR(50) DEFAULT 'medium',
+  priority VARCHAR(50) DEFAULT 'medium',
+  status VARCHAR(50) DEFAULT 'open',
+  assignee_id UUID,
+  assignee_name VARCHAR(255),
+  reported_by UUID,
+  reported_by_name VARCHAR(255),
+  due_date DATE,
+  labels JSONB DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);

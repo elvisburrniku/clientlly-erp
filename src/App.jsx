@@ -42,6 +42,10 @@ import Leave from './pages/Leave';
 import Payroll from './pages/Payroll';
 import Advances from './pages/Advances';
 import Holidays from './pages/Holidays';
+import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
+import Timesheets from './pages/Timesheets';
+import Bugs from './pages/Bugs';
 import Login from './pages/Login';
 import ActivityLog from './pages/ActivityLog';
 import RoleManagement from './pages/RoleManagement';
@@ -99,6 +103,10 @@ const AuthenticatedApp = () => {
           <Route path="/client" element={<ClientPortal />} />
           <Route path="/super-admin" element={<PermissionGuard adminOnly><SuperAdmin /></PermissionGuard>} />
           <Route path="/report-templates" element={<PermissionGuard module="report_templates"><ReportTemplates /></PermissionGuard>} />
+          <Route path="/projects" element={<PermissionGuard module="projects"><Projects /></PermissionGuard>} />
+          <Route path="/projects/:id" element={<PermissionGuard module="projects"><ProjectDetail /></PermissionGuard>} />
+          <Route path="/timesheets" element={<PermissionGuard module="timesheets"><Timesheets /></PermissionGuard>} />
+          <Route path="/bugs" element={<PermissionGuard module="bugs"><Bugs /></PermissionGuard>} />
           <Route path="/activity-log" element={<PermissionGuard adminOnly><ActivityLog /></PermissionGuard>} />
           <Route path="/role-management" element={<PermissionGuard adminOnly><RoleManagement /></PermissionGuard>} />
           <Route path="/employees" element={<PermissionGuard module="hr"><Employees /></PermissionGuard>} />

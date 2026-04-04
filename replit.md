@@ -34,9 +34,9 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
-## Entities (36 total)
+## Entities (45 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug
 
 ## Roles & Permissions
 
@@ -111,6 +111,11 @@ npm start      # Run Express server only (serves built frontend)
 - **Reports:** Financial summaries, charts (Recharts)
 - **Settings:** Tenant configuration, invoice templates
 - **HR Module:** Employee profiles, departments, job positions, attendance tracking, shift scheduling, leave management with approval workflow, payroll processing with PDF/CSV export, employee advances with repayment tracking, holiday calendar
+- **Projects:** Project management with client linking, status workflow, team members
+- **Task Board:** Kanban-style task board with drag-and-drop, task detail with checklists/comments
+- **Milestones:** Project milestones with due dates and completion tracking
+- **Timesheets:** Time tracking against projects/tasks, weekly view, CSV export
+- **Bug Tracking:** Bug reporting with severity levels, Kanban and list views, CSV export
 - **Super Admin:** Multi-tenant management
 - **Role Management:** Admin page to configure role permissions
 - **Activity Log:** Admin page to view/filter system activity
