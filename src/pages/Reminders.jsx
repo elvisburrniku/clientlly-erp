@@ -35,6 +35,7 @@ export default function Reminders() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterType, setFilterType] = useState("");
   const [filterClient, setFilterClient] = useState("");
@@ -82,15 +83,37 @@ export default function Reminders() {
     }
     setSubmitting(true);
     try {
-      await base44.entities.Reminder.create({ ...form, tenant_id: tenantId });
-      toast.success("Kujtesa u shtua");
+      if (editingId) {
+        await base44.entities.Reminder.update(editingId, { ...form, tenant_id: tenantId });
+        toast.success("Kujtesa u përditësua");
+      } else {
+        await base44.entities.Reminder.create({ ...form, tenant_id: tenantId });
+        toast.success("Kujtesa u shtua");
+      }
       setForm(emptyForm());
+      setEditingId(null);
       setDialogOpen(false);
       loadData();
     } catch (err) {
       toast.error("Gabim në ruajtje");
     }
     setSubmitting(false);
+  };
+
+  const handleEdit = (reminder) => {
+    setForm({
+      invoice_id: reminder.invoice_id || "",
+      client_name: reminder.client_name || "",
+      client_email: reminder.client_email || "",
+      invoice_number: reminder.invoice_number || "",
+      due_date: reminder.due_date || "",
+      amount: reminder.amount || 0,
+      reminder_type: reminder.reminder_type || "before_due",
+      days_before: reminder.days_before || 3,
+      is_active: reminder.is_active !== false,
+    });
+    setEditingId(reminder.id);
+    setDialogOpen(true);
   };
 
   const handleDelete = async (id) => {
@@ -203,7 +226,7 @@ export default function Reminders() {
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
           <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
-          <Button onClick={() => { setForm(emptyForm()); setDialogOpen(true); }} className="gap-2">
+          <Button onClick={() => { setForm(emptyForm()); setEditingId(null); setDialogOpen(true); }} className="gap-2">
             <Plus className="w-4 h-4" /> Shto Kujtesë
           </Button>
         </div>
@@ -383,6 +406,9 @@ export default function Reminders() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(r)}>
+                            Ndrysho
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleToggle(r.id, r.is_active)}>
                             {r.is_active ? "Çaktivizo" : "Aktivizo"}
                           </DropdownMenuItem>
@@ -401,10 +427,10 @@ export default function Reminders() {
       </div>
 
       {/* Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) setForm(emptyForm()); setDialogOpen(o); }}>
+      <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) { setForm(emptyForm()); setEditingId(null); } setDialogOpen(o); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Shto Kujtesë të Re</DialogTitle>
+            <DialogTitle>{editingId ? "Ndrysho Kujtesën" : "Shto Kujtesë të Re"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div>
@@ -451,8 +477,8 @@ export default function Reminders() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setForm(emptyForm()); setDialogOpen(false); }}>Anulo</Button>
-            <Button onClick={handleCreate} disabled={submitting}>{submitting ? "Duke ruajtur..." : "Shto Kujtesë"}</Button>
+            <Button variant="outline" onClick={() => { setForm(emptyForm()); setEditingId(null); setDialogOpen(false); }}>Anulo</Button>
+            <Button onClick={handleCreate} disabled={submitting}>{submitting ? "Duke ruajtur..." : editingId ? "Ruaj Ndryshimet" : "Shto Kujtesë"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

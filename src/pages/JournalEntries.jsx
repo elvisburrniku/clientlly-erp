@@ -23,6 +23,7 @@ export default function JournalEntries() {
   const [form, setForm] = useState({
     entry_date: moment().format('YYYY-MM-DD'),
     description: '',
+    status: 'posted',
     lines: [
       { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
       { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
@@ -50,6 +51,7 @@ export default function JournalEntries() {
     setForm({
       entry_date: moment().format('YYYY-MM-DD'),
       description: '',
+      status: 'posted',
       lines: [
         { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
         { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
@@ -103,7 +105,7 @@ export default function JournalEntries() {
           entry_date: form.entry_date,
           description: form.description,
           lines: form.lines.filter(l => l.account_id && (parseFloat(l.debit) || parseFloat(l.credit))),
-          status: 'posted',
+          status: form.status || 'posted',
         }),
       });
       if (!res.ok) {
@@ -226,9 +228,19 @@ export default function JournalEntries() {
                 <Input type="date" value={form.entry_date} onChange={e => setForm(f => ({ ...f, entry_date: e.target.value }))} data-testid="input-entry-date" />
               </div>
               <div>
-                <Label className="text-xs font-semibold mb-1.5 block">Përshkrimi</Label>
-                <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Përshkrim..." data-testid="input-entry-description" />
+                <Label className="text-xs font-semibold mb-1.5 block">Statusi</Label>
+                <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
+                  <SelectTrigger data-testid="select-entry-status"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="posted">Postuar</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Përshkrimi</Label>
+              <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Përshkrim..." data-testid="input-entry-description" />
             </div>
 
             <div>
@@ -276,7 +288,7 @@ export default function JournalEntries() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
-            <Button onClick={handleSave} disabled={!isBalanced || totalDebit === 0} data-testid="button-save-entry">Posto Regjistrimin</Button>
+            <Button onClick={handleSave} disabled={!isBalanced || totalDebit === 0} data-testid="button-save-entry">{form.status === 'draft' ? 'Ruaj si Draft' : 'Posto Regjistrimin'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

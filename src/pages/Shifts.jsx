@@ -105,6 +105,7 @@ export default function Shifts() {
   const handleCellClick = (empId, date) => {
     const existing = getScheduleForDay(empId, date);
     if (existing) {
+      if (!confirm("Fshi orarin për këtë ditë?")) return;
       handleDeleteSchedule(existing.id);
     } else {
       const emp = employees.find(e => e.id === empId);

@@ -109,9 +109,29 @@ export default function Transfers() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Fshi këtë transfertë?")) return;
-    await base44.entities.Transfer.delete(id);
-    setTransfers(transfers.filter(t => t.id !== id));
-    toast.success("Transferta u fshi");
+    const transfer = transfers.find(t => t.id === id);
+    try {
+      await base44.entities.Transfer.delete(id);
+      if (transfer && transfer.type === "cash_to_bank" && transfer.status === "completed") {
+        try {
+          await base44.entities.CashTransaction.create({
+            amount: transfer.amount,
+            type: "cash_in",
+            note: `Anulim transferte nga ${transfer.to_account}`,
+            reference_type: "manual",
+            tenant_id: tenantId,
+          });
+        } catch (reversalErr) {
+          toast.error("Transferta u fshi, por bilanci i arkës nuk u rikthye. Kontrolloni manualisht.");
+          await loadTransfers();
+          return;
+        }
+      }
+      await loadTransfers();
+      toast.success("Transferta u fshi");
+    } catch (err) {
+      toast.error("Gabim në fshirjen e transfertës");
+    }
   };
 
   // Summary
