@@ -1260,20 +1260,24 @@ app.get('/api/accounting/income-statement', requireAuth, requireAccountingView, 
     if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
 
     const result = await tPool.query(`
-      SELECT 
+      SELECT
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
         ag.id as group_id, ag.name as group_name, ag.name_en as group_name_en,
         ag.code_prefix_start, ag.sequence as group_sequence,
-        COALESCE(SUM(jl.debit), 0) as total_debit,
-        COALESCE(SUM(jl.credit), 0) as total_credit
+        COALESCE(bal.total_debit, 0) as total_debit,
+        COALESCE(bal.total_credit, 0) as total_credit
       FROM chart_of_accounts coa
       LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
-      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
-      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
+      LEFT JOIN (
+        SELECT jl.account_id, SUM(jl.debit) as total_debit, SUM(jl.credit) as total_credit
+        FROM journal_lines jl
+        JOIN journal_entries je ON je.id = jl.journal_entry_id
+          AND je.status = 'posted' AND je.tenant_id = $1 ${dateFilter}
+        WHERE jl.tenant_id = $1
+        GROUP BY jl.account_id
+      ) bal ON bal.account_id = coa.id
       WHERE coa.tenant_id = $1 AND coa.is_active = true AND coa.account_type IN ('revenue', 'expense')
-      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
-               ag.id, ag.name, ag.name_en, ag.code_prefix_start, ag.sequence
-      HAVING COALESCE(SUM(jl.debit), 0) != 0 OR COALESCE(SUM(jl.credit), 0) != 0
+        AND (COALESCE(bal.total_debit, 0) != 0 OR COALESCE(bal.total_credit, 0) != 0)
       ORDER BY coa.code
     `, params);
 
@@ -1295,19 +1299,23 @@ app.get('/api/accounting/balance-sheet', requireAuth, requireAccountingView, asy
     if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
 
     const result = await tPool.query(`
-      SELECT 
+      SELECT
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
         ag.id as group_id, ag.name as group_name, ag.name_en as group_name_en,
         ag.code_prefix_start, ag.sequence as group_sequence,
-        COALESCE(SUM(jl.debit), 0) as total_debit,
-        COALESCE(SUM(jl.credit), 0) as total_credit
+        COALESCE(bal.total_debit, 0) as total_debit,
+        COALESCE(bal.total_credit, 0) as total_credit
       FROM chart_of_accounts coa
       LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
-      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
-      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
+      LEFT JOIN (
+        SELECT jl.account_id, SUM(jl.debit) as total_debit, SUM(jl.credit) as total_credit
+        FROM journal_lines jl
+        JOIN journal_entries je ON je.id = jl.journal_entry_id
+          AND je.status = 'posted' AND je.tenant_id = $1 ${dateFilter}
+        WHERE jl.tenant_id = $1
+        GROUP BY jl.account_id
+      ) bal ON bal.account_id = coa.id
       WHERE coa.tenant_id = $1 AND coa.is_active = true AND coa.account_type IN ('asset', 'liability', 'equity')
-      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
-               ag.id, ag.name, ag.name_en, ag.code_prefix_start, ag.sequence
       ORDER BY coa.code
     `, params);
 
