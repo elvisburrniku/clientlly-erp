@@ -1122,9 +1122,23 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
             );
           }
         }
+        // Backfill account_subtype and reconcile for accounts matching standard seed definitions
+        const seedDefMap = Object.fromEntries(accounts.map(a => [a.code, a]));
+        const needsFieldBackfill = await client.query(
+          `SELECT id, code FROM chart_of_accounts WHERE tenant_id = $1 AND (account_subtype IS NULL OR account_subtype = 'other')`, [tenantId]
+        );
+        for (const acc of needsFieldBackfill.rows) {
+          const def = seedDefMap[acc.code];
+          if (def && def.account_subtype && def.account_subtype !== 'other') {
+            await client.query(
+              'UPDATE chart_of_accounts SET account_subtype = $1, reconcile = $2, updated_at = NOW() WHERE id = $3 AND tenant_id = $4',
+              [def.account_subtype, def.reconcile, acc.id, tenantId]
+            );
+          }
+        }
       }
 
-      // Step 3: Seed journals if missing
+      // Step 3: Seed journals if missing; if present, backfill null default_account_id
       if (!hasJournals) {
         for (const j of journalDefs) {
           const defaultAccId = j.default_code ? (insertedAccounts[j.default_code] || null) : null;
@@ -1133,6 +1147,20 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
             [tenantId, j.name, j.name_en, j.type, j.sequence_prefix, defaultAccId, j.sequence]
           );
+        }
+      } else {
+        // Backfill default_account_id for journals where it is null (upgrade-safe)
+        const existingJournals = await client.query(
+          'SELECT id, sequence_prefix FROM journals WHERE tenant_id = $1 AND default_account_id IS NULL', [tenantId]
+        );
+        for (const jRow of existingJournals.rows) {
+          const def = journalDefs.find(d => d.sequence_prefix === jRow.sequence_prefix);
+          if (def && def.default_code && insertedAccounts[def.default_code]) {
+            await client.query(
+              'UPDATE journals SET default_account_id = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3',
+              [insertedAccounts[def.default_code], jRow.id, tenantId]
+            );
+          }
         }
       }
 

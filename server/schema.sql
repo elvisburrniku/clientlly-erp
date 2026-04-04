@@ -1507,3 +1507,6 @@ CREATE INDEX IF NOT EXISTS idx_account_groups_tenant ON account_groups(tenant_id
 CREATE INDEX IF NOT EXISTS idx_journals_tenant ON journals(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_coa_group ON chart_of_accounts(account_group_id);
 CREATE INDEX IF NOT EXISTS idx_journal_entries_journal ON journal_entries(journal_id);
+
+-- Unique constraint: account codes are unique per tenant (prevents duplicate codes even under concurrent writes)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_coa_tenant_code ON chart_of_accounts(tenant_id, code) WHERE is_active = true;

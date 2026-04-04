@@ -88,7 +88,11 @@ export default function ChartOfAccounts() {
     try {
       const res = await fetch('/api/accounting/seed-accounts', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' } });
       const data = await res.json();
-      toast({ title: 'Plani kontabël u krijua', description: `${data.count || 0} llogari u shtuan` });
+      const accs = data.accounts ?? data.count ?? 0;
+      const desc = data.seededAccounts
+        ? `${accs} llogari u shtuan`
+        : `${accs} llogari ekzistuese, grupet u sinkronizuan`;
+      toast({ title: 'Plani kontabël u krijua/u përditësua', description: desc });
       await loadData();
     } catch (err) {
       toast({ title: 'Gabim', description: err.message, variant: 'destructive' });
