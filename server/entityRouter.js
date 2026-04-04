@@ -48,6 +48,7 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
 
   function shouldScopeTenant(req) {
     if (!hasTenantColumn) return false;
+    if (tableName === 'users') return true;
     if (isSuperAdmin(req)) return false;
     return true;
   }
