@@ -6,6 +6,45 @@ import pg from 'pg';
 const { Pool } = pg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const DNS_RETRY_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'EAI_AGAIN', 'ETIMEDOUT']);
+
+function isDnsError(err) {
+  if (!err) return false;
+  const code = err.code || (err.cause && err.cause.code) || '';
+  const msg = err.message || '';
+  return DNS_RETRY_ERRORS.has(code) ||
+    msg.includes('getaddrinfo') ||
+    msg.includes('ENOTFOUND') ||
+    msg.includes('ECONNREFUSED') ||
+    msg.includes('EAI_AGAIN');
+}
+
+const DNS_RETRY_MAX_ELAPSED_MS = 120000;
+
+async function withDnsRetry(label, fn, baseDelayMs = 10000) {
+  const start = Date.now();
+  let attempt = 0;
+  while (true) {
+    attempt++;
+    try {
+      return await fn();
+    } catch (err) {
+      const elapsed = Date.now() - start;
+      if (isDnsError(err) && elapsed < DNS_RETRY_MAX_ELAPSED_MS) {
+        const remaining = DNS_RETRY_MAX_ELAPSED_MS - elapsed;
+        const delay = Math.min(baseDelayMs * Math.pow(2, attempt - 1), remaining, 40000);
+        console.warn(`[${label}] DNS/connection error on attempt ${attempt} (${Math.round(elapsed / 1000)}s elapsed): ${err.message}. Retrying in ${Math.round(delay / 1000)}s...`);
+        await new Promise(r => setTimeout(r, delay));
+      } else {
+        if (isDnsError(err)) {
+          console.error(`[${label}] DNS/connection retries exhausted after ${Math.round((Date.now() - start) / 1000)}s and ${attempt} attempt(s). Last error: ${err.message}`);
+        }
+        throw err;
+      }
+    }
+  }
+}
+
 const CRITICAL_TABLES = new Set([
   'clients', 'suppliers', 'products', 'invoices', 'expenses', 'payments',
   'chart_of_accounts', 'journal_entries', 'journal_lines',
@@ -95,28 +134,30 @@ const TENANT_TABLES = [
 const BATCH_SIZE = 200;
 
 export async function runSchemaOnPersonalDb(databaseUrl) {
-  const personalPool = new Pool({
-    connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false },
-    max: 3,
-    connectionTimeoutMillis: 15000,
-  });
-  try {
-    const schemaSql = readFileSync(join(__dirname, 'schema.sql'), 'utf8');
-    await personalPool.query(schemaSql);
+  await withDnsRetry('runSchemaOnPersonalDb', async () => {
+    const personalPool = new Pool({
+      connectionString: databaseUrl,
+      ssl: { rejectUnauthorized: false },
+      max: 3,
+      connectionTimeoutMillis: 15000,
+    });
+    try {
+      const schemaSql = readFileSync(join(__dirname, 'schema.sql'), 'utf8');
+      await personalPool.query(schemaSql);
 
-    const migrateSql = readFileSync(join(__dirname, 'migrate.js'), 'utf8');
-    const migrationMatch = migrateSql.match(/const migration = `([\s\S]*?)`;/);
-    if (migrationMatch) {
-      try {
-        await personalPool.query(migrationMatch[1]);
-      } catch (err) {
-        console.warn('Migration SQL on personal DB had warnings (likely safe):', err.message);
+      const migrateSql = readFileSync(join(__dirname, 'migrate.js'), 'utf8');
+      const migrationMatch = migrateSql.match(/const migration = `([\s\S]*?)`;/);
+      if (migrationMatch) {
+        try {
+          await personalPool.query(migrationMatch[1]);
+        } catch (err) {
+          console.warn('Migration SQL on personal DB had warnings (likely safe):', err.message);
+        }
       }
+    } finally {
+      await personalPool.end();
     }
-  } finally {
-    await personalPool.end();
-  }
+  });
 }
 
 export async function migrateTenantData(tenantId, sharedPool, databaseUrl, onProgress) {

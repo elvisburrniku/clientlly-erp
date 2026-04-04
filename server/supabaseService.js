@@ -43,11 +43,17 @@ export async function getProject(projectRef) {
   return supabaseRequest('GET', `/projects/${projectRef}`);
 }
 
+const DNS_PROPAGATION_DELAY_MS = 20000;
+
 export async function waitForProjectReady(projectRef, timeoutMs = 300000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     const project = await getProject(projectRef);
-    if (project.status === 'ACTIVE_HEALTHY') return project;
+    if (project.status === 'ACTIVE_HEALTHY') {
+      console.log(`Project ${projectRef} is ACTIVE_HEALTHY. Waiting ${DNS_PROPAGATION_DELAY_MS / 1000}s for DNS propagation before connecting...`);
+      await new Promise(r => setTimeout(r, DNS_PROPAGATION_DELAY_MS));
+      return project;
+    }
     if (project.status === 'INACTIVE' || project.status === 'REMOVED') {
       throw new Error(`Project entered unexpected status: ${project.status}`);
     }
