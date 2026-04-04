@@ -110,6 +110,18 @@ export const base44 = {
     Reminder: createEntityClient('Reminder'),
     ReportTemplate: createEntityClient('ReportTemplate'),
     User: createEntityClient('User'),
+    Department: createEntityClient('Department'),
+    JobPosition: createEntityClient('JobPosition'),
+    Employee: createEntityClient('Employee'),
+    Attendance: createEntityClient('Attendance'),
+    Shift: createEntityClient('Shift'),
+    Schedule: createEntityClient('Schedule'),
+    LeaveType: createEntityClient('LeaveType'),
+    LeaveBalance: createEntityClient('LeaveBalance'),
+    LeaveRequest: createEntityClient('LeaveRequest'),
+    Payroll: createEntityClient('Payroll'),
+    EmployeeAdvance: createEntityClient('EmployeeAdvance'),
+    Holiday: createEntityClient('Holiday'),
   },
 
   functions: {

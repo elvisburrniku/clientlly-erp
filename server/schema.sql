@@ -375,3 +375,197 @@ CREATE TABLE IF NOT EXISTS report_templates (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- ============ HR MODULE ============
+
+-- Departments
+CREATE TABLE IF NOT EXISTS departments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  manager_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Job Positions
+CREATE TABLE IF NOT EXISTS job_positions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  title VARCHAR(255) NOT NULL,
+  department_id UUID,
+  department_name VARCHAR(255),
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Employees
+CREATE TABLE IF NOT EXISTS employees (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  phone VARCHAR(100),
+  address VARCHAR(500),
+  city VARCHAR(100),
+  date_of_birth DATE,
+  gender VARCHAR(20),
+  id_number VARCHAR(100),
+  department_id UUID,
+  department_name VARCHAR(255),
+  position_id UUID,
+  position_title VARCHAR(255),
+  hire_date DATE,
+  contract_type VARCHAR(50) DEFAULT 'full_time',
+  contract_end_date DATE,
+  base_salary DECIMAL(15,2) DEFAULT 0,
+  bank_account VARCHAR(255),
+  emergency_contact VARCHAR(255),
+  emergency_phone VARCHAR(100),
+  notes TEXT,
+  status VARCHAR(50) DEFAULT 'active',
+  avatar_url TEXT,
+  documents JSONB DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Attendance
+CREATE TABLE IF NOT EXISTS attendance (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  employee_id UUID,
+  employee_name VARCHAR(255),
+  attendance_date DATE NOT NULL,
+  check_in TIME,
+  check_out TIME,
+  hours_worked DECIMAL(5,2),
+  status VARCHAR(50) DEFAULT 'present',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Shifts
+CREATE TABLE IF NOT EXISTS shifts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  color VARCHAR(50) DEFAULT '#3b82f6',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Schedules
+CREATE TABLE IF NOT EXISTS schedules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  employee_id UUID,
+  employee_name VARCHAR(255),
+  shift_id UUID,
+  shift_name VARCHAR(255),
+  schedule_date DATE NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Leave Types
+CREATE TABLE IF NOT EXISTS leave_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  days_allowed INTEGER DEFAULT 20,
+  color VARCHAR(50) DEFAULT '#3b82f6',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Leave Balances
+CREATE TABLE IF NOT EXISTS leave_balances (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  employee_id UUID,
+  employee_name VARCHAR(255),
+  leave_type_id UUID,
+  leave_type_name VARCHAR(255),
+  year INTEGER,
+  total_days INTEGER DEFAULT 0,
+  used_days INTEGER DEFAULT 0,
+  remaining_days INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Leave Requests
+CREATE TABLE IF NOT EXISTS leave_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  employee_id UUID,
+  employee_name VARCHAR(255),
+  leave_type_id UUID,
+  leave_type_name VARCHAR(255),
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  days_count INTEGER DEFAULT 1,
+  reason TEXT,
+  status VARCHAR(50) DEFAULT 'pending',
+  approved_by VARCHAR(255),
+  approved_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Payroll
+CREATE TABLE IF NOT EXISTS payroll (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  employee_id UUID,
+  employee_name VARCHAR(255),
+  month INTEGER NOT NULL,
+  year INTEGER NOT NULL,
+  base_salary DECIMAL(15,2) DEFAULT 0,
+  additions DECIMAL(15,2) DEFAULT 0,
+  deductions DECIMAL(15,2) DEFAULT 0,
+  net_pay DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'draft',
+  paid_at TIMESTAMP,
+  notes TEXT,
+  items JSONB DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Employee Advances
+CREATE TABLE IF NOT EXISTS employee_advances (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  employee_id UUID,
+  employee_name VARCHAR(255),
+  amount DECIMAL(15,2) DEFAULT 0,
+  amount_repaid DECIMAL(15,2) DEFAULT 0,
+  advance_date DATE,
+  reason TEXT,
+  status VARCHAR(50) DEFAULT 'pending',
+  repayment_date DATE,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Holidays
+CREATE TABLE IF NOT EXISTS holidays (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  holiday_date DATE NOT NULL,
+  holiday_type VARCHAR(50) DEFAULT 'public',
+  recurring BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);

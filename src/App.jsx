@@ -35,6 +35,13 @@ import InvoiceAnalytics from './pages/InvoiceAnalytics';
 import Onboarding from './pages/Onboarding';
 import SuperAdmin from './pages/SuperAdmin';
 import ReportTemplates from './pages/ReportTemplates';
+import Employees from './pages/Employees';
+import Attendance from './pages/Attendance';
+import Shifts from './pages/Shifts';
+import Leave from './pages/Leave';
+import Payroll from './pages/Payroll';
+import Advances from './pages/Advances';
+import Holidays from './pages/Holidays';
 import Login from './pages/Login';
 import ActivityLog from './pages/ActivityLog';
 import RoleManagement from './pages/RoleManagement';
@@ -94,6 +101,13 @@ const AuthenticatedApp = () => {
           <Route path="/report-templates" element={<PermissionGuard module="report_templates"><ReportTemplates /></PermissionGuard>} />
           <Route path="/activity-log" element={<PermissionGuard adminOnly><ActivityLog /></PermissionGuard>} />
           <Route path="/role-management" element={<PermissionGuard adminOnly><RoleManagement /></PermissionGuard>} />
+          <Route path="/employees" element={<PermissionGuard module="hr"><Employees /></PermissionGuard>} />
+          <Route path="/attendance" element={<PermissionGuard module="hr"><Attendance /></PermissionGuard>} />
+          <Route path="/shifts" element={<PermissionGuard module="hr"><Shifts /></PermissionGuard>} />
+          <Route path="/leave" element={<PermissionGuard module="hr"><Leave /></PermissionGuard>} />
+          <Route path="/payroll" element={<PermissionGuard module="hr"><Payroll /></PermissionGuard>} />
+          <Route path="/advances" element={<PermissionGuard module="hr"><Advances /></PermissionGuard>} />
+          <Route path="/holidays" element={<PermissionGuard module="hr"><Holidays /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
         <Route path="/onboarding" element={<Onboarding />} />

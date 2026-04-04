@@ -34,9 +34,9 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
-## Entities (23 total)
+## Entities (36 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday
 
 ## Roles & Permissions
 
@@ -110,6 +110,7 @@ npm start      # Run Express server only (serves built frontend)
 - **Inventory:** Stock management
 - **Reports:** Financial summaries, charts (Recharts)
 - **Settings:** Tenant configuration, invoice templates
+- **HR Module:** Employee profiles, departments, job positions, attendance tracking, shift scheduling, leave management with approval workflow, payroll processing with PDF/CSV export, employee advances with repayment tracking, holiday calendar
 - **Super Admin:** Multi-tenant management
 - **Role Management:** Admin page to configure role permissions
 - **Activity Log:** Admin page to view/filter system activity

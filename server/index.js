@@ -496,6 +496,18 @@ const entityTableMap = {
   Reminder: 'reminders',
   ReportTemplate: 'report_templates',
   User: 'users',
+  Department: 'departments',
+  JobPosition: 'job_positions',
+  Employee: 'employees',
+  Attendance: 'attendance',
+  Shift: 'shifts',
+  Schedule: 'schedules',
+  LeaveType: 'leave_types',
+  LeaveBalance: 'leave_balances',
+  LeaveRequest: 'leave_requests',
+  Payroll: 'payroll',
+  EmployeeAdvance: 'employee_advances',
+  Holiday: 'holidays',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);

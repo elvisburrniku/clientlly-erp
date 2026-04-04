@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
-  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield
+  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield,
+  UserCheck, Clock, CalendarDays, CalendarOff, Banknote, HandCoins, CalendarHeart
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,16 @@ export default function Sidebar() {
     { label: t('cashHandover') || "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover", module: "cash_handover" },
   ];
 
+  const hrItems = [
+    { label: "Punonjësit", icon: UserCheck, path: "/employees", module: "hr" },
+    { label: "Prezenca", icon: Clock, path: "/attendance", module: "hr" },
+    { label: "Turnet", icon: CalendarDays, path: "/shifts", module: "hr" },
+    { label: "Lejet", icon: CalendarOff, path: "/leave", module: "hr" },
+    { label: "Pagat", icon: Banknote, path: "/payroll", module: "hr" },
+    { label: "Paradhëniet", icon: HandCoins, path: "/advances", module: "hr" },
+    { label: "Festat", icon: CalendarHeart, path: "/holidays", module: "hr" },
+  ];
+
   const performanceItems = [
     { label: t('reports') || "Raportet", icon: BarChart3, path: "/reports", module: "reports" },
     { label: "Royalties", icon: DollarSign, path: "/royalties", module: "royalties" },
@@ -46,6 +57,7 @@ export default function Sidebar() {
 
   const visibleMenuItems = menuItems.filter(item => fullAccess || canView(item.module));
   const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
+  const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
 
   const renderLink = (item) => {
     const isActive = location.pathname === item.path;
@@ -96,6 +108,15 @@ export default function Sidebar() {
           <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3">{t('menu') || 'Menuja'}</p>
         )}
         {visibleMenuItems.map(renderLink)}
+
+        {visibleHrItems.length > 0 && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Burimet Njerëzore</p>
+            )}
+            {visibleHrItems.map(renderLink)}
+          </>
+        )}
 
         {visiblePerfItems.length > 0 && (
           <>
