@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Badge } from "@/components/ui/badge";
@@ -229,8 +229,8 @@ export default function SuperAdmin() {
                   const showConfirm = confirming === tenant.id;
 
                   return (
-                    <>
-                      <tr key={tenant.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                    <React.Fragment key={tenant.id}>
+                      <tr className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                         <td className="p-4">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
@@ -348,7 +348,7 @@ export default function SuperAdmin() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
