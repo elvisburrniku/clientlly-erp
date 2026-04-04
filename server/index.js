@@ -13,9 +13,17 @@ import { createEntityRouter } from './entityRouter.js';
 import { requirePermission, getPermissionsApi, clearPermissionsCache } from './permissions.js';
 import { logActivity, getActivityApi, notifyTenantAdmins } from './activityLog.js';
 import runMigration from './migrate.js';
+import { resolvePoolForTenant, clearCachedTenantDb } from './tenantDb.js';
+import { listOrganizations, createProject, waitForProjectReady, getProjectDatabaseUrl, generateDbPassword } from './supabaseService.js';
+import { runSchemaOnPersonalDb, migrateTenantData } from './dbMigration.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+async function getPoolForReq(req) {
+  const tenantId = req.session?.user?.tenant_id;
+  return resolvePoolForTenant(tenantId, pool);
+}
 
 const app = express();
 const PgSession = connectPgSimple(session);
@@ -413,6 +421,7 @@ app.get('/api/search', requireAuth, async (req, res) => {
     const searchTerm = `%${q.trim().toLowerCase()}%`;
     const tenantId = req.session.user.tenant_id;
     const userRole = req.session.user.role;
+    const tPool = await getPoolForReq(req);
     const results = [];
 
     const isFullAccess = userRole === 'admin' || userRole === 'superadmin';
@@ -430,7 +439,7 @@ app.get('/api/search', requireAuth, async (req, res) => {
     const canSearch = (module) => isFullAccess || userPerms[module];
 
     if (canSearch('clients')) {
-      const clientsResult = await pool.query(
+      const clientsResult = await tPool.query(
         `SELECT id, name, email, phone FROM clients WHERE tenant_id = $2 AND (LOWER(COALESCE(name,'')) LIKE $1 OR LOWER(COALESCE(email,'')) LIKE $1 OR LOWER(COALESCE(phone,'')) LIKE $1) LIMIT 5`,
         [searchTerm, tenantId]
       );
@@ -438,7 +447,7 @@ app.get('/api/search', requireAuth, async (req, res) => {
     }
 
     if (canSearch('invoices')) {
-      const invoicesResult = await pool.query(
+      const invoicesResult = await tPool.query(
         `SELECT id, invoice_number, client_name, total, status FROM invoices WHERE tenant_id = $2 AND (LOWER(COALESCE(invoice_number,'')) LIKE $1 OR LOWER(COALESCE(client_name,'')) LIKE $1) LIMIT 5`,
         [searchTerm, tenantId]
       );
@@ -446,7 +455,7 @@ app.get('/api/search', requireAuth, async (req, res) => {
     }
 
     if (canSearch('products')) {
-      const productsResult = await pool.query(
+      const productsResult = await tPool.query(
         `SELECT id, name, price FROM products WHERE tenant_id = $2 AND LOWER(COALESCE(name,'')) LIKE $1 LIMIT 5`,
         [searchTerm, tenantId]
       );
@@ -454,7 +463,7 @@ app.get('/api/search', requireAuth, async (req, res) => {
     }
 
     if (canSearch('suppliers')) {
-      const suppliersResult = await pool.query(
+      const suppliersResult = await tPool.query(
         `SELECT id, name, email FROM suppliers WHERE tenant_id = $2 AND (LOWER(COALESCE(name,'')) LIKE $1 OR LOWER(COALESCE(email,'')) LIKE $1) LIMIT 5`,
         [searchTerm, tenantId]
       );
@@ -462,7 +471,7 @@ app.get('/api/search', requireAuth, async (req, res) => {
     }
 
     if (canSearch('expenses')) {
-      const expensesResult = await pool.query(
+      const expensesResult = await tPool.query(
         `SELECT id, description, amount, category_name FROM expenses WHERE tenant_id = $2 AND (LOWER(COALESCE(description,'')) LIKE $1 OR LOWER(COALESCE(category_name,'')) LIKE $1) LIMIT 5`,
         [searchTerm, tenantId]
       );
@@ -575,7 +584,26 @@ for (const [entityName, tableName] of Object.entries(entityTableMap)) {
     middlewares.push(requireSuperAdmin);
   }
   middlewares.push(requirePermission(entityName));
-  app.use(`/api/entities/${entityName}`, ...middlewares, createEntityRouter(pool, tableName, entityName, entityOpts));
+
+  const alwaysSharedEntities = new Set(['Tenant', 'User', 'PortalToken']);
+  const poolResolver = alwaysSharedEntities.has(entityName)
+    ? pool
+    : async (req) => resolvePoolForTenant(req.session?.user?.tenant_id, pool);
+
+  if (entityName === 'Proposal') {
+    const indexToken = async (row) => {
+      if (row && row.token && row.tenant_id && row.id) {
+        await pool.query(
+          'INSERT INTO proposal_token_index (token, tenant_id, proposal_id) VALUES ($1, $2, $3) ON CONFLICT (token) DO UPDATE SET tenant_id = EXCLUDED.tenant_id, proposal_id = EXCLUDED.proposal_id',
+          [row.token, row.tenant_id, row.id]
+        ).catch(e => console.error('[proposal_token_index]', e.message));
+      }
+    };
+    entityOpts.afterCreate = indexToken;
+    entityOpts.afterUpdate = indexToken;
+  }
+
+  app.use(`/api/entities/${entityName}`, ...middlewares, createEntityRouter(poolResolver, tableName, entityName, entityOpts));
 }
 
 // ============ PORTAL (public, no auth) ============
@@ -608,12 +636,13 @@ app.get('/api/portal/client/:token', async (req, res) => {
       return res.status(404).json({ error: 'Invalid or expired token' });
     }
     const portalToken = tokenResult.rows[0];
-    const client = await pool.query('SELECT * FROM clients WHERE id = $1', [portalToken.entity_id]);
+    const tPool = await resolvePoolForTenant(portalToken.tenant_id, pool);
+    const client = await tPool.query('SELECT * FROM clients WHERE id = $1', [portalToken.entity_id]);
     if (client.rows.length === 0) {
       return res.status(404).json({ error: 'Client not found' });
     }
-    const invoices = await pool.query('SELECT * FROM invoices WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
-    const payments = await pool.query('SELECT * FROM payments WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
+    const invoices = await tPool.query('SELECT * FROM invoices WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
+    const payments = await tPool.query('SELECT * FROM payments WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
     res.json({ client: client.rows[0], invoices: invoices.rows, payments: payments.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -625,11 +654,15 @@ app.get('/api/portal/client/:token', async (req, res) => {
 app.get('/api/proposals/public/:token', async (req, res) => {
   try {
     const { token } = req.params;
-    const result = await pool.query('SELECT id, proposal_number, title, description, client_name, client_email, items, subtotal, discount_type, discount_value, discount_amount, tax_amount, total, status, valid_until, template, color_theme, notes, terms, viewed_at, accepted_at, rejected_at, rejection_reason, created_at FROM proposals WHERE token = $1', [token]);
+    const indexRow = await pool.query('SELECT tenant_id, proposal_id FROM proposal_token_index WHERE token = $1', [token]);
+    if (indexRow.rows.length === 0) return res.status(404).json({ error: 'Proposal not found' });
+    const { tenant_id, proposal_id } = indexRow.rows[0];
+    const tPool = await resolvePoolForTenant(tenant_id, pool);
+    const result = await tPool.query('SELECT id, tenant_id, proposal_number, title, description, client_name, client_email, items, subtotal, discount_type, discount_value, discount_amount, tax_amount, total, status, valid_until, template, color_theme, notes, terms, viewed_at, accepted_at, rejected_at, rejection_reason, created_at FROM proposals WHERE id = $1', [proposal_id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Proposal not found' });
     const proposal = result.rows[0];
     if (!proposal.viewed_at && (proposal.status === 'sent')) {
-      await pool.query('UPDATE proposals SET viewed_at = NOW(), status = \'viewed\', updated_at = NOW() WHERE id = $1', [proposal.id]);
+      await tPool.query('UPDATE proposals SET viewed_at = NOW(), status = \'viewed\', updated_at = NOW() WHERE id = $1', [proposal_id]);
       proposal.status = 'viewed';
       proposal.viewed_at = new Date();
     }
@@ -650,12 +683,13 @@ app.get('/api/portal/vendor/:token', async (req, res) => {
       return res.status(404).json({ error: 'Invalid or expired token' });
     }
     const portalToken = tokenResult.rows[0];
-    const supplier = await pool.query('SELECT * FROM suppliers WHERE id = $1', [portalToken.entity_id]);
+    const tPool = await resolvePoolForTenant(portalToken.tenant_id, pool);
+    const supplier = await tPool.query('SELECT * FROM suppliers WHERE id = $1', [portalToken.entity_id]);
     if (supplier.rows.length === 0) {
       return res.status(404).json({ error: 'Supplier not found' });
     }
-    const expenses = await pool.query('SELECT * FROM expenses WHERE supplier_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
-    const payments = await pool.query('SELECT * FROM payments WHERE invoice_id IN (SELECT id FROM invoices WHERE client_id = $1) ORDER BY created_at DESC', [portalToken.entity_id]);
+    const expenses = await tPool.query('SELECT * FROM expenses WHERE supplier_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
+    const payments = await tPool.query('SELECT * FROM payments WHERE invoice_id IN (SELECT id FROM invoices WHERE client_id = $1) ORDER BY created_at DESC', [portalToken.entity_id]);
     res.json({ supplier: supplier.rows[0], expenses: expenses.rows, payments: payments.rows });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -671,17 +705,18 @@ app.post('/api/merge/clients', requireAuth, async (req, res) => {
     if (!primary_id || !merge_ids || merge_ids.length === 0) {
       return res.status(400).json({ error: 'primary_id and merge_ids required' });
     }
-    const primaryCheck = await pool.query('SELECT id FROM clients WHERE id = $1 AND tenant_id = $2', [primary_id, tenantId]);
+    const tPool = await getPoolForReq(req);
+    const primaryCheck = await tPool.query('SELECT id FROM clients WHERE id = $1 AND tenant_id = $2', [primary_id, tenantId]);
     if (primaryCheck.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
     for (const mergeId of merge_ids) {
-      const mergeCheck = await pool.query('SELECT id FROM clients WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+      const mergeCheck = await tPool.query('SELECT id FROM clients WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
       if (mergeCheck.rows.length === 0) continue;
-      await pool.query('UPDATE invoices SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
-      await pool.query('UPDATE payments SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
-      await pool.query('UPDATE quotes SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
-      await pool.query('DELETE FROM clients WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+      await tPool.query('UPDATE invoices SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await tPool.query('UPDATE payments SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await tPool.query('UPDATE quotes SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await tPool.query('DELETE FROM clients WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
     }
-    const result = await pool.query('SELECT * FROM clients WHERE id = $1', [primary_id]);
+    const result = await tPool.query('SELECT * FROM clients WHERE id = $1', [primary_id]);
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -695,15 +730,16 @@ app.post('/api/merge/suppliers', requireAuth, async (req, res) => {
     if (!primary_id || !merge_ids || merge_ids.length === 0) {
       return res.status(400).json({ error: 'primary_id and merge_ids required' });
     }
-    const primaryCheck = await pool.query('SELECT id FROM suppliers WHERE id = $1 AND tenant_id = $2', [primary_id, tenantId]);
+    const tPool = await getPoolForReq(req);
+    const primaryCheck = await tPool.query('SELECT id FROM suppliers WHERE id = $1 AND tenant_id = $2', [primary_id, tenantId]);
     if (primaryCheck.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
     for (const mergeId of merge_ids) {
-      const mergeCheck = await pool.query('SELECT id FROM suppliers WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+      const mergeCheck = await tPool.query('SELECT id FROM suppliers WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
       if (mergeCheck.rows.length === 0) continue;
-      await pool.query('UPDATE expenses SET supplier_id = $1, supplier_name = (SELECT name FROM suppliers WHERE id = $1) WHERE supplier_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
-      await pool.query('DELETE FROM suppliers WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+      await tPool.query('UPDATE expenses SET supplier_id = $1, supplier_name = (SELECT name FROM suppliers WHERE id = $1) WHERE supplier_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await tPool.query('DELETE FROM suppliers WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
     }
-    const result = await pool.query('SELECT * FROM suppliers WHERE id = $1', [primary_id]);
+    const result = await tPool.query('SELECT * FROM suppliers WHERE id = $1', [primary_id]);
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -714,7 +750,11 @@ app.post('/api/proposals/public/:token/respond', async (req, res) => {
   try {
     const { token } = req.params;
     const { action, rejection_reason } = req.body;
-    const result = await pool.query('SELECT * FROM proposals WHERE token = $1', [token]);
+    const indexRow = await pool.query('SELECT tenant_id, proposal_id FROM proposal_token_index WHERE token = $1', [token]);
+    if (indexRow.rows.length === 0) return res.status(404).json({ error: 'Proposal not found' });
+    const { tenant_id, proposal_id } = indexRow.rows[0];
+    const tPool = await resolvePoolForTenant(tenant_id, pool);
+    const result = await tPool.query('SELECT * FROM proposals WHERE id = $1', [proposal_id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Proposal not found' });
     const proposal = result.rows[0];
     if (proposal.status !== 'sent' && proposal.status !== 'viewed') {
@@ -724,9 +764,9 @@ app.post('/api/proposals/public/:token/respond', async (req, res) => {
       return res.status(400).json({ error: 'Proposal has expired' });
     }
     if (action === 'accept') {
-      await pool.query('UPDATE proposals SET status = $1, accepted_at = NOW(), updated_at = NOW() WHERE id = $2', ['accepted', proposal.id]);
+      await tPool.query('UPDATE proposals SET status = $1, accepted_at = NOW(), updated_at = NOW() WHERE id = $2', ['accepted', proposal_id]);
     } else if (action === 'reject') {
-      await pool.query('UPDATE proposals SET status = $1, rejected_at = NOW(), rejection_reason = $2, updated_at = NOW() WHERE id = $3', ['rejected', rejection_reason || null, proposal.id]);
+      await tPool.query('UPDATE proposals SET status = $1, rejected_at = NOW(), rejection_reason = $2, updated_at = NOW() WHERE id = $3', ['rejected', rejection_reason || null, proposal_id]);
     } else {
       return res.status(400).json({ error: 'Invalid action' });
     }
@@ -762,9 +802,9 @@ const requireAccountingCreate = (req, res, next) => {
   }).catch(() => res.status(403).json({ error: 'Access denied' }));
 };
 
-async function autoGenerateJournalEntry(tenantId, userId, userEmail, { referenceType, referenceId, referenceNumber, description, lines }) {
+async function autoGenerateJournalEntry(tenantId, userId, userEmail, { referenceType, referenceId, referenceNumber, description, lines }, tPool = pool) {
   try {
-    const accounts = await pool.query('SELECT id, code, name FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]);
+    const accounts = await tPool.query('SELECT id, code, name FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]);
     if (accounts.rows.length === 0) return null;
 
     const findAccount = (code) => accounts.rows.find(a => a.code === code);
@@ -783,7 +823,7 @@ async function autoGenerateJournalEntry(tenantId, userId, userEmail, { reference
     const totalCredit = validLines.reduce((s, l) => s + l.credit, 0);
     if (Math.abs(totalDebit - totalCredit) > 0.01) return null;
 
-    const client = await pool.connect();
+    const client = await tPool.connect();
     try {
       await client.query('BEGIN');
       const countResult = await client.query(
@@ -826,6 +866,7 @@ app.post('/api/accounting/auto-journal/invoice', requireAuth, requireAccountingC
   try {
     const tenantId = req.session.user.tenant_id;
     const { invoice_id, invoice_number, subtotal, tax_amount, total, client_name } = req.body;
+    const tPool = await getPoolForReq(req);
 
     const entry = await autoGenerateJournalEntry(tenantId, req.session.user.id, req.session.user.email, {
       referenceType: 'invoice',
@@ -837,7 +878,7 @@ app.post('/api/accounting/auto-journal/invoice', requireAuth, requireAccountingC
         { code: '4100', debit: 0, credit: subtotal },
         { code: '2200', debit: 0, credit: tax_amount || 0 },
       ].filter(l => l.debit > 0 || l.credit > 0),
-    });
+    }, tPool);
 
     res.json({ success: !!entry, entry });
   } catch (err) {
@@ -849,6 +890,7 @@ app.post('/api/accounting/auto-journal/expense', requireAuth, requireAccountingC
   try {
     const tenantId = req.session.user.tenant_id;
     const { expense_id, description, amount, tax_amount, total, supplier_name } = req.body;
+    const tPool = await getPoolForReq(req);
 
     const entry = await autoGenerateJournalEntry(tenantId, req.session.user.id, req.session.user.email, {
       referenceType: 'expense',
@@ -860,7 +902,7 @@ app.post('/api/accounting/auto-journal/expense', requireAuth, requireAccountingC
         { code: '2300', debit: tax_amount || 0, credit: 0 },
         { code: '2100', debit: 0, credit: total },
       ].filter(l => l.debit > 0 || l.credit > 0),
-    });
+    }, tPool);
 
     res.json({ success: !!entry, entry });
   } catch (err) {
@@ -872,6 +914,7 @@ app.post('/api/accounting/auto-journal/payment', requireAuth, requireAccountingC
   try {
     const tenantId = req.session.user.tenant_id;
     const { payment_id, invoice_number, amount, client_name, payment_method } = req.body;
+    const tPool = await getPoolForReq(req);
 
     const bankCode = payment_method === 'cash' ? '1100' : '1200';
     const entry = await autoGenerateJournalEntry(tenantId, req.session.user.id, req.session.user.email, {
@@ -883,7 +926,7 @@ app.post('/api/accounting/auto-journal/payment', requireAuth, requireAccountingC
         { code: bankCode, debit: amount, credit: 0 },
         { code: '1300', debit: 0, credit: amount },
       ],
-    });
+    }, tPool);
 
     res.json({ success: !!entry, entry });
   } catch (err) {
@@ -894,7 +937,8 @@ app.post('/api/accounting/auto-journal/payment', requireAuth, requireAccountingC
 app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req, res) => {
   try {
     const tenantId = req.session.user.tenant_id;
-    const existing = await pool.query('SELECT COUNT(*) FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]);
+    const tPool = await getPoolForReq(req);
+    const existing = await tPool.query('SELECT COUNT(*) FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]);
     if (parseInt(existing.rows[0].count) > 0) {
       return res.json({ message: 'Accounts already seeded', count: parseInt(existing.rows[0].count) });
     }
@@ -939,7 +983,7 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
     ];
 
     for (const acc of accounts) {
-      await pool.query(
+      await tPool.query(
         'INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance) VALUES ($1, $2, $3, $4, $5, $6)',
         [tenantId, acc.code, acc.name, acc.name_en, acc.account_type, acc.normal_balance]
       );
@@ -956,6 +1000,7 @@ app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, 
   try {
     const tenantId = req.session.user.tenant_id;
     const { entry_date, description, reference_type, reference_id, reference_number, lines, status } = req.body;
+    const tPool = await getPoolForReq(req);
 
     if (!lines || lines.length < 2) {
       return res.status(400).json({ error: 'At least 2 journal lines required' });
@@ -976,7 +1021,7 @@ app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, 
 
     const accountIds = lines.map(l => l.account_id).filter(Boolean);
     if (accountIds.length > 0) {
-      const validAccounts = await pool.query(
+      const validAccounts = await tPool.query(
         'SELECT id FROM chart_of_accounts WHERE id = ANY($1) AND tenant_id = $2 AND is_active = true',
         [accountIds, tenantId]
       );
@@ -985,7 +1030,7 @@ app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, 
       }
     }
 
-    const client = await pool.connect();
+    const client = await tPool.connect();
     try {
       await client.query('BEGIN');
       const countResult = await client.query(
@@ -1014,7 +1059,7 @@ app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, 
 
       await client.query('COMMIT');
 
-      const fullLines = await pool.query('SELECT * FROM journal_lines WHERE journal_entry_id = $1', [entry.id]);
+      const fullLines = await tPool.query('SELECT * FROM journal_lines WHERE journal_entry_id = $1', [entry.id]);
       res.json({ ...entry, lines: fullLines.rows });
     } catch (err) {
       await client.query('ROLLBACK');
@@ -1031,13 +1076,14 @@ app.get('/api/accounting/trial-balance', requireAuth, requireAccountingView, asy
   try {
     const tenantId = req.session.user.tenant_id;
     const { from, to } = req.query;
+    const tPool = await getPoolForReq(req);
 
     let dateFilter = '';
     const params = [tenantId];
     if (from) { dateFilter += ` AND je.entry_date >= $${params.length + 1}`; params.push(from); }
     if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
 
-    const result = await pool.query(`
+    const result = await tPool.query(`
       SELECT 
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
         COALESCE(SUM(jl.debit), 0) as total_debit,
@@ -1063,13 +1109,14 @@ app.get('/api/accounting/income-statement', requireAuth, requireAccountingView, 
   try {
     const tenantId = req.session.user.tenant_id;
     const { from, to } = req.query;
+    const tPool = await getPoolForReq(req);
 
     let dateFilter = '';
     const params = [tenantId];
     if (from) { dateFilter += ` AND je.entry_date >= $${params.length + 1}`; params.push(from); }
     if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
 
-    const result = await pool.query(`
+    const result = await tPool.query(`
       SELECT 
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
         COALESCE(SUM(jl.debit), 0) as total_debit,
@@ -1094,12 +1141,13 @@ app.get('/api/accounting/balance-sheet', requireAuth, requireAccountingView, asy
   try {
     const tenantId = req.session.user.tenant_id;
     const { to } = req.query;
+    const tPool = await getPoolForReq(req);
 
     let dateFilter = '';
     const params = [tenantId];
     if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
 
-    const result = await pool.query(`
+    const result = await tPool.query(`
       SELECT 
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
         COALESCE(SUM(jl.debit), 0) as total_debit,
@@ -1123,13 +1171,14 @@ app.get('/api/accounting/atk-sales-book', requireAuth, requireAccountingView, as
   try {
     const tenantId = req.session.user.tenant_id;
     const { from, to } = req.query;
+    const tPool = await getPoolForReq(req);
 
     let dateFilter = '';
     const params = [tenantId];
     if (from) { dateFilter += ` AND issue_date >= $${params.length + 1}`; params.push(from); }
     if (to) { dateFilter += ` AND issue_date <= $${params.length + 1}`; params.push(to); }
 
-    const result = await pool.query(`
+    const result = await tPool.query(`
       SELECT id, invoice_number, issue_date, client_name, client_nuis,
         subtotal, tax_amount, total, status
       FROM invoices
@@ -1148,13 +1197,14 @@ app.get('/api/accounting/atk-purchase-book', requireAuth, requireAccountingView,
   try {
     const tenantId = req.session.user.tenant_id;
     const { from, to } = req.query;
+    const tPool = await getPoolForReq(req);
 
     let dateFilter = '';
     const params = [tenantId];
     if (from) { dateFilter += ` AND expense_date >= $${params.length + 1}`; params.push(from); }
     if (to) { dateFilter += ` AND expense_date <= $${params.length + 1}`; params.push(to); }
 
-    const result = await pool.query(`
+    const result = await tPool.query(`
       SELECT id, description, expense_date, supplier_name, category_name,
         amount as subtotal, tax_amount, total, status
       FROM expenses
@@ -1173,6 +1223,7 @@ app.get('/api/accounting/tax-summary', requireAuth, requireAccountingView, async
   try {
     const tenantId = req.session.user.tenant_id;
     const { from, to } = req.query;
+    const tPool = await getPoolForReq(req);
 
     let invDateFilter = '';
     let expDateFilter = '';
@@ -1187,7 +1238,7 @@ app.get('/api/accounting/tax-summary', requireAuth, requireAccountingView, async
       expDateFilter += ` AND expense_date <= $${expParams.length + 1}`; expParams.push(to);
     }
 
-    const salesResult = await pool.query(`
+    const salesResult = await tPool.query(`
       SELECT 
         COALESCE(SUM(subtotal), 0) as total_sales,
         COALESCE(SUM(tax_amount), 0) as vat_collected,
@@ -1197,7 +1248,7 @@ app.get('/api/accounting/tax-summary', requireAuth, requireAccountingView, async
       WHERE tenant_id = $1 AND status != 'cancelled' ${invDateFilter}
     `, invParams);
 
-    const purchaseResult = await pool.query(`
+    const purchaseResult = await tPool.query(`
       SELECT 
         COALESCE(SUM(amount), 0) as total_purchases,
         COALESCE(SUM(tax_amount), 0) as vat_paid,
@@ -1228,6 +1279,7 @@ app.get('/api/accounting/financial-card/:type/:id', requireAuth, requireAccounti
     const tenantId = req.session.user.tenant_id;
     const { type, id } = req.params;
     const { from, to } = req.query;
+    const tPool = await getPoolForReq(req);
 
     if (type === 'customer') {
       let dateFilter = '';
@@ -1235,14 +1287,14 @@ app.get('/api/accounting/financial-card/:type/:id', requireAuth, requireAccounti
       if (from) { dateFilter += ` AND issue_date >= $${params.length + 1}`; params.push(from); }
       if (to) { dateFilter += ` AND issue_date <= $${params.length + 1}`; params.push(to); }
 
-      const client = await pool.query('SELECT * FROM clients WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
-      const invoices = await pool.query(`
+      const client = await tPool.query('SELECT * FROM clients WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+      const invoices = await tPool.query(`
         SELECT id, invoice_number, issue_date, subtotal, tax_amount, total, paid_amount, status
         FROM invoices WHERE tenant_id = $1 AND client_id = $2 ${dateFilter}
         ORDER BY issue_date ASC
       `, params);
 
-      const payments = await pool.query(`
+      const payments = await tPool.query(`
         SELECT id, amount, payment_date, payment_method, reference, invoice_number
         FROM payments WHERE tenant_id = $1 AND client_id = $2
         ORDER BY payment_date ASC
@@ -1259,8 +1311,8 @@ app.get('/api/accounting/financial-card/:type/:id', requireAuth, requireAccounti
       if (from) { dateFilter += ` AND expense_date >= $${params.length + 1}`; params.push(from); }
       if (to) { dateFilter += ` AND expense_date <= $${params.length + 1}`; params.push(to); }
 
-      const supplier = await pool.query('SELECT * FROM suppliers WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
-      const expenses = await pool.query(`
+      const supplier = await tPool.query('SELECT * FROM suppliers WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+      const expenses = await tPool.query(`
         SELECT id, description, expense_date, amount as subtotal, tax_amount, total, status, category_name
         FROM expenses WHERE tenant_id = $1 AND supplier_id = $2 ${dateFilter}
         ORDER BY expense_date ASC
@@ -1278,6 +1330,159 @@ app.get('/api/accounting/financial-card/:type/:id', requireAuth, requireAccounti
     console.error('Financial card error:', err.message);
     res.status(500).json({ error: 'Failed to load financial card' });
   }
+});
+
+// ============ SUPERADMIN DATABASE MANAGEMENT ============
+
+const migrationJobs = new Map();
+
+app.get('/api/superadmin/tenants/database-status', requireAuth, requireSuperAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, database_status, supabase_project_id, database_provisioned_at FROM tenants ORDER BY created_at DESC'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/superadmin/tenants/:tenantId/create-database', requireAuth, requireSuperAdmin, async (req, res) => {
+  const { tenantId } = req.params;
+  try {
+    const tenantResult = await pool.query('SELECT * FROM tenants WHERE id = $1', [tenantId]);
+    if (tenantResult.rows.length === 0) return res.status(404).json({ error: 'Tenant not found' });
+    const tenant = tenantResult.rows[0];
+
+    if (tenant.database_status === 'active') {
+      return res.status(409).json({ error: 'Tenant already has an active personal database' });
+    }
+    if (tenant.database_status === 'provisioning') {
+      return res.status(409).json({ error: 'Database provisioning already in progress' });
+    }
+
+    await pool.query(
+      'UPDATE tenants SET database_status = $1, updated_at = NOW() WHERE id = $2',
+      ['provisioning', tenantId]
+    );
+    clearCachedTenantDb(tenantId);
+
+    const jobId = tenantId;
+    migrationJobs.set(jobId, { status: 'provisioning', progress: [], startedAt: new Date() });
+
+    res.json({ success: true, jobId, message: 'Database provisioning started' });
+
+    setImmediate(async () => {
+      const addProgress = (msg) => {
+        const job = migrationJobs.get(jobId);
+        if (job) job.progress.push({ time: new Date(), message: msg });
+        console.log(`[DB Provision ${tenantId}] ${msg}`);
+      };
+
+      try {
+        addProgress('Fetching Supabase organizations...');
+        const orgs = await listOrganizations();
+        if (!orgs || orgs.length === 0) throw new Error('No Supabase organizations found. Please create an organization at supabase.com first.');
+        const orgId = orgs[0].id;
+        addProgress(`Using organization: ${orgs[0].name}`);
+
+        const dbPassword = generateDbPassword();
+        const projectName = `erp-tenant-${tenant.code || tenantId.slice(0, 8)}`.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        addProgress(`Creating Supabase project: ${projectName}...`);
+
+        const project = await createProject({
+          name: projectName,
+          organizationId: orgId,
+          dbPassword,
+          region: 'eu-central-1',
+          plan: 'free',
+        });
+
+        addProgress(`Project created (ref: ${project.ref}). Waiting for it to become ready...`);
+        migrationJobs.get(jobId).projectRef = project.ref;
+
+        await waitForProjectReady(project.ref, 300000);
+        addProgress('Project is ready. Building connection string...');
+
+        const databaseUrl = await getProjectDatabaseUrl(project.ref, dbPassword);
+
+        addProgress('Running schema migrations on personal database...');
+        await runSchemaOnPersonalDb(databaseUrl);
+        addProgress('Schema migration complete.');
+
+        addProgress('Migrating tenant data...');
+        const migrationResult = await migrateTenantData(tenantId, pool, databaseUrl, (p) => {
+          if (p.status === 'done' && p.rows > 0) {
+            addProgress(`  Migrated ${p.rows} rows from ${p.table}`);
+          }
+        });
+        addProgress(`Data migration complete. ${migrationResult.totalRows} rows migrated.`);
+
+        if (migrationResult.errors.length > 0) {
+          addProgress(`Warnings: ${migrationResult.errors.join('; ')}`);
+          if (migrationResult.criticalError) {
+            throw new Error(`Migration failed with critical errors: ${migrationResult.errors[0]}`);
+          }
+        }
+
+        addProgress('Indexing proposal tokens...');
+        await pool.query(
+          `INSERT INTO proposal_token_index (token, tenant_id, proposal_id)
+           SELECT token, $1, id FROM proposals WHERE tenant_id = $1 AND token IS NOT NULL
+           ON CONFLICT (token) DO UPDATE SET tenant_id = EXCLUDED.tenant_id, proposal_id = EXCLUDED.proposal_id`,
+          [tenantId]
+        );
+
+        await pool.query(
+          'UPDATE tenants SET database_url = $1, supabase_project_id = $2, database_status = $3, database_provisioned_at = NOW(), updated_at = NOW() WHERE id = $4',
+          [databaseUrl, project.ref, 'active', tenantId]
+        );
+        clearCachedTenantDb(tenantId);
+
+        const job = migrationJobs.get(jobId);
+        if (job) {
+          job.status = 'active';
+          job.completedAt = new Date();
+        }
+        addProgress('Done! Personal database is now active.');
+      } catch (err) {
+        console.error(`[DB Provision ${tenantId}] Error:`, err.message);
+        await pool.query(
+          'UPDATE tenants SET database_status = $1, updated_at = NOW() WHERE id = $2',
+          ['failed', tenantId]
+        ).catch(() => {});
+        clearCachedTenantDb(tenantId);
+        const job = migrationJobs.get(jobId);
+        if (job) {
+          job.status = 'failed';
+          job.error = err.message;
+          job.progress.push({ time: new Date(), message: `Error: ${err.message}` });
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/superadmin/tenants/:tenantId/database-job', requireAuth, requireSuperAdmin, async (req, res) => {
+  const { tenantId } = req.params;
+  const job = migrationJobs.get(tenantId);
+  if (!job) {
+    const result = await pool.query(
+      'SELECT database_status, supabase_project_id, database_provisioned_at FROM tenants WHERE id = $1',
+      [tenantId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Tenant not found' });
+    return res.json({ status: result.rows[0].database_status || 'none', progress: [] });
+  }
+  res.json({
+    status: job.status,
+    progress: job.progress,
+    startedAt: job.startedAt,
+    completedAt: job.completedAt,
+    error: job.error,
+  });
 });
 
 // ============ FUNCTIONS (stubs) ============

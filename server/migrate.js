@@ -477,6 +477,25 @@ INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_de
 SELECT r.id, 'pos', TRUE, TRUE, TRUE, FALSE
 FROM roles r WHERE r.name = 'manager'
 ON CONFLICT (role_id, module) DO NOTHING;
+
+-- Add personal database columns to tenants
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS database_url TEXT;
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS supabase_project_id VARCHAR(100);
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS database_status VARCHAR(50) DEFAULT 'none';
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS database_provisioned_at TIMESTAMP;
+
+-- Shared index for public proposal token lookups (proposals live in personal DB after migration)
+CREATE TABLE IF NOT EXISTS proposal_token_index (
+  token VARCHAR(255) PRIMARY KEY,
+  tenant_id UUID NOT NULL,
+  proposal_id UUID NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Populate index from existing shared-pool proposals
+INSERT INTO proposal_token_index (token, tenant_id, proposal_id)
+SELECT token, tenant_id, id FROM proposals WHERE token IS NOT NULL
+ON CONFLICT (token) DO NOTHING;
 `;
 
 async function runMigration() {

@@ -32,9 +32,14 @@ const SENSITIVE_FIELDS_BY_TABLE = {
   users: new Set(['role', 'password_hash', 'password', 'tenant_id', 'tenant_name']),
 };
 
-export function createEntityRouter(pool, tableName, entityName, options = {}) {
+export function createEntityRouter(poolOrResolver, tableName, entityName, options = {}) {
   const router = express.Router();
-  const { logActivity, notifyTenantAdmins, hasTenantColumn = true } = options;
+  const { logActivity, notifyTenantAdmins, hasTenantColumn = true, afterCreate, afterUpdate } = options;
+
+  const resolvePool = typeof poolOrResolver === 'function'
+    ? poolOrResolver
+    : () => Promise.resolve(poolOrResolver);
+
   const sensitiveFields = SENSITIVE_FIELDS_BY_TABLE[tableName] || new Set();
 
   const selectColumns = tableName === 'users'
@@ -87,6 +92,7 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
 
   router.get('/', async (req, res) => {
     try {
+      const pool = await resolvePool(req);
       const { _sort, _limit = 1000, _offset = 0, ...filters } = req.query;
       const tenantId = getTenantId(req);
       if (shouldScopeTenant(req) && !tenantId) {
@@ -118,6 +124,7 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
 
   router.post('/filter', async (req, res) => {
     try {
+      const pool = await resolvePool(req);
       const { _sort, _limit = 1000, _offset = 0, ...filters } = req.body || {};
       const tenantId = getTenantId(req);
       if (shouldScopeTenant(req) && !tenantId) {
@@ -149,6 +156,7 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
 
   router.get('/:id', async (req, res) => {
     try {
+      const pool = await resolvePool(req);
       const tenantId = getTenantId(req);
       if (shouldScopeTenant(req) && !tenantId) {
         return res.status(404).json({ error: 'Not found' });
@@ -169,6 +177,7 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
 
   router.post('/', async (req, res) => {
     try {
+      const pool = await resolvePool(req);
       const data = { ...req.body };
       if (!data || Object.keys(data).length === 0) {
         return res.status(400).json({ error: 'No data provided' });
@@ -235,6 +244,10 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
         }
       }
 
+      if (afterCreate) {
+        afterCreate(created, req).catch(e => console.error(`[afterCreate ${entityName}]`, e.message));
+      }
+
       res.status(201).json(created);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -243,6 +256,7 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
 
   router.patch('/:id', async (req, res) => {
     try {
+      const pool = await resolvePool(req);
       const data = req.body;
       if (!data || Object.keys(data).length === 0) {
         return res.status(400).json({ error: 'No data provided' });
@@ -287,6 +301,10 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
         });
       }
 
+      if (afterUpdate) {
+        afterUpdate(updated, req).catch(e => console.error(`[afterUpdate ${entityName}]`, e.message));
+      }
+
       res.json(updated);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -295,6 +313,7 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
 
   router.delete('/:id', async (req, res) => {
     try {
+      const pool = await resolvePool(req);
       const tenantId = getTenantId(req);
       let query = `DELETE FROM ${tableName} WHERE id = $1`;
       const values = [req.params.id];
