@@ -1180,6 +1180,95 @@ CREATE TABLE IF NOT EXISTS fuel_logs (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- ============ POS & SALES MODULE ============
+
+-- POS Sessions
+CREATE TABLE IF NOT EXISTS pos_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  session_number VARCHAR(100),
+  opened_by VARCHAR(255),
+  opened_by_id UUID,
+  opened_at TIMESTAMP DEFAULT NOW(),
+  closed_at TIMESTAMP,
+  opening_balance DECIMAL(15,2) DEFAULT 0,
+  closing_balance DECIMAL(15,2) DEFAULT 0,
+  total_sales DECIMAL(15,2) DEFAULT 0,
+  total_orders INTEGER DEFAULT 0,
+  cash_in DECIMAL(15,2) DEFAULT 0,
+  cash_out DECIMAL(15,2) DEFAULT 0,
+  cash_movements JSONB DEFAULT '[]',
+  status VARCHAR(50) DEFAULT 'open',
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- POS Orders
+CREATE TABLE IF NOT EXISTS pos_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  session_id UUID,
+  order_number VARCHAR(100),
+  items JSONB DEFAULT '[]',
+  subtotal DECIMAL(15,2) DEFAULT 0,
+  tax_amount DECIMAL(15,2) DEFAULT 0,
+  discount_amount DECIMAL(15,2) DEFAULT 0,
+  total DECIMAL(15,2) DEFAULT 0,
+  payments JSONB DEFAULT '[]',
+  payment_status VARCHAR(50) DEFAULT 'pending',
+  change_amount DECIMAL(15,2) DEFAULT 0,
+  customer_name VARCHAR(255),
+  customer_phone VARCHAR(100),
+  notes TEXT,
+  status VARCHAR(50) DEFAULT 'completed',
+  created_by VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- POS Configuration
+CREATE TABLE IF NOT EXISTS pos_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  payment_methods JSONB DEFAULT '["cash", "card", "bank_transfer"]',
+  pos_categories JSONB DEFAULT '[]',
+  printer_config JSONB DEFAULT '{}',
+  receipt_header TEXT,
+  receipt_footer TEXT,
+  auto_print_receipt BOOLEAN DEFAULT false,
+  tax_inclusive BOOLEAN DEFAULT false,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Sales Orders
+CREATE TABLE IF NOT EXISTS sales_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  order_number VARCHAR(100),
+  client_id UUID,
+  client_name VARCHAR(255),
+  client_email VARCHAR(255),
+  client_phone VARCHAR(100),
+  client_address VARCHAR(500),
+  items JSONB DEFAULT '[]',
+  subtotal DECIMAL(15,2) DEFAULT 0,
+  tax_amount DECIMAL(15,2) DEFAULT 0,
+  discount_amount DECIMAL(15,2) DEFAULT 0,
+  total DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'draft',
+  payment_method VARCHAR(100),
+  notes TEXT,
+  invoice_id UUID,
+  invoice_number VARCHAR(100),
+  expected_delivery DATE,
+  shipping_address VARCHAR(500),
+  created_by VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Custom Fields
 CREATE TABLE IF NOT EXISTS custom_fields (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -64,6 +64,11 @@ import VehicleMaintenance from './pages/VehicleMaintenance';
 import FuelLogs from './pages/FuelLogs';
 import FleetReports from './pages/FleetReports';
 import CustomFields from './pages/CustomFields';
+import POSRegister from './pages/POSRegister';
+import POSSessions from './pages/POSSessions';
+import SalesOrders from './pages/SalesOrders';
+import POSConfig from './pages/POSConfig';
+import POSReports from './pages/POSReports';
 import Login from './pages/Login';
 import ActivityLog from './pages/ActivityLog';
 import RoleManagement from './pages/RoleManagement';
@@ -194,6 +199,11 @@ const AuthenticatedApp = () => {
           <Route path="/atk-purchase-book" element={<PermissionGuard module="accounting"><ATKPurchaseBook /></PermissionGuard>} />
           <Route path="/tax-summary" element={<PermissionGuard module="accounting"><TaxSummary /></PermissionGuard>} />
           <Route path="/financial-cards" element={<PermissionGuard module="accounting"><FinancialCards /></PermissionGuard>} />
+          <Route path="/pos" element={<PermissionGuard module="pos"><POSRegister /></PermissionGuard>} />
+          <Route path="/pos-sessions" element={<PermissionGuard module="pos"><POSSessions /></PermissionGuard>} />
+          <Route path="/sales-orders" element={<PermissionGuard module="pos"><SalesOrders /></PermissionGuard>} />
+          <Route path="/pos-config" element={<PermissionGuard module="pos"><POSConfig /></PermissionGuard>} />
+          <Route path="/pos-reports" element={<PermissionGuard module="pos"><POSReports /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>

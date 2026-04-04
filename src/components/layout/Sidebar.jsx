@@ -9,7 +9,7 @@ import {
   HardDrive, Car, Wrench, Fuel, PieChart, Settings2,
   Warehouse, ArrowDownUp, ShoppingCart, ArrowLeftRight as TransferIcon, AlertOctagon, QrCode,
   Send, Handshake, FolderOpen, Award,
-  BookOpen, BookText, Scale, Building2, CreditCard, Contact
+  BookOpen, BookText, Scale, Building2, CreditCard, Contact, ClipboardList, Sliders
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -100,6 +100,14 @@ export default function Sidebar() {
     { label: "Kartela Financiare", icon: Contact, path: "/financial-cards", module: "accounting" },
   ];
 
+  const posItems = [
+    { label: "Pika e Shitjes", icon: ShoppingCart, path: "/pos", module: "pos" },
+    { label: "Sesionet POS", icon: CreditCard, path: "/pos-sessions", module: "pos" },
+    { label: "Porositë e Shitjes", icon: ClipboardList, path: "/sales-orders", module: "pos" },
+    { label: "Raportet POS", icon: BarChart3, path: "/pos-reports", module: "pos" },
+    { label: "Konfigurimet POS", icon: Sliders, path: "/pos-config", module: "pos" },
+  ];
+
   const performanceItems = [
     { label: t('reports') || "Raportet", icon: BarChart3, path: "/reports", module: "reports" },
     { label: "Royalties", icon: DollarSign, path: "/royalties", module: "royalties" },
@@ -117,6 +125,7 @@ export default function Sidebar() {
   const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
   const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
   const visibleAccountingItems = accountingItems.filter(item => fullAccess || canView(item.module));
+  const visiblePosItems = posItems.filter(item => fullAccess || canView(item.module));
 
   const renderLink = (item) => {
     const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
@@ -201,6 +210,15 @@ export default function Sidebar() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Kontabilitet</p>
             )}
             {visibleAccountingItems.map(renderLink)}
+          </>
+        )}
+
+        {visiblePosItems.length > 0 && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">POS & Shitjet</p>
+            )}
+            {visiblePosItems.map(renderLink)}
           </>
         )}
 

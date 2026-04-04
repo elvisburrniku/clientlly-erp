@@ -555,6 +555,10 @@ const entityTableMap = {
   ChartOfAccount: 'chart_of_accounts',
   JournalEntry: 'journal_entries',
   JournalLine: 'journal_lines',
+  PosSession: 'pos_sessions',
+  PosOrder: 'pos_orders',
+  PosConfig: 'pos_config',
+  SalesOrder: 'sales_orders',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);

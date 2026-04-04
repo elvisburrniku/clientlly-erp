@@ -164,6 +164,10 @@ export const base44 = {
     ChartOfAccount: createEntityClient('ChartOfAccount'),
     JournalEntry: createEntityClient('JournalEntry'),
     JournalLine: createEntityClient('JournalLine'),
+    PosSession: createEntityClient('PosSession'),
+    PosOrder: createEntityClient('PosOrder'),
+    PosConfig: createEntityClient('PosConfig'),
+    SalesOrder: createEntityClient('SalesOrder'),
   },
 
   portal: {
