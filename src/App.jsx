@@ -103,6 +103,7 @@ const AuthenticatedApp = () => {
   return (
     <PermissionsProvider>
       <Routes>
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route element={<AppLayout />}>
           <Route path="/" element={<PermissionGuard module="dashboard"><Dashboard /></PermissionGuard>} />
           <Route path="/invoices" element={<PermissionGuard module="invoices"><Invoices /></PermissionGuard>} />
@@ -168,7 +169,6 @@ const AuthenticatedApp = () => {
           <Route path="/barcode-labels" element={<PermissionGuard module="inventory"><BarcodeLabels /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
-        <Route path="/onboarding" element={<Onboarding />} />
       </Routes>
     </PermissionsProvider>
   );

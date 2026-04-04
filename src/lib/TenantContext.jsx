@@ -39,10 +39,14 @@ export const TenantProvider = ({ children }) => {
           setNeedsOnboarding(true);
         }
       } else {
-        setNeedsOnboarding(true);
+        if (!user?.tenant_id) {
+          setNeedsOnboarding(true);
+        }
       }
     } catch {
-      setNeedsOnboarding(true);
+      if (!user?.tenant_id) {
+        setNeedsOnboarding(true);
+      }
     } finally {
       setIsLoadingTenant(false);
     }

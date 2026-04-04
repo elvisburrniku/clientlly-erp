@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -8,17 +9,23 @@ import { Building2 } from "lucide-react";
 
 export default function Onboarding() {
   const { user, isLoadingAuth, checkAppState } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", code: "", phone: "", address: "", nipt: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    if (!isLoadingAuth && !user) {
-      base44.auth.redirectToLogin(window.location.href);
+    if (!isLoadingAuth) {
+      if (!user) {
+        base44.auth.redirectToLogin(window.location.href);
+      } else if (user.tenant_id) {
+        navigate("/", { replace: true });
+      }
     }
-  }, [user, isLoadingAuth]);
+  }, [user, isLoadingAuth, navigate]);
 
-  if (isLoadingAuth || !user) {
+  if (isLoadingAuth || !user || user.tenant_id || redirecting) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -65,10 +72,14 @@ export default function Onboarding() {
         return;
       }
 
-      await checkAppState();
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 500);
+      setRedirecting(true);
+      const refreshedUser = await checkAppState();
+      if (refreshedUser?.tenant_id) {
+        navigate("/", { replace: true });
+      } else {
+        setRedirecting(false);
+        setError("Kompania u krijua, por ndodhi një gabim gjatë ngarkimit. Rifresko faqen.");
+      }
     } catch {
       setError("Gabim gjatë krijimit të kompanisë.");
     }

@@ -21,6 +21,7 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
       setIsAuthenticated(true);
       setAuthError(null);
+      return currentUser;
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
@@ -29,6 +30,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         setAuthError({ type: 'auth_required', message: 'Authentication required' });
       }
+      return null;
     } finally {
       setIsLoadingAuth(false);
     }
