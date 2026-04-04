@@ -34,9 +34,9 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
-## Entities (45 total)
+## Entities (50 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue
 
 ## Roles & Permissions
 
@@ -102,7 +102,12 @@ npm start      # Run Express server only (serves built frontend)
 
 ## Features
 
-- **Invoices:** Create, edit, PDF export (jsPDF), status tracking, payments
+- **Invoices:** Create, edit, PDF export (jsPDF), status tracking (draft/sent/partially_paid/paid/overdue/cancelled), payments, duplicate, proforma conversion, overdue auto-detection
+- **Credit Notes:** Issue credit notes against invoices with auto-balance adjustment, PDF generation
+- **Debit Notes:** Issue debit notes against vendor bills, PDF generation
+- **Vendor Bills:** Full CRUD, payment recording with partial payment support, status workflow, PDF generation
+- **Expense Requests:** Submit/approve/reject workflow with approval tracking
+- **Revenues:** Non-invoice income tracking with Excel/PDF export
 - **Quotes:** Create quotes, approve/convert to invoice
 - **Expenses:** Track expenses with PDF attachments
 - **Cash Management:** Cashbox balance, cash handovers, transactions

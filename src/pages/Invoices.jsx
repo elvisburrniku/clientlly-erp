@@ -94,6 +94,22 @@ export default function Invoices() {
       base44.entities.Invoice.list("-created_date", 100),
     ]);
     setCurrentUser(user);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (const inv of data) {
+      if (inv.due_date && inv.status !== "paid" && inv.status !== "cancelled" && inv.status !== "overdue") {
+        const due = new Date(inv.due_date);
+        if (due < today) {
+          inv.status = "overdue";
+          base44.entities.Invoice.update(inv.id, { status: "overdue" }).catch(() => {});
+        }
+      }
+      const totalPaid = (inv.payment_records || []).reduce((s, p) => s + (p.amount || 0), 0);
+      if (totalPaid > 0 && totalPaid < (inv.amount || 0) && inv.status !== "partially_paid" && inv.status !== "paid" && inv.status !== "overdue") {
+        inv.status = "partially_paid";
+        base44.entities.Invoice.update(inv.id, { status: "partially_paid" }).catch(() => {});
+      }
+    }
     setInvoices(data);
     setLoading(false);
   };
@@ -368,7 +384,9 @@ export default function Invoices() {
     if (filterDateFrom && d < new Date(filterDateFrom)) return false;
     if (filterDateTo && d > new Date(filterDateTo + "T23:59:59")) return false;
     if (statusFilter === "paid" && inv.status !== "paid") return false;
-    if (statusFilter === "unpaid" && inv.status === "paid") return false;
+    if (statusFilter === "unpaid" && (inv.status === "paid" || inv.status === "cancelled")) return false;
+    if (statusFilter === "overdue" && inv.status !== "overdue") return false;
+    if (statusFilter === "partially_paid" && inv.status !== "partially_paid") return false;
     return true;
   });
 
@@ -502,34 +520,23 @@ export default function Invoices() {
                 <Filter className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Statusi i Pagesës</span>
               </div>
-              <div className="flex gap-2 mb-4">
-                <button
-                  onClick={() => { setStatusFilter(""); setPage(1); }}
-                  className={cn(
-                    "flex-1 py-2 px-3 text-xs font-semibold rounded-lg border transition-all",
-                    statusFilter === "" ? "bg-primary/10 border-primary text-primary" : "border-border bg-white hover:border-primary/30"
-                  )}
-                >
-                  Të Gjitha
-                </button>
-                <button
-                  onClick={() => { setStatusFilter("paid"); setPage(1); }}
-                  className={cn(
-                    "flex-1 py-2 px-3 text-xs font-semibold rounded-lg border transition-all",
-                    statusFilter === "paid" ? "bg-success/10 border-success text-success" : "border-border bg-white hover:border-success/30"
-                  )}
-                >
-                  ✓ Paguar
-                </button>
-                <button
-                  onClick={() => { setStatusFilter("unpaid"); setPage(1); }}
-                  className={cn(
-                    "flex-1 py-2 px-3 text-xs font-semibold rounded-lg border transition-all",
-                    statusFilter === "unpaid" ? "bg-destructive/10 border-destructive text-destructive" : "border-border bg-white hover:border-destructive/30"
-                  )}
-                >
-                  ✕ Paguar jo
-                </button>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {[
+                  { value: "", label: "Të Gjitha", activeClass: "bg-primary/10 border-primary text-primary", hoverClass: "hover:border-primary/30" },
+                  { value: "paid", label: "✓ Paguar", activeClass: "bg-green-100 border-green-500 text-green-700", hoverClass: "hover:border-green-300" },
+                  { value: "unpaid", label: "✕ Papaguar", activeClass: "bg-red-100 border-red-500 text-red-700", hoverClass: "hover:border-red-300" },
+                  { value: "partially_paid", label: "◐ Pjesërisht", activeClass: "bg-amber-100 border-amber-500 text-amber-700", hoverClass: "hover:border-amber-300" },
+                  { value: "overdue", label: "⚠ Vonuar", activeClass: "bg-red-100 border-red-500 text-red-700", hoverClass: "hover:border-red-300" },
+                ].map(opt => (
+                  <button key={opt.value}
+                    onClick={() => { setStatusFilter(opt.value); setPage(1); }}
+                    className={cn(
+                      "py-2 px-3 text-xs font-semibold rounded-lg border transition-all",
+                      statusFilter === opt.value ? opt.activeClass : `border-border bg-white ${opt.hoverClass}`
+                    )}>
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
             <div className="h-px bg-border mx-6" />
@@ -675,9 +682,17 @@ export default function Invoices() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <select value={inv.status || "draft"} onChange={(e) => handleStatusChange(inv, e.target.value)}
-                          className="text-xs font-semibold px-2.5 py-1 rounded-full border-0 bg-slate-100 text-slate-600 cursor-pointer hover:bg-slate-200 transition">
+                          className={cn("text-xs font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer transition",
+                            inv.status === "paid" ? "bg-green-100 text-green-700" :
+                            inv.status === "overdue" ? "bg-red-100 text-red-700" :
+                            inv.status === "partially_paid" ? "bg-amber-100 text-amber-700" :
+                            inv.status === "sent" ? "bg-blue-100 text-blue-700" :
+                            inv.status === "cancelled" ? "bg-gray-100 text-gray-700" :
+                            "bg-slate-100 text-slate-600"
+                          )}>
                           <option value="draft">Draft</option>
                           <option value="sent">Dërguar</option>
+                          <option value="partially_paid">Pjesërisht Paguar</option>
                           <option value="paid">Paguar</option>
                           <option value="overdue">Vonuar</option>
                           <option value="cancelled">Anuluar</option>

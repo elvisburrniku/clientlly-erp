@@ -376,6 +376,7 @@ CREATE TABLE IF NOT EXISTS report_templates (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+
 -- ============ HR MODULE ============
 
 -- Departments
@@ -612,6 +613,31 @@ CREATE TABLE IF NOT EXISTS projects (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- ============ BILLING MODULE ============
+
+-- Credit Notes
+CREATE TABLE IF NOT EXISTS credit_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  credit_note_number VARCHAR(100),
+  invoice_id UUID,
+  invoice_number VARCHAR(100),
+  client_name VARCHAR(255),
+  client_email VARCHAR(255),
+  client_phone VARCHAR(100),
+  client_nipt VARCHAR(100),
+  client_address VARCHAR(500),
+  reason TEXT,
+  items JSONB DEFAULT '[]',
+  subtotal DECIMAL(15,2) DEFAULT 0,
+  vat_amount DECIMAL(15,2) DEFAULT 0,
+  amount DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'draft',
+  issued_by VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Project Members
 CREATE TABLE IF NOT EXISTS project_members (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -621,6 +647,27 @@ CREATE TABLE IF NOT EXISTS project_members (
   user_name VARCHAR(255),
   user_email VARCHAR(255),
   role VARCHAR(50) DEFAULT 'member',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Debit Notes
+CREATE TABLE IF NOT EXISTS debit_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  debit_note_number VARCHAR(100),
+  bill_id UUID,
+  bill_number VARCHAR(100),
+  supplier_name VARCHAR(255),
+  supplier_email VARCHAR(255),
+  supplier_phone VARCHAR(100),
+  reason TEXT,
+  items JSONB DEFAULT '[]',
+  subtotal DECIMAL(15,2) DEFAULT 0,
+  vat_amount DECIMAL(15,2) DEFAULT 0,
+  amount DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'draft',
+  issued_by VARCHAR(255),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -661,6 +708,32 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Vendor Bills
+CREATE TABLE IF NOT EXISTS bills (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  bill_number VARCHAR(100),
+  supplier_name VARCHAR(255),
+  supplier_email VARCHAR(255),
+  supplier_phone VARCHAR(100),
+  supplier_nipt VARCHAR(100),
+  supplier_address VARCHAR(500),
+  items JSONB DEFAULT '[]',
+  subtotal DECIMAL(15,2) DEFAULT 0,
+  vat_amount DECIMAL(15,2) DEFAULT 0,
+  amount DECIMAL(15,2) DEFAULT 0,
+  paid_amount DECIMAL(15,2) DEFAULT 0,
+  payment_method VARCHAR(100),
+  payment_records JSONB DEFAULT '[]',
+  due_date DATE,
+  description TEXT,
+  status VARCHAR(50) DEFAULT 'draft',
+  is_open BOOLEAN DEFAULT true,
+  issued_by VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Task Comments
 CREATE TABLE IF NOT EXISTS task_comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -691,6 +764,24 @@ CREATE TABLE IF NOT EXISTS timesheets (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Expense Requests
+CREATE TABLE IF NOT EXISTS expense_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  title VARCHAR(255),
+  description TEXT,
+  amount DECIMAL(15,2) DEFAULT 0,
+  category VARCHAR(255),
+  requested_by VARCHAR(255),
+  approved_by VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'submitted',
+  rejection_reason TEXT,
+  expense_date DATE,
+  receipt_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Bugs
 CREATE TABLE IF NOT EXISTS bugs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -708,6 +799,23 @@ CREATE TABLE IF NOT EXISTS bugs (
   reported_by_name VARCHAR(255),
   due_date DATE,
   labels JSONB DEFAULT '[]',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Revenue Entries
+CREATE TABLE IF NOT EXISTS revenues (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  title VARCHAR(255),
+  description TEXT,
+  amount DECIMAL(15,2) DEFAULT 0,
+  category VARCHAR(255),
+  source VARCHAR(255),
+  revenue_date DATE,
+  payment_method VARCHAR(100),
+  reference VARCHAR(255),
+  notes TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );

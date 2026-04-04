@@ -3,7 +3,8 @@ import {
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
   ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield,
   UserCheck, Clock, CalendarDays, CalendarOff, Banknote, HandCoins, CalendarHeart,
-  FolderKanban, Timer, Bug
+  FolderKanban, Timer, Bug,
+  FileMinus, FilePlus, Receipt, ClipboardCheck, TrendingUp
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,11 @@ export default function Sidebar() {
     { label: t('transfers') || "Transfertat", icon: ArrowRightLeft, path: "/transfers", module: "transfers" },
     { label: t('debtors') || "Borxhet", icon: AlertCircle, path: "/debtors", module: "debtors" },
     { label: t('expenses') || "Shpenzimet", icon: DollarSign, path: "/expenses", module: "expenses" },
+    { label: "Faturat Blerëse", icon: Receipt, path: "/bills", module: "expenses" },
+    { label: "Nota Kreditore", icon: FileMinus, path: "/credit-notes", module: "invoices" },
+    { label: "Nota Debitore", icon: FilePlus, path: "/debit-notes", module: "invoices" },
+    { label: "Kërkesat Shpenzim", icon: ClipboardCheck, path: "/expense-requests", module: "expenses" },
+    { label: "Të Ardhurat", icon: TrendingUp, path: "/revenues", module: "invoices" },
     { label: t('cashHandover') || "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover", module: "cash_handover" },
     { label: "Projektet", icon: FolderKanban, path: "/projects", module: "projects" },
     { label: "Oraret", icon: Timer, path: "/timesheets", module: "timesheets" },

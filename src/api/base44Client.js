@@ -131,6 +131,11 @@ export const base44 = {
     TaskComment: createEntityClient('TaskComment'),
     Timesheet: createEntityClient('Timesheet'),
     Bug: createEntityClient('Bug'),
+    CreditNote: createEntityClient('CreditNote'),
+    DebitNote: createEntityClient('DebitNote'),
+    Bill: createEntityClient('Bill'),
+    ExpenseRequest: createEntityClient('ExpenseRequest'),
+    Revenue: createEntityClient('Revenue'),
   },
 
   functions: {

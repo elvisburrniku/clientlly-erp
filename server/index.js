@@ -517,6 +517,11 @@ const entityTableMap = {
   TaskComment: 'task_comments',
   Timesheet: 'timesheets',
   Bug: 'bugs',
+  CreditNote: 'credit_notes',
+  DebitNote: 'debit_notes',
+  Bill: 'bills',
+  ExpenseRequest: 'expense_requests',
+  Revenue: 'revenues',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);

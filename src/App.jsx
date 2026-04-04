@@ -46,6 +46,11 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Timesheets from './pages/Timesheets';
 import Bugs from './pages/Bugs';
+import CreditNotes from './pages/CreditNotes';
+import DebitNotes from './pages/DebitNotes';
+import Bills from './pages/Bills';
+import ExpenseRequests from './pages/ExpenseRequests';
+import Revenues from './pages/Revenues';
 import Login from './pages/Login';
 import ActivityLog from './pages/ActivityLog';
 import RoleManagement from './pages/RoleManagement';
@@ -107,6 +112,11 @@ const AuthenticatedApp = () => {
           <Route path="/projects/:id" element={<PermissionGuard module="projects"><ProjectDetail /></PermissionGuard>} />
           <Route path="/timesheets" element={<PermissionGuard module="timesheets"><Timesheets /></PermissionGuard>} />
           <Route path="/bugs" element={<PermissionGuard module="bugs"><Bugs /></PermissionGuard>} />
+          <Route path="/credit-notes" element={<PermissionGuard module="invoices"><CreditNotes /></PermissionGuard>} />
+          <Route path="/debit-notes" element={<PermissionGuard module="invoices"><DebitNotes /></PermissionGuard>} />
+          <Route path="/bills" element={<PermissionGuard module="expenses"><Bills /></PermissionGuard>} />
+          <Route path="/expense-requests" element={<PermissionGuard module="expenses"><ExpenseRequests /></PermissionGuard>} />
+          <Route path="/revenues" element={<PermissionGuard module="invoices"><Revenues /></PermissionGuard>} />
           <Route path="/activity-log" element={<PermissionGuard adminOnly><ActivityLog /></PermissionGuard>} />
           <Route path="/role-management" element={<PermissionGuard adminOnly><RoleManagement /></PermissionGuard>} />
           <Route path="/employees" element={<PermissionGuard module="hr"><Employees /></PermissionGuard>} />
