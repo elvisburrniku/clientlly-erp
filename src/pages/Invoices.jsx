@@ -676,9 +676,9 @@ export default function Invoices() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">{inv.created_date ? moment(inv.created_date).format("DD MMM YYYY") : "—"}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.subtotal || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4 text-sm text-muted-foreground">€{(inv.vat_amount || 0).toFixed(2)}</td>
-                    <td className="px-6 py-4"><span className="text-sm font-bold text-foreground">€{(inv.amount || 0).toFixed(2)}</span></td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">€{parseFloat(inv.subtotal || 0).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm text-muted-foreground">€{parseFloat(inv.vat_amount || 0).toFixed(2)}</td>
+                    <td className="px-6 py-4"><span className="text-sm font-bold text-foreground">€{parseFloat(inv.amount || 0).toFixed(2)}</span></td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <select value={inv.status || "draft"} onChange={(e) => handleStatusChange(inv, e.target.value)}

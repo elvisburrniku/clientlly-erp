@@ -19,7 +19,7 @@ export default function ATKSalesBook() {
     try {
       const res = await fetch(`/api/accounting/atk-sales-book?from=${dateFrom}&to=${dateTo}`, { credentials: 'include' });
       const result = await res.json();
-      setData(result);
+      setData(Array.isArray(result) ? result : []);
     } catch (err) {
       console.error(err);
     }

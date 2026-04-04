@@ -96,7 +96,7 @@ export default function CashHandover() {
     setSubmitting(true);
     try {
       const selectedData = cashInvoices.filter(inv => selectedInvoices.includes(inv.id));
-      const totalAmount = selectedData.reduce((sum, inv) => sum + inv.amount, 0);
+      const totalAmount = selectedData.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
       
       await base44.entities.CashHandover.create({
         amount: totalAmount,
@@ -219,7 +219,7 @@ export default function CashHandover() {
                   <tr key={h.id} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
                     <td className="px-5 py-3.5 text-sm">{moment(h.created_date).format("DD MMM YYYY")}</td>
                     <td className="px-5 py-3.5 text-sm font-medium">{h.user_name}</td>
-                    <td className="px-5 py-3.5 text-sm font-semibold">€{(h.amount || 0).toLocaleString()}</td>
+                    <td className="px-5 py-3.5 text-sm font-semibold">€{parseFloat(h.amount || 0).toLocaleString()}</td>
                     <td className="px-5 py-3.5">{statusBadge(h.status)}</td>
                     <td className="px-5 py-3.5 text-sm text-muted-foreground">{h.note || "—"}</td>
                     <td className="px-5 py-3.5">
@@ -268,7 +268,7 @@ export default function CashHandover() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><p className="text-xs text-muted-foreground">Përdoruesi</p><p className="font-semibold mt-0.5">{detailHandover.user_name}</p></div>
                 <div><p className="text-xs text-muted-foreground">Data</p><p className="font-semibold mt-0.5">{moment(detailHandover.created_date).format("DD MMM YYYY HH:mm")}</p></div>
-                <div><p className="text-xs text-muted-foreground">Shuma</p><p className="font-bold text-lg text-primary mt-0.5">€{(detailHandover.amount || 0).toFixed(2)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Shuma</p><p className="font-bold text-lg text-primary mt-0.5">€{parseFloat(detailHandover.amount || 0).toFixed(2)}</p></div>
                 <div><p className="text-xs text-muted-foreground">Statusi</p><div className="mt-0.5">{statusBadge(detailHandover.status)}</div></div>
               </div>
               {detailHandover.note && <div className="bg-muted/30 rounded-lg p-3 text-sm"><p className="text-xs text-muted-foreground mb-1">Shënim</p><p>{detailHandover.note}</p></div>}
@@ -279,7 +279,7 @@ export default function CashHandover() {
                     {detailHandover.invoices.map((inv, i) => (
                       <div key={i} className="flex justify-between items-center px-3 py-2.5 text-sm">
                         <div><p className="font-medium">{inv.invoice_number}</p><p className="text-xs text-muted-foreground">{inv.client_name}</p></div>
-                        <span className="font-bold">€{(inv.amount || 0).toFixed(2)}</span>
+                        <span className="font-bold">€{parseFloat(inv.amount || 0).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -330,7 +330,7 @@ export default function CashHandover() {
                               <p className="text-sm font-semibold">{invoice.invoice_number}</p>
                               <p className="text-xs text-muted-foreground">{invoice.client_name}</p>
                             </div>
-                            <p className="text-sm font-bold whitespace-nowrap">€{invoice.amount.toFixed(2)}</p>
+                            <p className="text-sm font-bold whitespace-nowrap">€{parseFloat(invoice.amount || 0).toFixed(2)}</p>
                           </div>
                         </div>
                       </div>
@@ -345,12 +345,12 @@ export default function CashHandover() {
                 {cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).map(inv => (
                   <div key={inv.id} className="flex justify-between text-sm">
                     <span>{inv.invoice_number} - {inv.client_name}</span>
-                    <span className="font-medium">€{inv.amount.toFixed(2)}</span>
+                    <span className="font-medium">€{parseFloat(inv.amount || 0).toFixed(2)}</span>
                   </div>
                 ))}
                 <div className="border-t border-border mt-2 pt-2 flex justify-between font-semibold">
                   <span>Total:</span>
-                  <span className="text-success">€{cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).reduce((s, i) => s + i.amount, 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                  <span className="text-success">€{cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).reduce((s, i) => s + parseFloat(i.amount || 0), 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
                 </div>
               </div>
             )}

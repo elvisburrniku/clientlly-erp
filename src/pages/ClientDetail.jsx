@@ -47,7 +47,7 @@ export default function ClientDetail() {
     const beforePeriod = invoices.filter(inv => moment(inv.created_date).isBefore(moment(dateFrom)));
     let openingBalance = beforePeriod.reduce((sum, inv) => {
       if (inv.status === 'paid') return sum;
-      return sum + (inv.amount || 0);
+      return sum + parseFloat(inv.amount || 0);
     }, 0);
 
     // Add opening balance as first row
@@ -66,11 +66,11 @@ export default function ClientDetail() {
     let rowNr = 2;
 
     filtered.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)).forEach(inv => {
-      const amount = inv.amount || 0;
+      const amount = parseFloat(inv.amount || 0);
       const isPayment = inv.status === 'paid' && (inv.payment_records?.length > 0);
       
       if (isPayment) {
-        const paidAmount = inv.payment_records.reduce((s, p) => s + p.amount, 0);
+        const paidAmount = inv.payment_records.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
         balance -= paidAmount;
         ledger.push({
           nr: rowNr,

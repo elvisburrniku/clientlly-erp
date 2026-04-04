@@ -41,7 +41,7 @@ export default function CashHandoverRequest() {
     setSubmitting(true);
     try {
       const selectedData = cashInvoices.filter(inv => selectedInvoices.includes(inv.id));
-      const totalAmount = selectedData.reduce((sum, inv) => sum + inv.amount, 0);
+      const totalAmount = selectedData.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
       
       await base44.entities.CashHandover.create({
         amount: totalAmount,
@@ -76,8 +76,8 @@ export default function CashHandoverRequest() {
     );
   }
 
-  const totalCashAmount = cashInvoices.reduce((sum, inv) => sum + inv.amount, 0);
-  const selectedTotal = cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).reduce((sum, inv) => sum + inv.amount, 0);
+  const totalCashAmount = cashInvoices.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+  const selectedTotal = cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -117,7 +117,7 @@ export default function CashHandoverRequest() {
               <div key={req.id} className="p-6 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <p className="text-sm font-semibold">€{req.amount.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+                    <p className="text-sm font-semibold">€{parseFloat(req.amount || 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
                     <p className="text-xs text-muted-foreground mt-1">{req.invoices?.length || 0} fatura</p>
                   </div>
                   <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full font-medium">Në pritje</span>
@@ -125,7 +125,7 @@ export default function CashHandoverRequest() {
                 {req.note && <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">{req.note}</p>}
                 <div className="text-xs text-muted-foreground space-y-1">
                   {req.invoices?.slice(0, 3).map((inv, idx) => (
-                    <div key={idx}>• {inv.invoice_number} - {inv.client_name} (€{inv.amount.toFixed(2)})</div>
+                    <div key={idx}>• {inv.invoice_number} - {inv.client_name} (€{parseFloat(inv.amount || 0).toFixed(2)})</div>
                   ))}
                   {req.invoices?.length > 3 && <div>... dhe {req.invoices.length - 3} të tjera</div>}
                 </div>
@@ -145,7 +145,7 @@ export default function CashHandoverRequest() {
             {handovers.filter(h => h.status !== "pending").map(req => (
               <div key={req.id} className="p-6 space-y-2">
                 <div className="flex justify-between items-center">
-                  <p className="text-sm font-semibold">€{req.amount.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+                  <p className="text-sm font-semibold">€{parseFloat(req.amount || 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${req.status === 'approved' ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}`}>
                     {req.status === 'approved' ? 'Aprovuar' : 'Refuzuar'}
                   </span>
@@ -184,7 +184,7 @@ export default function CashHandoverRequest() {
                         <p className="text-sm font-semibold">{invoice.invoice_number}</p>
                         <p className="text-xs text-muted-foreground">{invoice.client_name}</p>
                       </div>
-                      <p className="text-sm font-bold whitespace-nowrap">€{invoice.amount.toFixed(2)}</p>
+                      <p className="text-sm font-bold whitespace-nowrap">€{parseFloat(invoice.amount || 0).toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
@@ -211,7 +211,7 @@ export default function CashHandoverRequest() {
                   {cashInvoices.filter(inv => selectedInvoices.includes(inv.id)).map(inv => (
                     <div key={inv.id} className="flex justify-between text-sm">
                       <span>{inv.invoice_number} - {inv.client_name}</span>
-                      <span className="font-medium">€{inv.amount.toFixed(2)}</span>
+                      <span className="font-medium">€{parseFloat(inv.amount || 0).toFixed(2)}</span>
                     </div>
                   ))}
                   <div className="border-t border-border mt-2 pt-2 flex justify-between font-semibold">
