@@ -937,15 +937,15 @@ app.post('/api/accounting/auto-journal/payment', requireAuth, requireAccountingC
   }
 });
 
-// Helper: find the most specific account group for a given code within a tenant
-async function computeAccountGroup(code, tenantId, tPool) {
+// Helper: find the most specific account_group for a given account code (integer range comparison)
+async function computeAccountGroup(tPool, tenantId, code) {
   const result = await tPool.query(
-    `SELECT id, code_prefix_start, code_prefix_end,
-       (CAST(code_prefix_end AS INTEGER) - CAST(code_prefix_start AS INTEGER)) as range_size
+    `SELECT id,
+       CAST(code_prefix_end AS INTEGER) - CAST(code_prefix_start AS INTEGER) AS range_size
      FROM account_groups
      WHERE tenant_id = $1
-       AND code_prefix_start <= $2
-       AND code_prefix_end >= $2
+       AND CAST(code_prefix_start AS INTEGER) <= CAST($2 AS INTEGER)
+       AND CAST(code_prefix_end AS INTEGER) >= CAST($2 AS INTEGER)
      ORDER BY range_size ASC
      LIMIT 1`,
     [tenantId, code]
@@ -1083,8 +1083,8 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
 
       // 3. Seed default journals with wired default accounts
       const journalDefs = [
-        { name: 'Shitje', name_en: 'Sales', type: 'sale', sequence_prefix: 'INV', default_code: '4100', sequence: 10 },
-        { name: 'Blerje', name_en: 'Purchase', type: 'purchase', sequence_prefix: 'BILL', default_code: '5100', sequence: 20 },
+        { name: 'Shitje', name_en: 'Sales', type: 'sale', sequence_prefix: 'INV', default_code: '1300', sequence: 10 },
+        { name: 'Blerje', name_en: 'Purchase', type: 'purchase', sequence_prefix: 'BILL', default_code: '2100', sequence: 20 },
         { name: 'Bankë', name_en: 'Bank', type: 'bank', sequence_prefix: 'BANK', default_code: '1200', sequence: 30 },
         { name: 'Arkë', name_en: 'Cash', type: 'cash', sequence_prefix: 'CASH', default_code: '1100', sequence: 40 },
         { name: 'Ndryshime të Tjera', name_en: 'Miscellaneous', type: 'general', sequence_prefix: 'MISC', default_code: null, sequence: 50 },
@@ -1218,22 +1218,26 @@ app.get('/api/accounting/trial-balance', requireAuth, requireAccountingView, asy
     if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
 
     const result = await tPool.query(`
-      SELECT 
+      SELECT
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
         coa.account_subtype, coa.reconcile,
         ag.id as group_id, ag.name as group_name, ag.name_en as group_name_en,
         ag.code_prefix_start, ag.sequence as group_sequence,
-        COALESCE(SUM(jl.debit), 0) as total_debit,
-        COALESCE(SUM(jl.credit), 0) as total_credit,
-        COALESCE(SUM(jl.debit), 0) - COALESCE(SUM(jl.credit), 0) as balance
+        COALESCE(bal.total_debit, 0) as total_debit,
+        COALESCE(bal.total_credit, 0) as total_credit,
+        COALESCE(bal.total_debit, 0) - COALESCE(bal.total_credit, 0) as balance
       FROM chart_of_accounts coa
       LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
-      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
-      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
+      LEFT JOIN (
+        SELECT jl.account_id, SUM(jl.debit) as total_debit, SUM(jl.credit) as total_credit
+        FROM journal_lines jl
+        JOIN journal_entries je ON je.id = jl.journal_entry_id
+          AND je.status = 'posted' AND je.tenant_id = $1 ${dateFilter}
+        WHERE jl.tenant_id = $1
+        GROUP BY jl.account_id
+      ) bal ON bal.account_id = coa.id
       WHERE coa.tenant_id = $1 AND coa.is_active = true
-      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
-               coa.account_subtype, coa.reconcile, ag.id, ag.name, ag.name_en, ag.code_prefix_start, ag.sequence
-      HAVING COALESCE(SUM(jl.debit), 0) != 0 OR COALESCE(SUM(jl.credit), 0) != 0
+        AND (COALESCE(bal.total_debit, 0) != 0 OR COALESCE(bal.total_credit, 0) != 0)
       ORDER BY coa.code
     `, params);
 
@@ -1655,23 +1659,106 @@ app.get('/api/accounting/accounts-with-balances', requireAuth, requireAccounting
         ag.name as group_name, ag.name_en as group_name_en,
         ag.code_prefix_start, ag.sequence as group_sequence,
         ag.parent_id as group_parent_id,
-        COALESCE(SUM(jl.debit), 0) as total_debit,
-        COALESCE(SUM(jl.credit), 0) as total_credit,
-        COALESCE(SUM(jl.debit), 0) - COALESCE(SUM(jl.credit), 0) as raw_balance
+        COALESCE(bal.total_debit, 0) as total_debit,
+        COALESCE(bal.total_credit, 0) as total_credit,
+        COALESCE(bal.total_debit, 0) - COALESCE(bal.total_credit, 0) as raw_balance
       FROM chart_of_accounts coa
       LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
-      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
-      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted'
+      LEFT JOIN (
+        SELECT jl.account_id,
+               SUM(jl.debit) as total_debit,
+               SUM(jl.credit) as total_credit
+        FROM journal_lines jl
+        JOIN journal_entries je ON je.id = jl.journal_entry_id
+          AND je.status = 'posted'
+          AND je.tenant_id = $1
+        WHERE jl.tenant_id = $1
+        GROUP BY jl.account_id
+      ) bal ON bal.account_id = coa.id
       WHERE coa.tenant_id = $1 AND coa.is_active = true
-      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
-               coa.reconcile, coa.account_subtype, coa.is_active, coa.description, coa.account_group_id,
-               ag.name, ag.name_en, ag.code_prefix_start, ag.sequence, ag.parent_id
       ORDER BY coa.code
     `, [tenantId]);
     res.json(result.rows);
   } catch (err) {
     console.error('Accounts with balances error:', err.message);
     res.status(500).json({ error: 'Failed to load accounts' });
+  }
+});
+
+// ============ ACCOUNTS CRUD (dedicated, with computeAccountGroup + duplicate validation) ============
+
+app.post('/api/accounting/accounts', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { code, name, name_en, account_type, normal_balance, account_subtype, reconcile, description, account_group_id } = req.body;
+    if (!code || !name) return res.status(400).json({ error: 'code and name are required' });
+    const tPool = await getPoolForReq(req);
+
+    // Duplicate code check
+    const dup = await tPool.query('SELECT id FROM chart_of_accounts WHERE code = $1 AND tenant_id = $2', [code, tenantId]);
+    if (dup.rows.length > 0) return res.status(409).json({ error: `Kodi ${code} ekziston tashmë` });
+
+    // Auto-compute group if not provided
+    const groupId = account_group_id || await computeAccountGroup(tPool, tenantId, code);
+
+    const result = await tPool.query(
+      `INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance, account_subtype, reconcile, description, account_group_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [tenantId, code, name, name_en || null, account_type || 'asset', normal_balance || 'debit',
+       account_subtype || 'other', reconcile || false, description || null, groupId || null]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Create account error:', err.message);
+    res.status(500).json({ error: 'Failed to create account' });
+  }
+});
+
+app.put('/api/accounting/accounts/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { id } = req.params;
+    const { code, name, name_en, account_type, normal_balance, account_subtype, reconcile, description, account_group_id } = req.body;
+    if (!code || !name) return res.status(400).json({ error: 'code and name are required' });
+    const tPool = await getPoolForReq(req);
+
+    // Duplicate code check (exclude self)
+    const dup = await tPool.query('SELECT id FROM chart_of_accounts WHERE code = $1 AND tenant_id = $2 AND id != $3', [code, tenantId, id]);
+    if (dup.rows.length > 0) return res.status(409).json({ error: `Kodi ${code} ekziston tashmë` });
+
+    // Auto-compute group if not provided
+    const groupId = account_group_id || await computeAccountGroup(tPool, tenantId, code);
+
+    const result = await tPool.query(
+      `UPDATE chart_of_accounts SET code=$1, name=$2, name_en=$3, account_type=$4, normal_balance=$5,
+       account_subtype=$6, reconcile=$7, description=$8, account_group_id=$9, updated_at=NOW()
+       WHERE id=$10 AND tenant_id=$11 RETURNING *`,
+      [code, name, name_en || null, account_type || 'asset', normal_balance || 'debit',
+       account_subtype || 'other', reconcile || false, description || null, groupId || null, id, tenantId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Account not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Update account error:', err.message);
+    res.status(500).json({ error: 'Failed to update account' });
+  }
+});
+
+app.delete('/api/accounting/accounts/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { id } = req.params;
+    const tPool = await getPoolForReq(req);
+    // Check if account is used in any journal lines
+    const used = await tPool.query('SELECT COUNT(*) FROM journal_lines WHERE account_id = $1 AND tenant_id = $2', [id, tenantId]);
+    if (parseInt(used.rows[0].count) > 0) {
+      return res.status(409).json({ error: 'Kjo llogari ka regjistrime dhe nuk mund të fshihet' });
+    }
+    await tPool.query('DELETE FROM chart_of_accounts WHERE id=$1 AND tenant_id=$2', [id, tenantId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete account error:', err.message);
+    res.status(500).json({ error: 'Failed to delete account' });
   }
 });
 

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Edit2, Trash2, ChevronRight, ChevronDown, BookOpen, Loader2, RefreshCw } from "lucide-react";
+import { Plus, Edit2, Trash2, ChevronRight, ChevronDown, BookOpen, Loader2, RefreshCw, FolderTree } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 const ACCOUNT_TYPES = [
@@ -52,6 +52,10 @@ export default function ChartOfAccounts() {
     code: '', name: '', name_en: '', account_type: 'asset', normal_balance: 'debit',
     account_subtype: 'other', reconcile: false, description: '', account_group_id: '',
   });
+  const [showGroupPanel, setShowGroupPanel] = useState(false);
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+  const [groupEditing, setGroupEditing] = useState(null);
+  const [groupForm, setGroupForm] = useState({ name: '', name_en: '', code_prefix_start: '', code_prefix_end: '', account_type: 'asset', sequence: 10, parent_id: '' });
   const { toast } = useToast();
 
   useEffect(() => { loadData(); }, []);
@@ -122,7 +126,7 @@ export default function ChartOfAccounts() {
         description: form.description || null,
         account_group_id: form.account_group_id || null,
       };
-      const url = editing ? `/api/entities/ChartOfAccount/${editing.id}` : '/api/entities/ChartOfAccount';
+      const url = editing ? `/api/accounting/accounts/${editing.id}` : '/api/accounting/accounts';
       const method = editing ? 'PUT' : 'POST';
       const res = await fetch(url, { method, credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error || err.message); }
@@ -137,8 +141,52 @@ export default function ChartOfAccounts() {
   const handleDelete = async (id) => {
     if (!window.confirm('A jeni i sigurt që doni ta fshini këtë llogari?')) return;
     try {
-      await fetch(`/api/entities/ChartOfAccount/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(`/api/accounting/accounts/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || err.message); }
       toast({ title: 'Llogaria u fshi' });
+      await loadData();
+    } catch (err) {
+      toast({ title: 'Gabim', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const openCreateGroup = () => {
+    setGroupEditing(null);
+    setGroupForm({ name: '', name_en: '', code_prefix_start: '', code_prefix_end: '', account_type: 'asset', sequence: 10, parent_id: '' });
+    setGroupDialogOpen(true);
+  };
+
+  const openEditGroup = (g) => {
+    setGroupEditing(g);
+    setGroupForm({ name: g.name, name_en: g.name_en || '', code_prefix_start: g.code_prefix_start, code_prefix_end: g.code_prefix_end, account_type: g.account_type || 'asset', sequence: g.sequence || 10, parent_id: g.parent_id || '' });
+    setGroupDialogOpen(true);
+  };
+
+  const handleSaveGroup = async () => {
+    if (!groupForm.name || !groupForm.code_prefix_start || !groupForm.code_prefix_end) {
+      toast({ title: 'Gabim', description: 'Emri, kodi fillestar dhe kodi fundor janë të detyrueshme', variant: 'destructive' });
+      return;
+    }
+    try {
+      const body = { ...groupForm, parent_id: groupForm.parent_id || null, sequence: parseInt(groupForm.sequence) || 10 };
+      const url = groupEditing ? `/api/accounting/account-groups/${groupEditing.id}` : '/api/accounting/account-groups';
+      const method = groupEditing ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || err.message); }
+      toast({ title: groupEditing ? 'Grupi u përditësua' : 'Grupi u krijua' });
+      setGroupDialogOpen(false);
+      await loadData();
+    } catch (err) {
+      toast({ title: 'Gabim', description: err.message, variant: 'destructive' });
+    }
+  };
+
+  const handleDeleteGroup = async (id) => {
+    if (!window.confirm('A jeni i sigurt? Llogaritë e lidhura do të humbin grupimin.')) return;
+    try {
+      const res = await fetch(`/api/accounting/account-groups/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || err.message); }
+      toast({ title: 'Grupi u fshi' });
       await loadData();
     } catch (err) {
       toast({ title: 'Gabim', description: err.message, variant: 'destructive' });
@@ -295,6 +343,132 @@ export default function ChartOfAccounts() {
           </tbody>
         </table>
       </div>
+
+      {/* Account Groups Management Panel */}
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+        <button
+          className="w-full flex items-center justify-between px-6 py-4 hover:bg-muted/10 transition-colors"
+          onClick={() => setShowGroupPanel(!showGroupPanel)}
+          data-testid="button-toggle-group-panel"
+        >
+          <div className="flex items-center gap-2">
+            <FolderTree className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-semibold">Grupet e Llogarive</span>
+            <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">{groups.length}</span>
+          </div>
+          {showGroupPanel ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+        </button>
+        {showGroupPanel && (
+          <div className="border-t border-border/40">
+            <div className="flex justify-end px-6 py-3 border-b border-border/20 bg-muted/5">
+              <Button size="sm" onClick={openCreateGroup} className="gap-1.5" data-testid="button-add-group">
+                <Plus className="w-3.5 h-3.5" /> Shto Grup
+              </Button>
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border/20 bg-muted/10">
+                  <th className="text-left py-2.5 px-6 font-semibold text-muted-foreground text-xs w-28">Kodi Fillestar</th>
+                  <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground text-xs w-28">Kodi Fundor</th>
+                  <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground text-xs">Emri</th>
+                  <th className="text-left py-2.5 px-3 font-semibold text-muted-foreground text-xs">Prindi</th>
+                  <th className="text-center py-2.5 px-3 font-semibold text-muted-foreground text-xs w-16">Seq</th>
+                  <th className="text-right py-2.5 px-6 font-semibold text-muted-foreground text-xs w-20">Veprime</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groups.length === 0 ? (
+                  <tr><td colSpan="6" className="text-center py-8 text-muted-foreground text-sm">Nuk ka grupe</td></tr>
+                ) : groups.sort((a, b) => (a.sequence - b.sequence) || a.code_prefix_start.localeCompare(b.code_prefix_start)).map((g, i) => {
+                  const parent = groups.find(p => p.id === g.parent_id);
+                  return (
+                    <tr key={g.id} className={`border-b border-border/10 ${i % 2 === 0 ? 'bg-white' : 'bg-muted/5'}`} data-testid={`row-group-mgmt-${g.id}`}>
+                      <td className="py-2 px-6 font-mono text-xs">{g.code_prefix_start}</td>
+                      <td className="py-2 px-3 font-mono text-xs">{g.code_prefix_end}</td>
+                      <td className="py-2 px-3">
+                        <div className="font-medium text-sm">{g.name}</div>
+                        {g.name_en && <div className="text-xs text-muted-foreground">{g.name_en}</div>}
+                      </td>
+                      <td className="py-2 px-3 text-xs text-muted-foreground">{parent ? parent.name : '—'}</td>
+                      <td className="py-2 px-3 text-center text-xs text-muted-foreground">{g.sequence}</td>
+                      <td className="py-2 px-6 text-right">
+                        <div className="flex gap-1 justify-end">
+                          <button onClick={() => openEditGroup(g)} className="p-1 hover:bg-muted rounded" data-testid={`button-edit-group-${g.id}`}><Edit2 className="w-3.5 h-3.5" /></button>
+                          <button onClick={() => handleDeleteGroup(g.id)} className="p-1 hover:bg-red-50 text-red-400 rounded" data-testid={`button-delete-group-${g.id}`}><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Group create/edit dialog */}
+      <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{groupEditing ? 'Përditëso Grupin' : 'Shto Grup të Ri'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">Kodi Fillestar</Label>
+                <Input value={groupForm.code_prefix_start} onChange={e => setGroupForm(f => ({ ...f, code_prefix_start: e.target.value }))} placeholder="p.sh. 1000" data-testid="input-group-start" />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">Kodi Fundor</Label>
+                <Input value={groupForm.code_prefix_end} onChange={e => setGroupForm(f => ({ ...f, code_prefix_end: e.target.value }))} placeholder="p.sh. 1999" data-testid="input-group-end" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">Emri (Shqip)</Label>
+                <Input value={groupForm.name} onChange={e => setGroupForm(f => ({ ...f, name: e.target.value }))} placeholder="p.sh. 1 - Mjetet" data-testid="input-group-name" />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">Emri (Anglisht)</Label>
+                <Input value={groupForm.name_en} onChange={e => setGroupForm(f => ({ ...f, name_en: e.target.value }))} placeholder="Assets" data-testid="input-group-name-en" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">Lloji</Label>
+                <Select value={groupForm.account_type} onValueChange={v => setGroupForm(f => ({ ...f, account_type: v }))}>
+                  <SelectTrigger data-testid="select-group-type"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {ACCOUNT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">Sekuenca</Label>
+                <Input type="number" value={groupForm.sequence} onChange={e => setGroupForm(f => ({ ...f, sequence: e.target.value }))} data-testid="input-group-sequence" />
+              </div>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Grupi Prind (opsionale)</Label>
+              <Select value={groupForm.parent_id || 'none'} onValueChange={v => setGroupForm(f => ({ ...f, parent_id: v === 'none' ? '' : v }))}>
+                <SelectTrigger data-testid="select-group-parent"><SelectValue placeholder="Pa prind (grup rrënjë)" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Pa prind —</SelectItem>
+                  {groups.filter(g => !groupEditing || g.id !== groupEditing.id).map(g => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGroupDialogOpen(false)}>Anulo</Button>
+            <Button onClick={handleSaveGroup} disabled={!groupForm.name || !groupForm.code_prefix_start || !groupForm.code_prefix_end} data-testid="button-save-group">
+              {groupEditing ? 'Përditëso' : 'Ruaj'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

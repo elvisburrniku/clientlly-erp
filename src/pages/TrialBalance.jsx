@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Download } from "lucide-react";
+import { Download, ChevronRight, ChevronDown } from "lucide-react";
 import moment from "moment";
 
 export default function TrialBalance() {
@@ -10,6 +10,7 @@ export default function TrialBalance() {
   const [loading, setLoading] = useState(false);
   const [dateFrom, setDateFrom] = useState(() => moment().startOf('year').format('YYYY-MM-DD'));
   const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
+  const [collapsedGroups, setCollapsedGroups] = useState({});
 
   useEffect(() => { loadData(); }, []);
 
@@ -18,15 +19,40 @@ export default function TrialBalance() {
     try {
       const res = await fetch(`/api/accounting/trial-balance?from=${dateFrom}&to=${dateTo}`, { credentials: 'include' });
       const result = await res.json();
-      setData(result);
+      setData(Array.isArray(result) ? result : []);
     } catch (err) {
       console.error(err);
     }
     setLoading(false);
   };
 
-  const totalDebit = data.reduce((s, r) => s + (parseFloat(r.balance) > 0 ? parseFloat(r.balance) : 0), 0);
-  const totalCredit = data.reduce((s, r) => s + (parseFloat(r.balance) < 0 ? Math.abs(parseFloat(r.balance)) : 0), 0);
+  const toggleGroup = (gKey) => setCollapsedGroups(prev => ({ ...prev, [gKey]: !prev[gKey] }));
+
+  // Group rows by group_id (or 'ungrouped')
+  const groupedData = data.reduce((acc, row) => {
+    const key = row.group_id || 'ungrouped';
+    if (!acc[key]) {
+      acc[key] = {
+        group_id: row.group_id || null,
+        group_name: row.group_name || 'Pa Grup',
+        group_name_en: row.group_name_en || '',
+        code_prefix_start: row.code_prefix_start || '',
+        group_sequence: row.group_sequence || 9999,
+        rows: [],
+      };
+    }
+    acc[key].rows.push(row);
+    return acc;
+  }, {});
+
+  const sortedGroups = Object.values(groupedData).sort((a, b) => {
+    if (a.group_id === null) return 1;
+    if (b.group_id === null) return -1;
+    return (a.group_sequence - b.group_sequence) || a.code_prefix_start.localeCompare(b.code_prefix_start);
+  });
+
+  const totalDebit = data.reduce((s, r) => s + (parseFloat(r.total_debit) || 0), 0);
+  const totalCredit = data.reduce((s, r) => s + (parseFloat(r.total_credit) || 0), 0);
 
   const exportPDF = async () => {
     const { jsPDF } = await import('jspdf');
@@ -55,15 +81,39 @@ export default function TrialBalance() {
 
     doc.setTextColor(40, 40, 40);
     doc.setFont('helvetica', 'normal');
-    data.forEach((row, i) => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, W - margin * 2, 5, 'F'); }
-      const balance = parseFloat(row.balance);
-      doc.text(row.code, margin + 2, y);
-      doc.text(row.name.slice(0, 40), margin + 25, y);
-      doc.text(balance > 0 ? balance.toFixed(2) : '-', margin + 120, y);
-      doc.text(balance < 0 ? Math.abs(balance).toFixed(2) : '-', W - margin - 2, y, { align: 'right' });
-      y += 5;
+    sortedGroups.forEach(grp => {
+      if (y > 265) { doc.addPage(); y = 20; }
+      // Group header
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(230, 230, 230);
+      doc.rect(margin, y - 3, W - margin * 2, 5, 'F');
+      doc.text(grp.group_name, margin + 2, y);
+      y += 6;
+      doc.setFont('helvetica', 'normal');
+
+      grp.rows.forEach((row, i) => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        if (i % 2 === 0) { doc.setFillColor(248, 248, 248); doc.rect(margin, y - 3, W - margin * 2, 5, 'F'); }
+        doc.text(row.code, margin + 6, y);
+        doc.text(row.name.slice(0, 38), margin + 25, y);
+        const d = parseFloat(row.total_debit) || 0;
+        const cr = parseFloat(row.total_credit) || 0;
+        doc.text(d > 0 ? d.toFixed(2) : '-', margin + 120, y);
+        doc.text(cr > 0 ? cr.toFixed(2) : '-', W - margin - 2, y, { align: 'right' });
+        y += 5;
+      });
+
+      // Group subtotal
+      const gDebit = grp.rows.reduce((s, r) => s + (parseFloat(r.total_debit) || 0), 0);
+      const gCredit = grp.rows.reduce((s, r) => s + (parseFloat(r.total_credit) || 0), 0);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(220, 220, 220);
+      doc.rect(margin, y - 3, W - margin * 2, 5, 'F');
+      doc.text(`Nëntotali: ${grp.group_name}`, margin + 2, y);
+      doc.text(gDebit.toFixed(2), margin + 120, y);
+      doc.text(gCredit.toFixed(2), W - margin - 2, y, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      y += 7;
     });
 
     doc.setFillColor(107, 114, 126);
@@ -79,14 +129,17 @@ export default function TrialBalance() {
 
   const exportExcel = async () => {
     const { utils, writeFile } = await import('xlsx');
-    const wsData = [
-      ['Kodi', 'Llogaria', 'Lloji', 'Debit', 'Kredit'],
-      ...data.map(r => {
-        const bal = parseFloat(r.balance);
-        return [r.code, r.name, r.account_type, bal > 0 ? bal : 0, bal < 0 ? Math.abs(bal) : 0];
-      }),
-      ['', 'TOTALI', '', totalDebit, totalCredit],
-    ];
+    const wsData = [['Kodi', 'Llogaria', 'Grupi', 'Lloji', 'Debit', 'Kredit']];
+    sortedGroups.forEach(grp => {
+      wsData.push([`--- ${grp.group_name} ---`, '', '', '', '', '']);
+      grp.rows.forEach(r => {
+        wsData.push([r.code, r.name, grp.group_name, r.account_type, parseFloat(r.total_debit) || 0, parseFloat(r.total_credit) || 0]);
+      });
+      const gD = grp.rows.reduce((s, r) => s + (parseFloat(r.total_debit) || 0), 0);
+      const gC = grp.rows.reduce((s, r) => s + (parseFloat(r.total_credit) || 0), 0);
+      wsData.push(['', `Nëntotali: ${grp.group_name}`, '', '', gD, gC]);
+    });
+    wsData.push(['', 'TOTALI', '', '', totalDebit, totalCredit]);
     const ws = utils.aoa_to_sheet(wsData);
     const wb = utils.book_new();
     utils.book_append_sheet(wb, ws, 'Bilanci i Provës');
@@ -98,7 +151,7 @@ export default function TrialBalance() {
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Raporte Financiare</p>
         <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">Bilanci i Provës</h1>
-        <p className="text-sm text-muted-foreground mt-1">Trial Balance - Përmbledhje e llogarive për periudhën e zgjedhur</p>
+        <p className="text-sm text-muted-foreground mt-1">Trial Balance – Përmbledhje sipas grupeve të llogarive</p>
       </div>
 
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
@@ -131,23 +184,56 @@ export default function TrialBalance() {
           <tbody>
             {data.length === 0 ? (
               <tr><td colSpan="5" className="text-center py-12 text-muted-foreground">Nuk ka të dhëna për këtë periudhë</td></tr>
-            ) : data.map((row, i) => {
-              const balance = parseFloat(row.balance);
+            ) : sortedGroups.map(grp => {
+              const isCollapsed = collapsedGroups[grp.group_id || 'ungrouped'];
+              const gDebit = grp.rows.reduce((s, r) => s + (parseFloat(r.total_debit) || 0), 0);
+              const gCredit = grp.rows.reduce((s, r) => s + (parseFloat(r.total_credit) || 0), 0);
               return (
-                <tr key={row.id} className={`${i % 2 === 0 ? 'bg-muted/10' : ''}`} data-testid={`row-tb-${row.code}`}>
-                  <td className="py-2.5 px-6 font-mono font-semibold">{row.code}</td>
-                  <td className="py-2.5 px-4">{row.name}</td>
-                  <td className="py-2.5 px-4 capitalize text-muted-foreground">{row.account_type}</td>
-                  <td className="py-2.5 px-4 text-right font-mono">{balance > 0 ? balance.toFixed(2) : '-'}</td>
-                  <td className="py-2.5 px-6 text-right font-mono">{balance < 0 ? Math.abs(balance).toFixed(2) : '-'}</td>
-                </tr>
+                <>
+                  {/* Group header row */}
+                  <tr
+                    key={`grp-${grp.group_id || 'ung'}`}
+                    className="bg-muted/30 border-b border-border/30 cursor-pointer hover:bg-muted/50"
+                    onClick={() => toggleGroup(grp.group_id || 'ungrouped')}
+                    data-testid={`row-tb-group-${grp.group_id || 'ungrouped'}`}
+                  >
+                    <td className="py-2 px-6" colSpan={2}>
+                      <div className="flex items-center gap-2">
+                        {isCollapsed ? <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+                        <span className="font-semibold text-sm">{grp.group_name}</span>
+                        {grp.group_name_en && <span className="text-xs text-muted-foreground">({grp.group_name_en})</span>}
+                      </div>
+                    </td>
+                    <td className="py-2 px-4 text-muted-foreground text-xs">{grp.rows.length} llogari</td>
+                    <td className="py-2 px-4 text-right font-mono font-semibold text-sm">{gDebit > 0 ? gDebit.toFixed(2) : '—'}</td>
+                    <td className="py-2 px-6 text-right font-mono font-semibold text-sm">{gCredit > 0 ? gCredit.toFixed(2) : '—'}</td>
+                  </tr>
+                  {/* Account rows under group */}
+                  {!isCollapsed && grp.rows.map((row, i) => (
+                    <tr key={row.id} className={`${i % 2 === 0 ? 'bg-muted/5' : 'bg-white'} border-b border-border/10`} data-testid={`row-tb-${row.code}`}>
+                      <td className="py-2.5 px-6 pl-10 font-mono font-semibold text-sm">{row.code}</td>
+                      <td className="py-2.5 px-4">{row.name}</td>
+                      <td className="py-2.5 px-4 capitalize text-muted-foreground text-xs">{row.account_type}</td>
+                      <td className="py-2.5 px-4 text-right font-mono text-sm">{parseFloat(row.total_debit) > 0 ? parseFloat(row.total_debit).toFixed(2) : '—'}</td>
+                      <td className="py-2.5 px-6 text-right font-mono text-sm">{parseFloat(row.total_credit) > 0 ? parseFloat(row.total_credit).toFixed(2) : '—'}</td>
+                    </tr>
+                  ))}
+                  {/* Group subtotal row */}
+                  {!isCollapsed && (
+                    <tr key={`sub-${grp.group_id || 'ung'}`} className="bg-muted/20 border-b border-border/30">
+                      <td colSpan={3} className="py-2 px-6 pl-10 text-xs font-semibold text-muted-foreground">Nëntotali: {grp.group_name}</td>
+                      <td className="py-2 px-4 text-right font-mono font-bold text-sm text-foreground">{gDebit.toFixed(2)}</td>
+                      <td className="py-2 px-6 text-right font-mono font-bold text-sm text-foreground">{gCredit.toFixed(2)}</td>
+                    </tr>
+                  )}
+                </>
               );
             })}
             {data.length > 0 && (
               <tr className="border-t-2 border-foreground font-bold bg-primary/5">
-                <td colSpan="3" className="py-3 px-6">Totali</td>
-                <td className="py-3 px-4 text-right font-mono">{totalDebit.toFixed(2)}</td>
-                <td className="py-3 px-6 text-right font-mono">{totalCredit.toFixed(2)}</td>
+                <td colSpan={3} className="py-3 px-6 text-sm font-bold">Totali i Përgjithshëm</td>
+                <td className="py-3 px-4 text-right font-mono font-bold">{totalDebit.toFixed(2)}</td>
+                <td className="py-3 px-6 text-right font-mono font-bold">{totalCredit.toFixed(2)}</td>
               </tr>
             )}
           </tbody>
