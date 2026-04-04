@@ -1592,10 +1592,19 @@ app.post('/api/accounting/account-groups', requireAuth, requireAdmin, async (req
       return res.status(400).json({ error: 'name, code_prefix_start, and code_prefix_end are required' });
     }
     const tPool = await getPoolForReq(req);
+    // Validate parent_id belongs to this tenant if provided
+    let resolvedParentId = null;
+    if (parent_id) {
+      const parentCheck = await tPool.query(
+        'SELECT id FROM account_groups WHERE id = $1 AND tenant_id = $2', [parent_id, tenantId]
+      );
+      if (parentCheck.rows.length === 0) return res.status(400).json({ error: 'Parent group not found or access denied' });
+      resolvedParentId = parent_id;
+    }
     const result = await tPool.query(
       `INSERT INTO account_groups (tenant_id, name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-      [tenantId, name, name_en || null, code_prefix_start, code_prefix_end, account_type || null, sequence || 10, parent_id || null]
+      [tenantId, name, name_en || null, code_prefix_start, code_prefix_end, account_type || null, sequence || 10, resolvedParentId]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -1609,10 +1618,20 @@ app.put('/api/accounting/account-groups/:id', requireAuth, requireAdmin, async (
     const { id } = req.params;
     const { name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id } = req.body;
     const tPool = await getPoolForReq(req);
+    // Validate parent_id belongs to this tenant if provided (and isn't self-referential)
+    let resolvedParentId = null;
+    if (parent_id) {
+      if (parent_id === id) return res.status(400).json({ error: 'A group cannot be its own parent' });
+      const parentCheck = await tPool.query(
+        'SELECT id FROM account_groups WHERE id = $1 AND tenant_id = $2', [parent_id, tenantId]
+      );
+      if (parentCheck.rows.length === 0) return res.status(400).json({ error: 'Parent group not found or access denied' });
+      resolvedParentId = parent_id;
+    }
     const result = await tPool.query(
       `UPDATE account_groups SET name=$1, name_en=$2, code_prefix_start=$3, code_prefix_end=$4, account_type=$5, sequence=$6, parent_id=$7, updated_at=NOW()
        WHERE id=$8 AND tenant_id=$9 RETURNING *`,
-      [name, name_en || null, code_prefix_start, code_prefix_end, account_type || null, sequence || 10, parent_id || null, id, tenantId]
+      [name, name_en || null, code_prefix_start, code_prefix_end, account_type || null, sequence || 10, resolvedParentId, id, tenantId]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Group not found' });
     res.json(result.rows[0]);
@@ -1662,10 +1681,19 @@ app.post('/api/accounting/journals', requireAuth, requireAdmin, async (req, res)
     const { name, name_en, type, sequence_prefix, default_account_id, sequence } = req.body;
     if (!name || !sequence_prefix) return res.status(400).json({ error: 'name and sequence_prefix are required' });
     const tPool = await getPoolForReq(req);
+    // Validate default_account_id belongs to this tenant if provided
+    let resolvedDefaultAccId = null;
+    if (default_account_id) {
+      const accCheck = await tPool.query(
+        'SELECT id FROM chart_of_accounts WHERE id = $1 AND tenant_id = $2 AND is_active = true', [default_account_id, tenantId]
+      );
+      if (accCheck.rows.length === 0) return res.status(400).json({ error: 'Default account not found or access denied' });
+      resolvedDefaultAccId = default_account_id;
+    }
     const result = await tPool.query(
       `INSERT INTO journals (tenant_id, name, name_en, type, sequence_prefix, default_account_id, sequence)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [tenantId, name, name_en || null, type || 'general', sequence_prefix, default_account_id || null, sequence || 10]
+      [tenantId, name, name_en || null, type || 'general', sequence_prefix, resolvedDefaultAccId, sequence || 10]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -1679,10 +1707,19 @@ app.put('/api/accounting/journals/:id', requireAuth, requireAdmin, async (req, r
     const { id } = req.params;
     const { name, name_en, type, sequence_prefix, default_account_id, is_active, sequence } = req.body;
     const tPool = await getPoolForReq(req);
+    // Validate default_account_id belongs to this tenant if provided
+    let resolvedDefaultAccId = null;
+    if (default_account_id) {
+      const accCheck = await tPool.query(
+        'SELECT id FROM chart_of_accounts WHERE id = $1 AND tenant_id = $2 AND is_active = true', [default_account_id, tenantId]
+      );
+      if (accCheck.rows.length === 0) return res.status(400).json({ error: 'Default account not found or access denied' });
+      resolvedDefaultAccId = default_account_id;
+    }
     const result = await tPool.query(
       `UPDATE journals SET name=$1, name_en=$2, type=$3, sequence_prefix=$4, default_account_id=$5, is_active=$6, sequence=$7, updated_at=NOW()
        WHERE id=$8 AND tenant_id=$9 RETURNING *`,
-      [name, name_en || null, type || 'general', sequence_prefix, default_account_id || null, is_active !== false, sequence || 10, id, tenantId]
+      [name, name_en || null, type || 'general', sequence_prefix, resolvedDefaultAccId, is_active !== false, sequence || 10, id, tenantId]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Journal not found' });
     res.json(result.rows[0]);
@@ -1756,8 +1793,8 @@ app.post('/api/accounting/accounts', requireAuth, requireAdmin, async (req, res)
     const dup = await tPool.query('SELECT id FROM chart_of_accounts WHERE code = $1 AND tenant_id = $2', [code, tenantId]);
     if (dup.rows.length > 0) return res.status(409).json({ error: `Kodi ${code} ekziston tashmë` });
 
-    // Auto-compute group if not provided
-    const groupId = account_group_id || await computeAccountGroup(tPool, tenantId, code);
+    // Always compute group from code (never trust client-provided account_group_id)
+    const groupId = await computeAccountGroup(tPool, tenantId, code);
 
     const result = await tPool.query(
       `INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance, account_subtype, reconcile, description, account_group_id)
