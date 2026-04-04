@@ -44,9 +44,15 @@ npm start      # Run Express server only (serves built frontend)
 - **Run:** `node server/index.js` (serves `dist/` as static + API on port 5000)
 - Production server uses `PORT` env var (default 5000 in production)
 
+## Important Conventions
+
+- **Field aliasing:** Frontend uses `created_date`/`updated_date` (from Base44), DB uses `created_at`/`updated_at`. The `addVirtualFields()` function in `server/entityRouter.js` handles this by adding virtual fields to all API responses.
+- **User security:** The User entity router excludes `password_hash` from all query results using a specific column list.
+- **Multi-tenant:** All entities are scoped by `tenant_id`. Frontend filters data by `user.tenant_id`.
+
 ## Migration Notes
 
-- Migrated from Base44 platform to Replit (April 2025)
+- Migrated from Base44 platform to Replit (April 2026)
 - All Base44 SDK calls replaced with `src/api/base44Client.js` which calls local Express API
 - Authentication replaced with local session-based auth (register/login/logout)
 - Email/file upload integrations are stubbed — need external service (e.g., SendGrid, Cloudinary) to enable
