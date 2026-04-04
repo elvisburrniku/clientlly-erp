@@ -603,6 +603,95 @@ for (const [entityName, tableName] of Object.entries(entityTableMap)) {
     entityOpts.afterUpdate = indexToken;
   }
 
+  if (entityName === 'Invoice') {
+    entityOpts.afterCreate = async (row, req) => {
+      if (row.invoice_type && row.invoice_type !== 'standard') return;
+      const total = parseFloat(row.total) || 0;
+      if (total <= 0) return;
+      const tPool = await resolvePoolForTenant(row.tenant_id, pool);
+      const subtotal = parseFloat(row.subtotal) || 0;
+      const taxAmount = parseFloat(row.tax_amount) || 0;
+      await autoGenerateJournalEntry(row.tenant_id, req.session.user.id, req.session.user.email, {
+        referenceType: 'invoice',
+        referenceId: row.id,
+        referenceNumber: row.invoice_number,
+        description: `Faturë ${row.invoice_number} - ${row.client_name || ''}`,
+        lines: [
+          { code: '1300', debit: total, credit: 0 },
+          { code: '4100', debit: 0, credit: subtotal },
+          { code: '2200', debit: 0, credit: taxAmount },
+        ].filter(l => l.debit > 0 || l.credit > 0),
+      }, tPool);
+    };
+    entityOpts.afterUpdate = async (row, req) => {
+      if (row.status !== 'cancelled') return;
+      const total = parseFloat(row.total) || 0;
+      if (total <= 0) return;
+      const tPool = await resolvePoolForTenant(row.tenant_id, pool);
+      const existing = await tPool.query(
+        `SELECT id FROM journal_entries WHERE tenant_id = $1 AND reference_type = 'invoice_cancellation' AND reference_id = $2`,
+        [row.tenant_id, row.id]
+      );
+      if (existing.rows.length > 0) return;
+      const subtotal = parseFloat(row.subtotal) || 0;
+      const taxAmount = parseFloat(row.tax_amount) || 0;
+      await autoGenerateJournalEntry(row.tenant_id, req.session.user.id, req.session.user.email, {
+        referenceType: 'invoice_cancellation',
+        referenceId: row.id,
+        referenceNumber: row.invoice_number,
+        description: `Anulim Faturë ${row.invoice_number} - ${row.client_name || ''}`,
+        lines: [
+          { code: '4100', debit: subtotal, credit: 0 },
+          { code: '2200', debit: taxAmount, credit: 0 },
+          { code: '1300', debit: 0, credit: total },
+        ].filter(l => l.debit > 0 || l.credit > 0),
+      }, tPool);
+    };
+  }
+
+  if (entityName === 'Payment') {
+    entityOpts.afterCreate = async (row, req) => {
+      const amount = parseFloat(row.amount) || 0;
+      if (amount <= 0) return;
+      const tPool = await resolvePoolForTenant(row.tenant_id, pool);
+      const bankCode = row.payment_method === 'cash' ? '1100' : '1200';
+      await autoGenerateJournalEntry(row.tenant_id, req.session.user.id, req.session.user.email, {
+        referenceType: 'payment',
+        referenceId: row.id,
+        referenceNumber: row.invoice_number || null,
+        description: `Pagesë ${row.invoice_number || ''} - ${row.client_name || ''}`.trim(),
+        lines: [
+          { code: bankCode, debit: amount, credit: 0 },
+          { code: '1300', debit: 0, credit: amount },
+        ],
+      }, tPool);
+    };
+  }
+
+  if (entityName === 'Expense') {
+    entityOpts.afterCreate = async (row, req) => {
+      const amount = parseFloat(row.amount) || 0;
+      const taxAmount = parseFloat(row.tax_amount) || 0;
+      const total = parseFloat(row.total) || (amount + taxAmount);
+      if (total <= 0) return;
+      const tPool = await resolvePoolForTenant(row.tenant_id, pool);
+      let creditCode = '2100';
+      if (row.payment_method === 'cash') creditCode = '1100';
+      else if (row.payment_method === 'bank_transfer' || row.payment_method === 'bank') creditCode = '1200';
+      await autoGenerateJournalEntry(row.tenant_id, req.session.user.id, req.session.user.email, {
+        referenceType: 'expense',
+        referenceId: row.id,
+        referenceNumber: null,
+        description: `Shpenzim: ${row.description || row.supplier_name || ''}`,
+        lines: [
+          { code: '5900', debit: amount, credit: 0 },
+          { code: '2300', debit: taxAmount, credit: 0 },
+          { code: creditCode, debit: 0, credit: total },
+        ].filter(l => l.debit > 0 || l.credit > 0),
+      }, tPool);
+    };
+  }
+
   app.use(`/api/entities/${entityName}`, ...middlewares, createEntityRouter(poolResolver, tableName, entityName, entityOpts));
 }
 
