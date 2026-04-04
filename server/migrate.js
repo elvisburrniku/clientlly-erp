@@ -370,6 +370,16 @@ FROM roles r
 CROSS JOIN (VALUES ('accounting')) AS m(module)
 WHERE r.name = 'user'
 ON CONFLICT (role_id, module) DO NOTHING;
+
+-- Upgrade existing tenant creators from admin to superadmin
+-- Users whose email matches their tenant's owner_email should be superadmin
+-- Uses case-insensitive match to handle any legacy casing inconsistencies
+UPDATE users u
+SET role = 'superadmin', updated_at = NOW()
+FROM tenants t
+WHERE u.tenant_id = t.id
+  AND LOWER(u.email) = LOWER(t.owner_email)
+  AND u.role = 'admin';
 `;
 
 async function runMigration() {

@@ -96,6 +96,10 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
       return res.status(401).json({ error: 'User not found', status: 401 });
     }
     const user = result.rows[0];
+    if (req.session.user.role !== user.role || req.session.user.tenant_id !== user.tenant_id) {
+      req.session.user.role = user.role;
+      req.session.user.tenant_id = user.tenant_id;
+    }
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -255,12 +259,12 @@ app.post('/api/onboarding/create-tenant', requireAuth, async (req, res) => {
 
       await client.query(
         'UPDATE users SET tenant_id = $1, tenant_name = $2, role = $3, updated_at = NOW() WHERE id = $4',
-        [tenant.id, tenant.name, 'admin', req.session.user.id]
+        [tenant.id, tenant.name, 'superadmin', req.session.user.id]
       );
       await client.query('COMMIT');
 
       req.session.user.tenant_id = tenant.id;
-      req.session.user.role = 'admin';
+      req.session.user.role = 'superadmin';
       res.status(201).json(tenant);
     } catch (err) {
       await client.query('ROLLBACK');
