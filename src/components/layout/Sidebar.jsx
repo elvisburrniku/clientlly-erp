@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
-  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield,
+  ChevronLeft, ChevronRight, ChevronDown, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield,
   UserCheck, Clock, CalendarDays, CalendarOff, Banknote, HandCoins, CalendarHeart,
   FolderKanban, Timer, Bug,
   FileMinus, FilePlus, Receipt, ClipboardCheck, TrendingUp,
@@ -26,32 +26,65 @@ export default function Sidebar() {
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
-  const menuItems = [
-    { label: t('dashboard') || "Dashboard", icon: LayoutDashboard, path: "/", module: "dashboard" },
+  const [sectionOpen, setSectionOpen] = useState({
+    salesBilling: true,
+    contacts: true,
+    finance: true,
+    products: true,
+    projectsCrm: true,
+    hr: true,
+    serviceFleet: true,
+    warehouse: true,
+    accounting: true,
+    pos: true,
+    performance: true,
+    administration: true,
+    superAdmin: true,
+  });
+
+  const toggleSection = (key) => {
+    setSectionOpen(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const dashboardItem = { label: t('dashboard') || "Dashboard", icon: LayoutDashboard, path: "/", module: "dashboard" };
+
+  const salesBillingItems = [
     { label: t('invoices') || "Faturat", icon: FileText, path: "/invoices", module: "invoices" },
     { label: "Ofertat", icon: FileText, path: "/quotes", module: "quotes" },
-    { label: t('products') || "Produktet", icon: Package, path: "/products", module: "products" },
-    { label: t('reminders') || "Kujtesat", icon: Bell, path: "/reminders", module: "reminders" },
+    { label: "Nota Kreditore", icon: FileMinus, path: "/credit-notes", module: "invoices" },
+    { label: "Nota Debitore", icon: FilePlus, path: "/debit-notes", module: "invoices" },
+    { label: "Të Ardhurat", icon: TrendingUp, path: "/revenues", module: "invoices" },
+    { label: "Faturat Blerëse", icon: Receipt, path: "/bills", module: "expenses" },
+  ];
+
+  const contactsItems = [
     { label: t('clients') || "Klientët", icon: Users, path: "/clients", module: "clients" },
     { label: t('suppliers') || "Furnitorët", icon: Truck, path: "/suppliers", module: "suppliers" },
+  ];
+
+  const financeItems = [
     { label: t('cashbox') || "Arka", icon: Wallet, path: "/cashbox", module: "cashbox" },
     { label: t('transfers') || "Transfertat", icon: ArrowRightLeft, path: "/transfers", module: "transfers" },
     { label: t('debtors') || "Borxhet", icon: AlertCircle, path: "/debtors", module: "debtors" },
     { label: t('expenses') || "Shpenzimet", icon: DollarSign, path: "/expenses", module: "expenses" },
-    { label: "Faturat Blerëse", icon: Receipt, path: "/bills", module: "expenses" },
-    { label: "Nota Kreditore", icon: FileMinus, path: "/credit-notes", module: "invoices" },
-    { label: "Nota Debitore", icon: FilePlus, path: "/debit-notes", module: "invoices" },
     { label: "Kërkesat Shpenzim", icon: ClipboardCheck, path: "/expense-requests", module: "expenses" },
-    { label: "Të Ardhurat", icon: TrendingUp, path: "/revenues", module: "invoices" },
     { label: t('cashHandover') || "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover", module: "cash_handover" },
+  ];
+
+  const productsItems = [
+    { label: t('products') || "Produktet", icon: Package, path: "/products", module: "products" },
+  ];
+
+  const projectsCrmItems = [
     { label: "Projektet", icon: FolderKanban, path: "/projects", module: "projects" },
     { label: "Oraret", icon: Timer, path: "/timesheets", module: "timesheets" },
     { label: "Bug-et", icon: Bug, path: "/bugs", module: "bugs" },
     { label: "Leads", icon: Target, path: "/leads", module: "leads" },
-    { label: "Shënimet", icon: StickyNote, path: "/notes", module: "notes" },
-    { label: "Njoftimet", icon: Megaphone, path: "/announcements", module: "announcements" },
     { label: "Propozimet", icon: Send, path: "/proposals", module: "proposals" },
     { label: "Marrëveshjet", icon: Handshake, path: "/agreements", module: "agreements" },
+    { label: t('reminders') || "Kujtesat", icon: Bell, path: "/reminders", module: "reminders" },
+    { label: "Shënimet", icon: StickyNote, path: "/notes", module: "notes" },
+    { label: "Njoftimet", icon: Megaphone, path: "/announcements", module: "announcements" },
     { label: "Dokumentet", icon: FolderOpen, path: "/company-documents", module: "company_documents" },
     { label: "Certifikatat", icon: Award, path: "/certificates", module: "certificates" },
   ];
@@ -115,17 +148,28 @@ export default function Sidebar() {
   ];
 
   const adminItems = [
+    { label: t('settings') || "Parametrat", icon: Settings, path: "/settings", module: "settings" },
     { label: t('activityLog') || "Activity Log", icon: Activity, path: "/activity-log", module: "activity_log" },
     { label: t('roleManagement') || "Role Management", icon: Shield, path: "/role-management", module: "users" },
   ];
 
-  const visibleMenuItems = menuItems.filter(item => fullAccess || canView(item.module));
+  const visibleSalesBilling = salesBillingItems.filter(item => fullAccess || canView(item.module));
+  const visibleContacts = contactsItems.filter(item => fullAccess || canView(item.module));
+  const visibleFinance = financeItems.filter(item => fullAccess || canView(item.module));
+  const visibleProducts = productsItems.filter(item => fullAccess || canView(item.module));
+  const visibleProjectsCrm = projectsCrmItems.filter(item => fullAccess || canView(item.module));
+  const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
   const visibleFleetItems = serviceFleetItems.filter(item => fullAccess || canView(item.module));
   const visibleWarehouseItems = warehouseItems.filter(item => fullAccess || canView(item.module));
-  const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
-  const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
   const visibleAccountingItems = accountingItems.filter(item => fullAccess || canView(item.module));
   const visiblePosItems = posItems.filter(item => fullAccess || canView(item.module));
+  const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
+  const visibleAdminItems = adminItems.filter(item => {
+    if (item.module === "settings") return fullAccess || canView("settings");
+    if (item.module === "activity_log") return isAdmin;
+    if (item.module === "users") return isAdmin;
+    return false;
+  });
 
   const renderLink = (item) => {
     const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
@@ -150,6 +194,45 @@ export default function Sidebar() {
     );
   };
 
+  const renderSection = (key, label, items, opts = {}) => {
+    if (items.length === 0) return null;
+    const isOpen = sectionOpen[key];
+    const labelColor = opts.amber ? "text-amber-400/60" : "text-white/30";
+    return (
+      <div className="mt-4">
+        {!collapsed && (
+          <button
+            onClick={() => toggleSection(key)}
+            data-testid={`section-toggle-${key}`}
+            className={cn(
+              "flex items-center w-full gap-1.5 px-3 mb-1 group",
+              "text-[10px] font-semibold uppercase tracking-widest",
+              labelColor
+            )}
+          >
+            <span className="flex-1 text-left">{label}</span>
+            <ChevronDown
+              className={cn(
+                "w-3 h-3 shrink-0 transition-transform duration-200",
+                isOpen ? "rotate-0" : "-rotate-90"
+              )}
+            />
+          </button>
+        )}
+        <div
+          className={cn(
+            "overflow-hidden transition-all duration-200",
+            isOpen ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          <div className="space-y-0.5">
+            {items.map(renderLink)}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <aside
       onMouseLeave={() => setCollapsed(true)}
@@ -171,99 +254,61 @@ export default function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 py-5 px-3 space-y-0.5 overflow-y-auto">
-        {!collapsed && visibleMenuItems.length > 0 && (
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3">{t('menu') || 'Menuja'}</p>
-        )}
-        {visibleMenuItems.map(renderLink)}
+      <nav className="flex-1 py-5 px-3 overflow-y-auto space-y-0.5">
+        {(fullAccess || canView("dashboard")) && renderLink(dashboardItem)}
 
-        {visibleHrItems.length > 0 && (
-          <>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Burimet Njerëzore</p>
-            )}
-            {visibleHrItems.map(renderLink)}
-          </>
-        )}
+        {renderSection("salesBilling", "Sales & Billing", visibleSalesBilling)}
+        {renderSection("contacts", "Contacts", visibleContacts)}
+        {renderSection("finance", "Finance", visibleFinance)}
+        {renderSection("products", "Products", visibleProducts)}
+        {renderSection("projectsCrm", "Projects & CRM", visibleProjectsCrm)}
+        {renderSection("hr", "Burimet Njerëzore", visibleHrItems)}
+        {renderSection("serviceFleet", "Shërbime & Flotë", visibleFleetItems)}
+        {renderSection("warehouse", "Magazina & Prokurimi", visibleWarehouseItems)}
+        {renderSection("accounting", "Kontabilitet", visibleAccountingItems)}
+        {renderSection("pos", "POS & Shitjet", visiblePosItems)}
+        {renderSection("performance", t('companyPerformance') || "Performanca e Kompanisë", visiblePerfItems)}
 
-        {visibleFleetItems.length > 0 && (
-          <>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Shërbime & Flotë</p>
-            )}
-            {visibleFleetItems.map(renderLink)}
-          </>
-        )}
-
-        {visibleWarehouseItems.length > 0 && (
-          <>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Magazina & Prokurimi</p>
-            )}
-            {visibleWarehouseItems.map(renderLink)}
-          </>
-        )}
-
-        {visibleAccountingItems.length > 0 && (
-          <>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Kontabilitet</p>
-            )}
-            {visibleAccountingItems.map(renderLink)}
-          </>
-        )}
-
-        {visiblePosItems.length > 0 && (
-          <>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">POS & Shitjet</p>
-            )}
-            {visiblePosItems.map(renderLink)}
-          </>
-        )}
-
-        {visiblePerfItems.length > 0 && (
-          <>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">{t('companyPerformance') || 'Performanca e Kompanisë'}</p>
-            )}
-            {visiblePerfItems.map(renderLink)}
-          </>
-        )}
-
-        {!collapsed && (
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">{t('other') || 'Të Tjera'}</p>
-        )}
-        {(fullAccess || canView('settings')) && renderLink({ label: t('settings') || "Parametrat", icon: Settings, path: "/settings", module: "settings" })}
-
-        {isAdmin && (
-          <>
-            {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">{t('administration') || 'Administration'}</p>
-            )}
-            {adminItems.map(renderLink)}
-          </>
-        )}
+        {visibleAdminItems.length > 0 && renderSection("administration", t('administration') || "Administration", visibleAdminItems)}
 
         {user?.role === "superadmin" && (
-          <>
+          <div className="mt-4">
             {!collapsed && (
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-400/60 px-3 mb-3 mt-6">Super Admin</p>
+              <button
+                onClick={() => toggleSection("superAdmin")}
+                data-testid="section-toggle-superAdmin"
+                className="flex items-center w-full gap-1.5 px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-amber-400/60"
+              >
+                <span className="flex-1 text-left">Super Admin</span>
+                <ChevronDown
+                  className={cn(
+                    "w-3 h-3 shrink-0 transition-transform duration-200",
+                    sectionOpen.superAdmin ? "rotate-0" : "-rotate-90"
+                  )}
+                />
+              </button>
             )}
-            <Link
-              to="/super-admin"
-              data-testid="nav-link-super-admin"
+            <div
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                location.pathname === '/super-admin'
-                  ? "bg-amber-500/20 text-amber-300 shadow-lg"
-                  : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300"
+                "overflow-hidden transition-all duration-200",
+                sectionOpen.superAdmin ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0"
               )}
             >
-              <ShieldCheck className="w-5 h-5 shrink-0" />
-              {!collapsed && <span className="whitespace-nowrap">Tenantët</span>}
-            </Link>
-          </>
+              <Link
+                to="/super-admin"
+                data-testid="nav-link-super-admin"
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                  location.pathname === '/super-admin'
+                    ? "bg-amber-500/20 text-amber-300 shadow-lg"
+                    : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300"
+                )}
+              >
+                <ShieldCheck className="w-5 h-5 shrink-0" />
+                {!collapsed && <span className="whitespace-nowrap">Tenantët</span>}
+              </Link>
+            </div>
+          </div>
         )}
       </nav>
 
