@@ -543,6 +543,11 @@ const entityTableMap = {
   StockMovement: 'stock_movements',
   PurchaseOrder: 'purchase_orders',
   StockTransfer: 'stock_transfers',
+  Proposal: 'proposals',
+  Agreement: 'agreements',
+  AgreementAnnex: 'agreement_annexes',
+  CompanyDocument: 'company_documents',
+  Certificate: 'certificates',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);
@@ -599,6 +604,25 @@ app.get('/api/portal/client/:token', async (req, res) => {
     const invoices = await pool.query('SELECT * FROM invoices WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
     const payments = await pool.query('SELECT * FROM payments WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
     res.json({ client: client.rows[0], invoices: invoices.rows, payments: payments.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============ PUBLIC PROPOSAL VIEW ============
+
+app.get('/api/proposals/public/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const result = await pool.query('SELECT id, proposal_number, title, description, client_name, client_email, items, subtotal, discount_type, discount_value, discount_amount, tax_amount, total, status, valid_until, template, color_theme, notes, terms, viewed_at, accepted_at, rejected_at, rejection_reason, created_at FROM proposals WHERE token = $1', [token]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Proposal not found' });
+    const proposal = result.rows[0];
+    if (!proposal.viewed_at && (proposal.status === 'sent')) {
+      await pool.query('UPDATE proposals SET viewed_at = NOW(), status = \'viewed\', updated_at = NOW() WHERE id = $1', [proposal.id]);
+      proposal.status = 'viewed';
+      proposal.viewed_at = new Date();
+    }
+    res.json(proposal);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -670,6 +694,36 @@ app.post('/api/merge/suppliers', requireAuth, async (req, res) => {
     }
     const result = await pool.query('SELECT * FROM suppliers WHERE id = $1', [primary_id]);
     res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/proposals/public/:token/respond', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { action, rejection_reason } = req.body;
+    const result = await pool.query('SELECT * FROM proposals WHERE token = $1', [token]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Proposal not found' });
+    const proposal = result.rows[0];
+    if (proposal.status !== 'sent' && proposal.status !== 'viewed') {
+      return res.status(400).json({ error: 'Proposal cannot be responded to in its current status' });
+    }
+    if (proposal.valid_until && new Date(proposal.valid_until) < new Date()) {
+      return res.status(400).json({ error: 'Proposal has expired' });
+    }
+    if (action === 'accept') {
+      await pool.query('UPDATE proposals SET status = $1, accepted_at = NOW(), updated_at = NOW() WHERE id = $2', ['accepted', proposal.id]);
+    } else if (action === 'reject') {
+      await pool.query('UPDATE proposals SET status = $1, rejected_at = NOW(), rejection_reason = $2, updated_at = NOW() WHERE id = $3', ['rejected', rejection_reason || null, proposal.id]);
+    } else {
+      return res.status(400).json({ error: 'Invalid action' });
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

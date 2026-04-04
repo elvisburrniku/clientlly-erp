@@ -843,6 +843,121 @@ CREATE TABLE IF NOT EXISTS expense_requests (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- ============ PROPOSALS, AGREEMENTS & DOCUMENTS MODULE ============
+
+-- Proposals
+CREATE TABLE IF NOT EXISTS proposals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  proposal_number VARCHAR(100) UNIQUE,
+  client_id UUID,
+  client_name VARCHAR(255),
+  client_email VARCHAR(255),
+  client_phone VARCHAR(100),
+  client_address VARCHAR(500),
+  client_nipt VARCHAR(100),
+  title VARCHAR(500),
+  description TEXT,
+  items JSONB DEFAULT '[]',
+  subtotal DECIMAL(15,2) DEFAULT 0,
+  discount_type VARCHAR(50) DEFAULT 'none',
+  discount_value DECIMAL(15,2) DEFAULT 0,
+  discount_amount DECIMAL(15,2) DEFAULT 0,
+  tax_amount DECIMAL(15,2) DEFAULT 0,
+  total DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'draft',
+  valid_until DATE,
+  validity_days INTEGER DEFAULT 30,
+  template VARCHAR(50) DEFAULT 'classic',
+  color_theme VARCHAR(50) DEFAULT '#4338ca',
+  notes TEXT,
+  terms TEXT,
+  token VARCHAR(255) UNIQUE,
+  viewed_at TIMESTAMP,
+  accepted_at TIMESTAMP,
+  rejected_at TIMESTAMP,
+  rejection_reason TEXT,
+  converted_invoice_id UUID,
+  created_by UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Agreements
+CREATE TABLE IF NOT EXISTS agreements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  agreement_number VARCHAR(100),
+  client_id UUID,
+  client_name VARCHAR(255),
+  title VARCHAR(500),
+  description TEXT,
+  start_date DATE,
+  end_date DATE,
+  renewal_date DATE,
+  value DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'active',
+  terms TEXT,
+  payment_terms TEXT,
+  auto_renew BOOLEAN DEFAULT false,
+  notes TEXT,
+  created_by UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Agreement Annexes
+CREATE TABLE IF NOT EXISTS agreement_annexes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  agreement_id UUID,
+  title VARCHAR(500),
+  description TEXT,
+  annex_number VARCHAR(100),
+  annex_date DATE,
+  file_url TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Company Documents
+CREATE TABLE IF NOT EXISTS company_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  title VARCHAR(500) NOT NULL,
+  category VARCHAR(100),
+  description TEXT,
+  file_url TEXT,
+  file_name VARCHAR(500),
+  version INTEGER DEFAULT 1,
+  status VARCHAR(50) DEFAULT 'active',
+  uploaded_by UUID,
+  uploaded_by_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Certificates
+CREATE TABLE IF NOT EXISTS certificates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  certificate_number VARCHAR(100),
+  client_id UUID,
+  client_name VARCHAR(255),
+  client_email VARCHAR(255),
+  title VARCHAR(500),
+  description TEXT,
+  issue_date DATE,
+  expiry_date DATE,
+  status VARCHAR(50) DEFAULT 'active',
+  template VARCHAR(50) DEFAULT 'standard',
+  notes TEXT,
+  sent_at TIMESTAMP,
+  created_by UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- Bugs
 CREATE TABLE IF NOT EXISTS bugs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -7,7 +7,8 @@ import {
   FileMinus, FilePlus, Receipt, ClipboardCheck, TrendingUp,
   Target, StickyNote, Megaphone,
   HardDrive, Car, Wrench, Fuel, PieChart, Settings2,
-  Warehouse, ArrowDownUp, ShoppingCart, ArrowLeftRight as TransferIcon, AlertOctagon, QrCode
+  Warehouse, ArrowDownUp, ShoppingCart, ArrowLeftRight as TransferIcon, AlertOctagon, QrCode,
+  Send, Handshake, FolderOpen, Award
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,10 @@ export default function Sidebar() {
     { label: "Leads", icon: Target, path: "/leads", module: "leads" },
     { label: "Shënimet", icon: StickyNote, path: "/notes", module: "notes" },
     { label: "Njoftimet", icon: Megaphone, path: "/announcements", module: "announcements" },
+    { label: "Propozimet", icon: Send, path: "/proposals", module: "proposals" },
+    { label: "Marrëveshjet", icon: Handshake, path: "/agreements", module: "agreements" },
+    { label: "Dokumentet", icon: FolderOpen, path: "/company-documents", module: "company_documents" },
+    { label: "Certifikatat", icon: Award, path: "/certificates", module: "certificates" },
   ];
 
   const hrItems = [

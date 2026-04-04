@@ -36,7 +36,16 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 
 ## Entities (80 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, Warehouse, WarehouseLocation, StockMovement, PurchaseOrder, StockTransfer, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue, ServiceAppointment, AssetType, Asset, Vehicle, VehicleInsurance, VehicleRegistration, Driver, VehicleReservation, VehicleMaintenance, FuelLog, CustomField
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, Warehouse, WarehouseLocation, StockMovement, PurchaseOrder, StockTransfer, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue, ServiceAppointment, AssetType, Asset, Vehicle, VehicleInsurance, VehicleRegistration, Driver, VehicleReservation, VehicleMaintenance, FuelLog, CustomField, Proposal, Agreement, AgreementAnnex, CompanyDocument, Certificate
+
+## Proposals, Agreements & Documents Module
+
+- **Proposals** (`/proposals`): Create proposals with line items, status workflow (draft→sent→viewed→accepted→rejected→converted), duplicate, convert to invoice, PDF generation with color themes, public client view via token link (`/proposal/:token`)
+- **Agreements** (`/agreements`): Service agreements with terms, annexes, renewal date alerts, automatic expiry detection, PDF export
+- **Company Documents** (`/company-documents`): Document upload with categories, archive/restore, versioning
+- **Certificates** (`/certificates`): Certificate generation with PDF output (landscape A4), email sending, status tracking
+- **Public Proposal View** (`/proposal/:token`): Unauthenticated page for clients to view and accept/reject proposals
+- **API endpoints**: `/api/proposals/public/:token` (GET), `/api/proposals/public/:token/respond` (POST) for public proposal access
 
 ## Roles & Permissions
 

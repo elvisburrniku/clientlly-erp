@@ -75,6 +75,11 @@ import StockAlerts from './pages/StockAlerts';
 import StockValuation from './pages/StockValuation';
 import ProcurementAnalytics from './pages/ProcurementAnalytics';
 import BarcodeLabels from './pages/BarcodeLabels';
+import Proposals from './pages/Proposals';
+import ProposalPublic from './pages/ProposalPublic';
+import Agreements from './pages/Agreements';
+import CompanyDocuments from './pages/CompanyDocuments';
+import Certificates from './pages/Certificates';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -167,6 +172,10 @@ const AuthenticatedApp = () => {
           <Route path="/stock-valuation" element={<PermissionGuard module="inventory"><StockValuation /></PermissionGuard>} />
           <Route path="/procurement-analytics" element={<PermissionGuard module="inventory"><ProcurementAnalytics /></PermissionGuard>} />
           <Route path="/barcode-labels" element={<PermissionGuard module="inventory"><BarcodeLabels /></PermissionGuard>} />
+          <Route path="/proposals" element={<PermissionGuard module="proposals"><Proposals /></PermissionGuard>} />
+          <Route path="/agreements" element={<PermissionGuard module="agreements"><Agreements /></PermissionGuard>} />
+          <Route path="/company-documents" element={<PermissionGuard module="company_documents"><CompanyDocuments /></PermissionGuard>} />
+          <Route path="/certificates" element={<PermissionGuard module="certificates"><Certificates /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>
@@ -184,6 +193,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/portal/client/:token" element={<ClientPortalPublic />} />
             <Route path="/portal/vendor/:token" element={<VendorPortal />} />
+            <Route path="/proposal/:token" element={<ProposalPublic />} />
             <Route path="/*" element={
               <AuthProvider>
                 <AuthenticatedApp />

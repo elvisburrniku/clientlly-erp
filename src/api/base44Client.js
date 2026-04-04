@@ -156,6 +156,11 @@ export const base44 = {
     StockMovement: createEntityClient('StockMovement'),
     PurchaseOrder: createEntityClient('PurchaseOrder'),
     StockTransfer: createEntityClient('StockTransfer'),
+    Proposal: createEntityClient('Proposal'),
+    Agreement: createEntityClient('Agreement'),
+    AgreementAnnex: createEntityClient('AgreementAnnex'),
+    CompanyDocument: createEntityClient('CompanyDocument'),
+    Certificate: createEntityClient('Certificate'),
   },
 
   portal: {
