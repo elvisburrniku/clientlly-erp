@@ -94,6 +94,7 @@ import ATKSalesBook from './pages/ATKSalesBook';
 import ATKPurchaseBook from './pages/ATKPurchaseBook';
 import TaxSummary from './pages/TaxSummary';
 import FinancialCards from './pages/FinancialCards';
+import Payments from './pages/Payments';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -199,6 +200,7 @@ const AuthenticatedApp = () => {
           <Route path="/atk-purchase-book" element={<PermissionGuard module="accounting"><ATKPurchaseBook /></PermissionGuard>} />
           <Route path="/tax-summary" element={<PermissionGuard module="accounting"><TaxSummary /></PermissionGuard>} />
           <Route path="/financial-cards" element={<PermissionGuard module="accounting"><FinancialCards /></PermissionGuard>} />
+          <Route path="/payments" element={<PermissionGuard module="invoices"><Payments /></PermissionGuard>} />
           <Route path="/pos" element={<PermissionGuard module="pos"><POSRegister /></PermissionGuard>} />
           <Route path="/pos-sessions" element={<PermissionGuard module="pos"><POSSessions /></PermissionGuard>} />
           <Route path="/sales-orders" element={<PermissionGuard module="pos"><SalesOrders /></PermissionGuard>} />

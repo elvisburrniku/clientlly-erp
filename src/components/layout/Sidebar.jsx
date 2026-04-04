@@ -27,7 +27,8 @@ export default function Sidebar() {
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
 
   const [sectionOpen, setSectionOpen] = useState({
-    salesBilling: true,
+    sales: true,
+    billing: true,
     contacts: true,
     finance: true,
     products: true,
@@ -48,13 +49,17 @@ export default function Sidebar() {
 
   const dashboardItem = { label: t('dashboard') || "Dashboard", icon: LayoutDashboard, path: "/", module: "dashboard" };
 
-  const salesBillingItems = [
-    { label: t('invoices') || "Faturat", icon: FileText, path: "/invoices", module: "invoices" },
+  const salesItems = [
     { label: "Ofertat", icon: FileText, path: "/quotes", module: "quotes" },
+    { label: "Të Ardhurat", icon: TrendingUp, path: "/revenues", module: "invoices" },
+  ];
+
+  const billingItems = [
+    { label: t('invoices') || "Faturat", icon: FileText, path: "/invoices", module: "invoices" },
     { label: "Nota Kreditore", icon: FileMinus, path: "/credit-notes", module: "invoices" },
     { label: "Nota Debitore", icon: FilePlus, path: "/debit-notes", module: "invoices" },
-    { label: "Të Ardhurat", icon: TrendingUp, path: "/revenues", module: "invoices" },
     { label: "Faturat Blerëse", icon: Receipt, path: "/bills", module: "expenses" },
+    { label: "Pagesat", icon: CreditCard, path: "/payments", module: "invoices" },
   ];
 
   const contactsItems = [
@@ -153,7 +158,8 @@ export default function Sidebar() {
     { label: t('roleManagement') || "Role Management", icon: Shield, path: "/role-management", module: "users" },
   ];
 
-  const visibleSalesBilling = salesBillingItems.filter(item => fullAccess || canView(item.module));
+  const visibleSales = salesItems.filter(item => fullAccess || canView(item.module));
+  const visibleBilling = billingItems.filter(item => fullAccess || canView(item.module));
   const visibleContacts = contactsItems.filter(item => fullAccess || canView(item.module));
   const visibleFinance = financeItems.filter(item => fullAccess || canView(item.module));
   const visibleProducts = productsItems.filter(item => fullAccess || canView(item.module));
@@ -257,7 +263,8 @@ export default function Sidebar() {
       <nav className="flex-1 py-5 px-3 overflow-y-auto space-y-0.5">
         {(fullAccess || canView("dashboard")) && renderLink(dashboardItem)}
 
-        {renderSection("salesBilling", "Sales & Billing", visibleSalesBilling)}
+        {renderSection("sales", "Shitjet", visibleSales)}
+        {renderSection("billing", "Faturimi", visibleBilling)}
         {renderSection("contacts", "Contacts", visibleContacts)}
         {renderSection("finance", "Finance", visibleFinance)}
         {renderSection("products", "Products", visibleProducts)}
