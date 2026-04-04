@@ -15,6 +15,8 @@ export function PermissionsProvider({ children }) {
       return;
     }
 
+    const isAdminRole = user.role === 'admin' || user.role === 'superadmin';
+
     async function fetchPermissions() {
       try {
         const res = await fetch('/api/permissions/me', { credentials: 'include' });
@@ -22,8 +24,16 @@ export function PermissionsProvider({ children }) {
           const data = await res.json();
           setPermissions(data.permissions);
           setFullAccess(data.fullAccess);
+        } else {
+          if (isAdminRole) {
+            setFullAccess(true);
+          }
         }
-      } catch {} finally {
+      } catch {
+        if (isAdminRole) {
+          setFullAccess(true);
+        }
+      } finally {
         setLoading(false);
       }
     }
