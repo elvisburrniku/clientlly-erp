@@ -449,10 +449,10 @@ export default function Debtors() {
                        <button onClick={() => navigate(`/debtor-detail/${encodeURIComponent(inv.client_name)}`)} className="text-sm font-bold text-primary hover:underline">{inv.client_name}</button>
                      </td>
                      <td className="px-6 py-4 text-sm font-medium text-muted-foreground">{inv.number}</td>
-                     <td className="px-6 py-4 text-sm font-semibold">€{inv.amount?.toFixed(2) || '0.00'}</td>
-                     <td className="px-6 py-4 text-sm text-success">€{(inv.status === 'paid' ? inv.amount : 0).toFixed(2)}</td>
+                     <td className="px-6 py-4 text-sm font-semibold">€{(parseFloat(inv.amount) || 0).toFixed(2)}</td>
+                     <td className="px-6 py-4 text-sm text-success">€{(parseFloat(inv.status === 'paid' ? inv.amount : 0) || 0).toFixed(2)}</td>
                      <td className="px-6 py-4">
-                       <span className="text-sm font-bold text-destructive">€{(inv.status !== 'paid' ? inv.amount : 0).toFixed(2)}</span>
+                       <span className="text-sm font-bold text-destructive">€{(parseFloat(inv.status !== 'paid' ? inv.amount : 0) || 0).toFixed(2)}</span>
                      </td>
                      <td className="px-6 py-4 flex items-center justify-between">
                        <span>

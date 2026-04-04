@@ -1,0 +1,327 @@
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Project/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadData @ Projects.jsx:69
+(anonymous) @ Projects.jsx:61
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Project/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadData @ Timesheets.jsx:45
+(anonymous) @ Timesheets.jsx:36
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Timesheet/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadData @ Timesheets.jsx:44
+(anonymous) @ Timesheets.jsx:36
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Bug/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadData @ Bugs.jsx:79
+(anonymous) @ Bugs.jsx:71
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Project/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadData @ Bugs.jsx:80
+(anonymous) @ Bugs.jsx:71
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Lead/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadLeads @ Leads.jsx:65
+(anonymous) @ Leads.jsx:59
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+installHook.js:1 Error: Not Found
+    at apiFetch (base44Client.js:13:17)
+    at async loadLeads (Leads.jsx:65:20)
+overrideMethod @ installHook.js:1
+loadLeads @ Leads.jsx:68
+await in loadLeads
+(anonymous) @ Leads.jsx:59
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  GET https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Proposal?_sort=-created_at&_limit=200 404 (Not Found)
+apiFetch @ base44Client.js:4
+list @ base44Client.js:29
+loadData @ Proposals.jsx:79
+(anonymous) @ Proposals.jsx:75
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:13 Uncaught (in promise) Error: API route not found
+    at apiFetch (base44Client.js:13:17)
+    at async Promise.all (/index 0)
+    at async loadData (Proposals.jsx:78:20)
+apiFetch @ base44Client.js:13
+await in apiFetch
+list @ base44Client.js:29
+loadData @ Proposals.jsx:79
+(anonymous) @ Proposals.jsx:75
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  GET https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Agreement?_sort=-created_at&_limit=200 404 (Not Found)
+apiFetch @ base44Client.js:4
+list @ base44Client.js:29
+loadData @ Agreements.jsx:57
+(anonymous) @ Agreements.jsx:53
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:13 Uncaught (in promise) Error: API route not found
+    at apiFetch (base44Client.js:13:17)
+    at async Promise.all (/index 0)
+    at async loadData (Agreements.jsx:56:20)
+apiFetch @ base44Client.js:13
+await in apiFetch
+list @ base44Client.js:29
+loadData @ Agreements.jsx:57
+(anonymous) @ Agreements.jsx:53
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Note/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadNotes @ Notes.jsx:51
+(anonymous) @ Notes.jsx:42
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+installHook.js:1 Error: Not Found
+    at apiFetch (base44Client.js:13:17)
+    at async loadNotes (Notes.jsx:51:20)
+overrideMethod @ installHook.js:1
+loadNotes @ Notes.jsx:54
+await in loadNotes
+(anonymous) @ Notes.jsx:42
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  POST https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Announcement/filter 404 (Not Found)
+apiFetch @ base44Client.js:4
+filter @ base44Client.js:37
+loadData @ Announcements.jsx:38
+(anonymous) @ Announcements.jsx:32
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+installHook.js:1 Error: Not Found
+    at apiFetch (base44Client.js:13:17)
+    at async loadData (Announcements.jsx:38:20)
+overrideMethod @ installHook.js:1
+loadData @ Announcements.jsx:41
+await in loadData
+(anonymous) @ Announcements.jsx:32
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  GET https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/CompanyDocument?_sort=-created_at&_limit=500 404 (Not Found)
+apiFetch @ base44Client.js:4
+list @ base44Client.js:29
+loadData @ CompanyDocuments.jsx:42
+(anonymous) @ CompanyDocuments.jsx:39
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:13 Uncaught (in promise) Error: API route not found
+    at apiFetch (base44Client.js:13:17)
+    at async loadData (CompanyDocuments.jsx:42:15)
+apiFetch @ base44Client.js:13
+await in apiFetch
+list @ base44Client.js:29
+loadData @ CompanyDocuments.jsx:42
+(anonymous) @ CompanyDocuments.jsx:39
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:4  GET https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/api/entities/Certificate?_sort=-created_at&_limit=200 404 (Not Found)
+apiFetch @ base44Client.js:4
+list @ base44Client.js:29
+loadData @ Certificates.jsx:49
+(anonymous) @ Certificates.jsx:45
+commitHookEffectListMount @ chunk-GSKIDCVT.js?v=dbd73fc3:16963
+commitPassiveMountOnFiber @ chunk-GSKIDCVT.js?v=dbd73fc3:18206
+commitPassiveMountEffects_complete @ chunk-GSKIDCVT.js?v=dbd73fc3:18179
+commitPassiveMountEffects_begin @ chunk-GSKIDCVT.js?v=dbd73fc3:18169
+commitPassiveMountEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:18159
+flushPassiveEffectsImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19543
+flushPassiveEffects @ chunk-GSKIDCVT.js?v=dbd73fc3:19500
+commitRootImpl @ chunk-GSKIDCVT.js?v=dbd73fc3:19469
+commitRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:19330
+performSyncWorkOnRoot @ chunk-GSKIDCVT.js?v=dbd73fc3:18948
+flushSyncCallbacks @ chunk-GSKIDCVT.js?v=dbd73fc3:9166
+(anonymous) @ chunk-GSKIDCVT.js?v=dbd73fc3:18677
+base44Client.js:13 Uncaught (in promise) Error: API route not found
+    at apiFetch (base44Client.js:13:17)
+    at async Promise.all (/index 0)
+    at async loadData (Certificates.jsx:48:21)

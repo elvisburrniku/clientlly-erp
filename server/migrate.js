@@ -1,4 +1,12 @@
 import pool from './db.js';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf8');
 
 const migration = `
 -- Roles & Permissions
@@ -500,6 +508,7 @@ ON CONFLICT (token) DO NOTHING;
 
 async function runMigration() {
   try {
+    await pool.query(schema);
     await pool.query(migration);
     console.log('Migration completed successfully');
   } catch (err) {

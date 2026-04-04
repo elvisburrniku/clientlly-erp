@@ -1,0 +1,42 @@
+
+﻿
+Debtors.jsx:452 Uncaught TypeError: inv.amount?.toFixed is not a function
+    at Debtors.jsx:452:84
+    at Array.map (<anonymous>)
+    at Debtors (Debtors.jsx:443:34)
+Debtors.jsx:452 Uncaught TypeError: inv.amount?.toFixed is not a function
+    at Debtors.jsx:452:84
+    at Array.map (<anonymous>)
+    at Debtors (Debtors.jsx:443:34)
+installHook.js:1 The above error occurred in the <Debtors> component:
+
+    at Debtors (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/pages/Debtors.jsx?t=1775330700920:31:20)
+    at PermissionGuard (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/components/PermissionGuard.jsx?t=1775331028077:22:43)
+    at RenderedRoute (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:4131:5)
+    at Outlet (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:4537:26)
+    at div
+    at main
+    at div
+    at div
+    at TenantGate (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/components/layout/AppLayout.jsx?t=1775334598604:26:56)
+    at TenantProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/lib/TenantContext.jsx?t=1775330700920:22:34)
+    at AppLayout
+    at RenderedRoute (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:4131:5)
+    at Routes (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:4601:5)
+    at PermissionsProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/lib/usePermissions.jsx?t=1775331028077:21:39)
+    at AuthenticatedApp (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/App.jsx?t=1775334598604:117:82)
+    at AuthProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/lib/AuthContext.jsx?t=1775330700920:21:32)
+    at RenderedRoute (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:4131:5)
+    at Routes (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:4601:5)
+    at Router (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:4544:15)
+    at BrowserRouter (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=dbd73fc3:5290:5)
+    at QueryClientProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=dbd73fc3:3168:3)
+    at LanguageProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/lib/useLanguage.jsx?t=1775328093942:21:36)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-GSKIDCVT.js?v=dbd73fc3:19466 Uncaught TypeError: inv.amount?.toFixed is not a function
+    at Debtors.jsx:452:84
+    at Array.map (<anonymous>)
+    at Debtors (Debtors.jsx:443:34)

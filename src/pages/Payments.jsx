@@ -251,7 +251,7 @@ export default function Payments() {
                   <td className="px-4 py-3 font-medium">{p.invoice_number || "—"}</td>
                   <td className="px-4 py-3">{p.client_name || "—"}</td>
                   <td className="px-4 py-3 text-right font-semibold text-emerald-600">
-                    €{(p.amount || 0).toFixed(2)}
+                    €{(parseFloat(p.amount) || 0).toFixed(2)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">

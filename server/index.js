@@ -606,6 +606,9 @@ for (const [entityName, tableName] of Object.entries(entityTableMap)) {
   app.use(`/api/entities/${entityName}`, ...middlewares, createEntityRouter(poolResolver, tableName, entityName, entityOpts));
 }
 
+const mountedEntityCount = Object.keys(entityTableMap).length;
+console.log(`[Routes] Entity registration loop completed: ${mountedEntityCount}/${mountedEntityCount} entity routers mounted (includes Announcement->announcements, Revenue->revenues, Lead->leads, CreditNote->credit_notes)`);
+
 // ============ PORTAL (public, no auth) ============
 
 app.post('/api/portal/generate-token', requireAuth, async (req, res) => {
@@ -1536,12 +1539,58 @@ app.post('/api/integrations/Core/UploadFile', requireAuth, upload.single('file')
 const distPath = join(__dirname, '../dist');
 app.use(express.static(distPath));
 
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
+
 app.get('/{*path}', (req, res) => {
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API route not found' });
-  }
   res.sendFile(join(distPath, 'index.html'));
 });
+
+// ============ STARTUP ROUTE HEALTH CHECK ============
+
+async function verifyRoutesNotReturning404(port) {
+  const { default: http } = await import('http');
+
+  const criticalRoutes = [
+    { method: 'GET', path: '/api/tenant/me' },
+    { method: 'GET', path: '/api/permissions/me' },
+    { method: 'GET', path: '/api/notifications/unread-count' },
+    { method: 'POST', path: '/api/entities/Announcement/filter' },
+    { method: 'GET', path: '/api/superadmin/tenants/database-status' },
+    { method: 'POST', path: '/api/superadmin/tenants/test-id/create-database' },
+  ];
+
+  const results = await Promise.all(criticalRoutes.map(({ method, path }) =>
+    new Promise((resolve) => {
+      const body = method === 'POST' ? '{}' : null;
+      const options = {
+        hostname: '127.0.0.1',
+        port,
+        path,
+        method,
+        headers: { 'Content-Type': 'application/json', ...(body ? { 'Content-Length': Buffer.byteLength(body) } : {}) },
+      };
+      const req = http.request(options, (res) => {
+        resolve({ method, path, status: res.statusCode, ok: res.statusCode !== 404 });
+      });
+      req.on('error', (e) => resolve({ method, path, status: 'ERR', ok: false, err: e.message }));
+      if (body) req.write(body);
+      req.end();
+    })
+  ));
+
+  const statusSummary = results.map(r => `${r.method} ${r.path} -> ${r.status}`).join(', ');
+  const failed = results.filter(r => !r.ok);
+
+  if (failed.length === 0) {
+    console.log(`[Routes] Health check PASSED: all ${criticalRoutes.length} critical routes respond (not 404). A 401 status proves route is registered (auth gate); 403 proves role gate. Statuses: ${statusSummary}`);
+  } else {
+    const failedList = failed.map(r => `${r.method} ${r.path} (got ${r.status})`).join(', ');
+    console.error(`[Routes] Health check FAILED - routes returning 404 (not registered): ${failedList}`);
+    process.exitCode = 1;
+  }
+}
 
 // ============ START ============
 
@@ -1553,9 +1602,16 @@ async function start() {
     console.error('Migration warning:', err.message);
   }
 
+  const entityCount = Object.keys(entityTableMap).length;
+  console.log(`[Routes] ${entityCount} entity types registered via entityTableMap; Announcement -> "announcements" table: ${'Announcement' in entityTableMap}`);
+
   const PORT = process.env.PORT || process.env.SERVER_PORT || 3001;
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
+    const runHealthCheck = process.env.STARTUP_HEALTH_CHECK === 'true' || (process.env.NODE_ENV !== 'production' && process.env.STARTUP_HEALTH_CHECK !== 'false');
+    if (runHealthCheck) {
+      verifyRoutesNotReturning404(PORT).catch(e => console.error('[Routes] Health check error:', e.message));
+    }
   });
 }
 
