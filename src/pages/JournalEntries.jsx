@@ -27,6 +27,7 @@ export default function JournalEntries() {
   const [viewLines, setViewLines] = useState([]);
   const [viewOpen, setViewOpen] = useState(false);
   const [filterType, setFilterType] = useState('all');
+  const [createdEntryNumber, setCreatedEntryNumber] = useState(null);
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -61,6 +62,7 @@ export default function JournalEntries() {
   };
 
   const openCreate = () => {
+    setCreatedEntryNumber(null);
     setForm({
       entry_date: moment().format('YYYY-MM-DD'),
       description: '',
@@ -132,8 +134,8 @@ export default function JournalEntries() {
       if (!res.ok) {
         throw new Error(data.error);
       }
-      toast({ title: `Regjistrimi u krijua: ${data.entry_number}`, description: data.description || '' });
-      setDialogOpen(false);
+      setCreatedEntryNumber(data.entry_number);
+      toast({ title: `Regjistrimi u krijua: ${data.entry_number}` });
       await loadData();
     } catch (err) {
       toast({ title: 'Gabim', description: err.message, variant: 'destructive' });
@@ -294,11 +296,19 @@ export default function JournalEntries() {
         </table>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setCreatedEntryNumber(null); }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Regjistrim i Ri Kontabël</DialogTitle>
           </DialogHeader>
+          {createdEntryNumber && (
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
+              <div>
+                <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-0.5">Numri i Regjistrimit (vetëm lexim)</p>
+                <p className="text-lg font-mono font-bold text-green-800" data-testid="text-created-entry-number">{createdEntryNumber}</p>
+              </div>
+            </div>
+          )}
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
               <div>
@@ -376,8 +386,13 @@ export default function JournalEntries() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
-            <Button onClick={handleSave} disabled={!isBalanced || totalDebit === 0} data-testid="button-save-entry">{form.status === 'draft' ? 'Ruaj si Draft' : 'Posto Regjistrimin'}</Button>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setCreatedEntryNumber(null); }}>{createdEntryNumber ? 'Mbyll' : 'Anulo'}</Button>
+            {!createdEntryNumber && (
+              <Button onClick={handleSave} disabled={!isBalanced || totalDebit === 0} data-testid="button-save-entry">{form.status === 'draft' ? 'Ruaj si Draft' : 'Posto Regjistrimin'}</Button>
+            )}
+            {createdEntryNumber && (
+              <Button onClick={() => { setCreatedEntryNumber(null); openCreate(); }} data-testid="button-new-after-save">Regjistrim i Ri</Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

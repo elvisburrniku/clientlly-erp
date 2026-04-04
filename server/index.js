@@ -957,17 +957,9 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
   try {
     const tenantId = req.session.user.tenant_id;
     const tPool = await getPoolForReq(req);
-    const existing = await tPool.query('SELECT COUNT(*) FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]);
-    if (parseInt(existing.rows[0].count) > 0) {
-      return res.json({ message: 'Accounts already seeded', count: parseInt(existing.rows[0].count) });
-    }
 
-    const client = await tPool.connect();
-    try {
-      await client.query('BEGIN');
-
-      // 1. Seed account groups (hierarchical)
-      const groups = [
+    // Data definitions (used for both fresh seed and idempotent upgrade)
+    const groups = [
         { name: '1 - Mjetet', name_en: 'Assets', start: '1000', end: '1999', account_type: 'asset', sequence: 10, parentKey: null },
         { name: '11 - Arka (Kasa)', name_en: 'Cash', start: '1100', end: '1199', account_type: 'asset', sequence: 11, parentKey: '1000' },
         { name: '12 - Banka', name_en: 'Bank', start: '1200', end: '1299', account_type: 'asset', sequence: 12, parentKey: '1000' },
@@ -1006,20 +998,18 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
         { name: '60 - Shpenzime Interesi', name_en: 'Interest Expense', start: '6000', end: '6099', account_type: 'expense', sequence: 60, parentKey: '5000' },
       ];
 
-      // Insert root groups first, then child groups
-      const groupIdMap = {}; // parentKey (start code) -> inserted UUID
-      for (const g of groups) {
-        const parentId = g.parentKey ? groupIdMap[g.parentKey] : null;
-        const r = await client.query(
-          `INSERT INTO account_groups (tenant_id, name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
-          [tenantId, g.name, g.name_en, g.start, g.end, g.account_type, g.sequence, parentId]
-        );
-        groupIdMap[g.start] = r.rows[0].id;
-      }
+    // Check what's already seeded (idempotent / upgrade-safe)
+    const [gRes, aRes, jRes] = await Promise.all([
+      tPool.query('SELECT COUNT(*) FROM account_groups WHERE tenant_id = $1', [tenantId]),
+      tPool.query('SELECT COUNT(*) FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]),
+      tPool.query('SELECT COUNT(*) FROM journals WHERE tenant_id = $1', [tenantId]),
+    ]);
+    const hasGroups = parseInt(gRes.rows[0].count) > 0;
+    const hasAccounts = parseInt(aRes.rows[0].count) > 0;
+    const hasJournals = parseInt(jRes.rows[0].count) > 0;
 
-      // 2. Seed accounts with enhanced fields
-      const accounts = [
+    // Account definitions
+    const accounts = [
         { code: '1000', name: 'Mjetet', name_en: 'Assets', account_type: 'asset', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
         { code: '1100', name: 'Arka (Cash)', name_en: 'Cash', account_type: 'asset', normal_balance: 'debit', account_subtype: 'liquidity', reconcile: false },
         { code: '1200', name: 'Banka', name_en: 'Bank', account_type: 'asset', normal_balance: 'debit', account_subtype: 'liquidity', reconcile: false },
@@ -1058,49 +1048,103 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
         { code: '6000', name: 'Shpenzime Interesi', name_en: 'Interest Expense', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
       ];
 
-      const insertedAccounts = {};
-      for (const acc of accounts) {
-        // Find group using range logic
-        let groupId = null;
-        let bestRange = Infinity;
-        for (const [startCode, gId] of Object.entries(groupIdMap)) {
-          const g = groups.find(g => g.start === startCode);
-          if (g && acc.code >= g.start && acc.code <= g.end) {
-            const range = parseInt(g.end) - parseInt(g.start);
-            if (range < bestRange) {
-              bestRange = range;
-              groupId = gId;
-            }
-          }
+    const journalDefs = [
+      { name: 'Shitje', name_en: 'Sales', type: 'sale', sequence_prefix: 'INV', default_code: '1300', sequence: 10 },
+      { name: 'Blerje', name_en: 'Purchase', type: 'purchase', sequence_prefix: 'BILL', default_code: '2100', sequence: 20 },
+      { name: 'Bankë', name_en: 'Bank', type: 'bank', sequence_prefix: 'BANK', default_code: '1200', sequence: 30 },
+      { name: 'Arkë', name_en: 'Cash', type: 'cash', sequence_prefix: 'CASH', default_code: '1100', sequence: 40 },
+      { name: 'Ndryshime të Tjera', name_en: 'Miscellaneous', type: 'general', sequence_prefix: 'MISC', default_code: null, sequence: 50 },
+    ];
+
+    // Helper: find best matching group for a given account code
+    const findGroupId = (code, groupIdMap) => {
+      let groupId = null, bestRange = Infinity;
+      for (const [startCode, gId] of Object.entries(groupIdMap)) {
+        const g = groups.find(g => g.start === startCode);
+        if (g && code >= g.start && code <= g.end) {
+          const range = parseInt(g.end) - parseInt(g.start);
+          if (range < bestRange) { bestRange = range; groupId = gId; }
         }
-        const r = await client.query(
-          `INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance, account_subtype, reconcile, account_group_id)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
-          [tenantId, acc.code, acc.name, acc.name_en, acc.account_type, acc.normal_balance, acc.account_subtype, acc.reconcile, groupId]
+      }
+      return groupId;
+    };
+
+    const client = await tPool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Step 1: Seed account groups if missing
+      const groupIdMap = {};
+      if (!hasGroups) {
+        for (const g of groups) {
+          const parentId = g.parentKey ? groupIdMap[g.parentKey] : null;
+          const r = await client.query(
+            `INSERT INTO account_groups (tenant_id, name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+            [tenantId, g.name, g.name_en, g.start, g.end, g.account_type, g.sequence, parentId]
+          );
+          groupIdMap[g.start] = r.rows[0].id;
+        }
+      } else {
+        const existingGroups = await client.query(
+          'SELECT id, code_prefix_start FROM account_groups WHERE tenant_id = $1', [tenantId]
         );
-        insertedAccounts[acc.code] = r.rows[0].id;
+        for (const row of existingGroups.rows) groupIdMap[row.code_prefix_start] = row.id;
       }
 
-      // 3. Seed default journals with wired default accounts
-      const journalDefs = [
-        { name: 'Shitje', name_en: 'Sales', type: 'sale', sequence_prefix: 'INV', default_code: '1300', sequence: 10 },
-        { name: 'Blerje', name_en: 'Purchase', type: 'purchase', sequence_prefix: 'BILL', default_code: '2100', sequence: 20 },
-        { name: 'Bankë', name_en: 'Bank', type: 'bank', sequence_prefix: 'BANK', default_code: '1200', sequence: 30 },
-        { name: 'Arkë', name_en: 'Cash', type: 'cash', sequence_prefix: 'CASH', default_code: '1100', sequence: 40 },
-        { name: 'Ndryshime të Tjera', name_en: 'Miscellaneous', type: 'general', sequence_prefix: 'MISC', default_code: null, sequence: 50 },
-      ];
-
-      for (const j of journalDefs) {
-        const defaultAccId = j.default_code ? (insertedAccounts[j.default_code] || null) : null;
-        await client.query(
-          `INSERT INTO journals (tenant_id, name, name_en, type, sequence_prefix, default_account_id, sequence)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [tenantId, j.name, j.name_en, j.type, j.sequence_prefix, defaultAccId, j.sequence]
+      // Step 2: Seed accounts if missing; otherwise backfill missing account_group_id
+      const insertedAccounts = {};
+      if (!hasAccounts) {
+        for (const acc of accounts) {
+          const groupId = findGroupId(acc.code, groupIdMap);
+          const r = await client.query(
+            `INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance, account_subtype, reconcile, account_group_id)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+            [tenantId, acc.code, acc.name, acc.name_en, acc.account_type, acc.normal_balance, acc.account_subtype, acc.reconcile, groupId]
+          );
+          insertedAccounts[acc.code] = r.rows[0].id;
+        }
+      } else {
+        const existingAccs = await client.query(
+          'SELECT id, code FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]
         );
+        for (const row of existingAccs.rows) insertedAccounts[row.code] = row.id;
+        // Backfill account_group_id for any accounts that are missing it (upgrade-safe)
+        const unassigned = await client.query(
+          'SELECT id, code FROM chart_of_accounts WHERE tenant_id = $1 AND account_group_id IS NULL', [tenantId]
+        );
+        for (const acc of unassigned.rows) {
+          const groupId = findGroupId(acc.code, groupIdMap);
+          if (groupId) {
+            await client.query(
+              'UPDATE chart_of_accounts SET account_group_id = $1, updated_at = NOW() WHERE id = $2 AND tenant_id = $3',
+              [groupId, acc.id, tenantId]
+            );
+          }
+        }
+      }
+
+      // Step 3: Seed journals if missing
+      if (!hasJournals) {
+        for (const j of journalDefs) {
+          const defaultAccId = j.default_code ? (insertedAccounts[j.default_code] || null) : null;
+          await client.query(
+            `INSERT INTO journals (tenant_id, name, name_en, type, sequence_prefix, default_account_id, sequence)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [tenantId, j.name, j.name_en, j.type, j.sequence_prefix, defaultAccId, j.sequence]
+          );
+        }
       }
 
       await client.query('COMMIT');
-      res.json({ message: 'Plani kontabël u krijua me sukses', count: accounts.length, groups: groups.length });
+      res.json({
+        message: 'Plani kontabël u krijua/u përditësua me sukses',
+        groups: Object.keys(groupIdMap).length,
+        accounts: Object.keys(insertedAccounts).length,
+        seededGroups: !hasGroups,
+        seededAccounts: !hasAccounts,
+        seededJournals: !hasJournals,
+      });
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;
@@ -1138,11 +1182,12 @@ app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, 
 
     const accountIds = lines.map(l => l.account_id).filter(Boolean);
     if (accountIds.length > 0) {
+      const uniqueAccountIds = [...new Set(accountIds)];
       const validAccounts = await tPool.query(
         'SELECT id FROM chart_of_accounts WHERE id = ANY($1) AND tenant_id = $2 AND is_active = true',
-        [accountIds, tenantId]
+        [uniqueAccountIds, tenantId]
       );
-      if (validAccounts.rows.length !== accountIds.length) {
+      if (validAccounts.rows.length !== uniqueAccountIds.length) {
         return res.status(400).json({ error: 'One or more accounts are invalid' });
       }
     }
@@ -1739,8 +1784,8 @@ app.put('/api/accounting/accounts/:id', requireAuth, requireAdmin, async (req, r
     const dup = await tPool.query('SELECT id FROM chart_of_accounts WHERE code = $1 AND tenant_id = $2 AND id != $3', [code, tenantId, id]);
     if (dup.rows.length > 0) return res.status(409).json({ error: `Kodi ${code} ekziston tashmë` });
 
-    // Auto-compute group if not provided
-    const groupId = account_group_id || await computeAccountGroup(tPool, tenantId, code);
+    // Always recompute group from code to enforce correct hierarchy on code changes
+    const groupId = await computeAccountGroup(tPool, tenantId, code);
 
     const result = await tPool.query(
       `UPDATE chart_of_accounts SET code=$1, name=$2, name_en=$3, account_type=$4, normal_balance=$5,
