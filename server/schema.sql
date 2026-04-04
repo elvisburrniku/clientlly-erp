@@ -376,6 +376,68 @@ CREATE TABLE IF NOT EXISTS report_templates (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- ============ CRM & COMMUNICATION MODULE ============
+
+-- Leads
+CREATE TABLE IF NOT EXISTS leads (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  phone VARCHAR(100),
+  company VARCHAR(255),
+  stage VARCHAR(50) DEFAULT 'new',
+  source VARCHAR(100),
+  label VARCHAR(100),
+  value DECIMAL(15,2) DEFAULT 0,
+  notes TEXT,
+  assigned_to VARCHAR(255),
+  converted_client_id UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Notes (polymorphic)
+CREATE TABLE IF NOT EXISTS notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  entity_type VARCHAR(100),
+  entity_id UUID,
+  title VARCHAR(255),
+  content TEXT,
+  color VARCHAR(50) DEFAULT 'default',
+  is_pinned BOOLEAN DEFAULT false,
+  created_by UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Announcements
+CREATE TABLE IF NOT EXISTS announcements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  title VARCHAR(255) NOT NULL,
+  content TEXT,
+  is_pinned BOOLEAN DEFAULT false,
+  priority VARCHAR(50) DEFAULT 'normal',
+  read_by JSONB DEFAULT '[]',
+  created_by UUID,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Portal Tokens
+CREATE TABLE IF NOT EXISTS portal_tokens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  entity_type VARCHAR(50) NOT NULL,
+  entity_id UUID NOT NULL,
+  token VARCHAR(255) UNIQUE NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  expires_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
 
 -- ============ HR MODULE ============
 

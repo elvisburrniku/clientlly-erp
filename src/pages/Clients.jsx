@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, Trash2, Pencil, MoreHorizontal, Users, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
+import { Plus, Trash2, Pencil, MoreHorizontal, Users, SlidersHorizontal, X, Download, FileSpreadsheet, Search, Merge, Link2, Copy } from "lucide-react";
 import moment from "moment";
 import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
@@ -46,6 +46,11 @@ export default function Clients() {
   const [cardStartDate, setCardStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [cardEndDate, setCardEndDate] = useState(new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0]);
   const [cardYear, setCardYear] = useState(new Date().getFullYear());
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+  const [mergeSelected, setMergeSelected] = useState([]);
+  const [mergePrimary, setMergePrimary] = useState(null);
+  const [portalLinkDialogOpen, setPortalLinkDialogOpen] = useState(false);
+  const [portalLink, setPortalLink] = useState("");
 
   useEffect(() => {
     loadClients();
@@ -99,6 +104,41 @@ export default function Clients() {
       notes: client.notes || "",
     });
     setEditClient(client);
+  };
+
+  const handleMerge = async () => {
+    if (!mergePrimary || mergeSelected.length < 2) return;
+    const mergeIds = mergeSelected.filter(id => id !== mergePrimary);
+    try {
+      await base44.merge.mergeClients({ primary_id: mergePrimary, merge_ids: mergeIds });
+      toast.success("Klientët u bashkuan me sukses");
+      setMergeDialogOpen(false);
+      setMergeSelected([]);
+      setMergePrimary(null);
+      loadClients();
+    } catch (err) {
+      toast.error("Gabim gjatë bashkimit");
+    }
+  };
+
+  const toggleMergeSelect = (id) => {
+    setMergeSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const generatePortalLink = async (client) => {
+    try {
+      const result = await base44.portal.generateToken({ entity_type: "client", entity_id: client.id });
+      const link = `${window.location.origin}/portal/client/${result.token}`;
+      setPortalLink(link);
+      setPortalLinkDialogOpen(true);
+    } catch (err) {
+      toast.error("Gabim gjatë gjenerimit të linkut");
+    }
+  };
+
+  const copyPortalLink = () => {
+    navigator.clipboard.writeText(portalLink);
+    toast.success("Linku u kopjua");
   };
 
   const classificationBadge = (classification) => {
@@ -235,6 +275,9 @@ export default function Clients() {
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={exportExcel} className="gap-2"><FileSpreadsheet className="w-4 h-4" /> Excel</Button>
           <Button variant="outline" onClick={exportPDF} className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+          <Button variant="outline" onClick={() => { setMergeDialogOpen(true); setMergeSelected([]); setMergePrimary(null); }} className="gap-2" data-testid="button-merge-clients">
+            <Merge className="w-4 h-4" /> Bashko
+          </Button>
           <Button onClick={() => setDialogOpen(true)} className="gap-2 self-start sm:self-auto">
             <Plus className="w-4 h-4" /> Shto Klient
           </Button>
@@ -393,6 +436,9 @@ export default function Clients() {
                         <DropdownMenuContent align="end" className="w-48">
                            <DropdownMenuItem onClick={() => openEdit(client)}>
                              <Pencil className="w-4 h-4 mr-2" /> Modifiko
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={() => generatePortalLink(client)}>
+                             <Link2 className="w-4 h-4 mr-2" /> Gjenero Link Portal
                            </DropdownMenuItem>
                            <DropdownMenuItem onClick={() => handleDelete(client)} className="text-destructive focus:text-destructive">
                              <Trash2 className="w-4 h-4 mr-2" /> Fshi
@@ -598,6 +644,70 @@ export default function Clients() {
           </DialogFooter>
           </DialogContent>
           </Dialog>
+
+      {/* Merge Dialog */}
+      <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bashko Klientët Duplikatë</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            Zgjidh klientët që dëshiron të bashkosh, pastaj zgjedh klientin kryesor (që do të mbetet).
+          </p>
+          <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+            {clients.map(c => (
+              <div key={c.id} className={cn(
+                "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                mergeSelected.includes(c.id) ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"
+              )} onClick={() => toggleMergeSelect(c.id)}>
+                <input type="checkbox" checked={mergeSelected.includes(c.id)} readOnly className="w-4 h-4 rounded" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">{c.email}</p>
+                </div>
+                {mergeSelected.includes(c.id) && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setMergePrimary(c.id); }}
+                    className={cn(
+                      "text-[10px] font-bold px-2 py-1 rounded-lg transition",
+                      mergePrimary === c.id ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-primary/10"
+                    )}
+                  >
+                    {mergePrimary === c.id ? "Kryesor ✓" : "Bëje Kryesor"}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMergeDialogOpen(false)}>Anulo</Button>
+            <Button onClick={handleMerge} disabled={mergeSelected.length < 2 || !mergePrimary} data-testid="button-confirm-merge">
+              Bashko ({mergeSelected.length} klientë)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Portal Link Dialog */}
+      <Dialog open={portalLinkDialogOpen} onOpenChange={setPortalLinkDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Link i Portalit të Klientit</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-3">
+            Ndani këtë link me klientin. Linku skadon pas 90 ditëve.
+          </p>
+          <div className="flex gap-2">
+            <Input value={portalLink} readOnly className="text-xs" />
+            <Button onClick={copyPortalLink} variant="outline" className="gap-2 shrink-0" data-testid="button-copy-portal-link">
+              <Copy className="w-4 h-4" /> Kopjo
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPortalLinkDialogOpen(false)}>Mbyll</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

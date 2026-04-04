@@ -51,6 +51,11 @@ import DebitNotes from './pages/DebitNotes';
 import Bills from './pages/Bills';
 import ExpenseRequests from './pages/ExpenseRequests';
 import Revenues from './pages/Revenues';
+import Leads from './pages/Leads';
+import Notes from './pages/Notes';
+import Announcements from './pages/Announcements';
+import ClientPortalPublic from './pages/ClientPortalPublic';
+import VendorPortal from './pages/VendorPortal';
 import Login from './pages/Login';
 import ActivityLog from './pages/ActivityLog';
 import RoleManagement from './pages/RoleManagement';
@@ -126,6 +131,9 @@ const AuthenticatedApp = () => {
           <Route path="/payroll" element={<PermissionGuard module="hr"><Payroll /></PermissionGuard>} />
           <Route path="/advances" element={<PermissionGuard module="hr"><Advances /></PermissionGuard>} />
           <Route path="/holidays" element={<PermissionGuard module="hr"><Holidays /></PermissionGuard>} />
+          <Route path="/leads" element={<PermissionGuard module="leads"><Leads /></PermissionGuard>} />
+          <Route path="/notes" element={<PermissionGuard module="notes"><Notes /></PermissionGuard>} />
+          <Route path="/announcements" element={<PermissionGuard module="announcements"><Announcements /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
         <Route path="/onboarding" element={<Onboarding />} />
@@ -142,6 +150,8 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/portal/client/:token" element={<ClientPortalPublic />} />
+            <Route path="/portal/vendor/:token" element={<VendorPortal />} />
             <Route path="/*" element={
               <AuthProvider>
                 <AuthenticatedApp />

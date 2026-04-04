@@ -136,6 +136,31 @@ export const base44 = {
     Bill: createEntityClient('Bill'),
     ExpenseRequest: createEntityClient('ExpenseRequest'),
     Revenue: createEntityClient('Revenue'),
+    Lead: createEntityClient('Lead'),
+    Note: createEntityClient('Note'),
+    Announcement: createEntityClient('Announcement'),
+    PortalToken: createEntityClient('PortalToken'),
+  },
+
+  portal: {
+    async generateToken(data) {
+      return apiFetch('/portal/generate-token', { method: 'POST', body: data });
+    },
+    async getClientPortal(token) {
+      return apiFetch(`/portal/client/${token}`);
+    },
+    async getVendorPortal(token) {
+      return apiFetch(`/portal/vendor/${token}`);
+    },
+  },
+
+  merge: {
+    async mergeClients(data) {
+      return apiFetch('/merge/clients', { method: 'POST', body: data });
+    },
+    async mergeSuppliers(data) {
+      return apiFetch('/merge/suppliers', { method: 'POST', body: data });
+    },
   },
 
   functions: {

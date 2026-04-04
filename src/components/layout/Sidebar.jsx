@@ -4,7 +4,8 @@ import {
   ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield,
   UserCheck, Clock, CalendarDays, CalendarOff, Banknote, HandCoins, CalendarHeart,
   FolderKanban, Timer, Bug,
-  FileMinus, FilePlus, Receipt, ClipboardCheck, TrendingUp
+  FileMinus, FilePlus, Receipt, ClipboardCheck, TrendingUp,
+  Target, StickyNote, Megaphone
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,9 @@ export default function Sidebar() {
     { label: "Projektet", icon: FolderKanban, path: "/projects", module: "projects" },
     { label: "Oraret", icon: Timer, path: "/timesheets", module: "timesheets" },
     { label: "Bug-et", icon: Bug, path: "/bugs", module: "bugs" },
+    { label: "Leads", icon: Target, path: "/leads", module: "leads" },
+    { label: "Shënimet", icon: StickyNote, path: "/notes", module: "notes" },
+    { label: "Njoftimet", icon: Megaphone, path: "/announcements", module: "announcements" },
   ];
 
   const hrItems = [

@@ -7,6 +7,7 @@ import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join, extname } from 'path';
 import { existsSync, mkdirSync } from 'fs';
+import crypto from 'crypto';
 import pool from './db.js';
 import { createEntityRouter } from './entityRouter.js';
 import { requirePermission, getPermissionsApi, clearPermissionsCache } from './permissions.js';
@@ -522,6 +523,10 @@ const entityTableMap = {
   Bill: 'bills',
   ExpenseRequest: 'expense_requests',
   Revenue: 'revenues',
+  Lead: 'leads',
+  Note: 'notes',
+  Announcement: 'announcements',
+  PortalToken: 'portal_tokens',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);
@@ -540,6 +545,119 @@ for (const [entityName, tableName] of Object.entries(entityTableMap)) {
   middlewares.push(requirePermission(entityName));
   app.use(`/api/entities/${entityName}`, ...middlewares, createEntityRouter(pool, tableName, entityName, entityOpts));
 }
+
+// ============ PORTAL (public, no auth) ============
+
+app.post('/api/portal/generate-token', requireAuth, async (req, res) => {
+  try {
+    const { entity_type, entity_id } = req.body;
+    if (!entity_type || !entity_id) {
+      return res.status(400).json({ error: 'entity_type and entity_id required' });
+    }
+    const token = crypto.randomBytes(32).toString('hex');
+    const result = await pool.query(
+      'INSERT INTO portal_tokens (tenant_id, entity_type, entity_id, token, expires_at) VALUES ($1, $2, $3, $4, NOW() + INTERVAL \'90 days\') RETURNING *',
+      [req.session.user.tenant_id, entity_type, entity_id, token]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/portal/client/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const tokenResult = await pool.query(
+      'SELECT * FROM portal_tokens WHERE token = $1 AND entity_type = $2 AND is_active = true AND (expires_at IS NULL OR expires_at > NOW())',
+      [token, 'client']
+    );
+    if (tokenResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Invalid or expired token' });
+    }
+    const portalToken = tokenResult.rows[0];
+    const client = await pool.query('SELECT * FROM clients WHERE id = $1', [portalToken.entity_id]);
+    if (client.rows.length === 0) {
+      return res.status(404).json({ error: 'Client not found' });
+    }
+    const invoices = await pool.query('SELECT * FROM invoices WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
+    const payments = await pool.query('SELECT * FROM payments WHERE client_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
+    res.json({ client: client.rows[0], invoices: invoices.rows, payments: payments.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/portal/vendor/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    const tokenResult = await pool.query(
+      'SELECT * FROM portal_tokens WHERE token = $1 AND entity_type = $2 AND is_active = true AND (expires_at IS NULL OR expires_at > NOW())',
+      [token, 'supplier']
+    );
+    if (tokenResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Invalid or expired token' });
+    }
+    const portalToken = tokenResult.rows[0];
+    const supplier = await pool.query('SELECT * FROM suppliers WHERE id = $1', [portalToken.entity_id]);
+    if (supplier.rows.length === 0) {
+      return res.status(404).json({ error: 'Supplier not found' });
+    }
+    const expenses = await pool.query('SELECT * FROM expenses WHERE supplier_id = $1 ORDER BY created_at DESC', [portalToken.entity_id]);
+    const payments = await pool.query('SELECT * FROM payments WHERE invoice_id IN (SELECT id FROM invoices WHERE client_id = $1) ORDER BY created_at DESC', [portalToken.entity_id]);
+    res.json({ supplier: supplier.rows[0], expenses: expenses.rows, payments: payments.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============ MERGE ENDPOINTS ============
+
+app.post('/api/merge/clients', requireAuth, async (req, res) => {
+  try {
+    const { primary_id, merge_ids } = req.body;
+    const tenantId = req.session.user.tenant_id;
+    if (!primary_id || !merge_ids || merge_ids.length === 0) {
+      return res.status(400).json({ error: 'primary_id and merge_ids required' });
+    }
+    const primaryCheck = await pool.query('SELECT id FROM clients WHERE id = $1 AND tenant_id = $2', [primary_id, tenantId]);
+    if (primaryCheck.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
+    for (const mergeId of merge_ids) {
+      const mergeCheck = await pool.query('SELECT id FROM clients WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+      if (mergeCheck.rows.length === 0) continue;
+      await pool.query('UPDATE invoices SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await pool.query('UPDATE payments SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await pool.query('UPDATE quotes SET client_id = $1, client_name = (SELECT name FROM clients WHERE id = $1) WHERE client_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await pool.query('DELETE FROM clients WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+    }
+    const result = await pool.query('SELECT * FROM clients WHERE id = $1', [primary_id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/merge/suppliers', requireAuth, async (req, res) => {
+  try {
+    const { primary_id, merge_ids } = req.body;
+    const tenantId = req.session.user.tenant_id;
+    if (!primary_id || !merge_ids || merge_ids.length === 0) {
+      return res.status(400).json({ error: 'primary_id and merge_ids required' });
+    }
+    const primaryCheck = await pool.query('SELECT id FROM suppliers WHERE id = $1 AND tenant_id = $2', [primary_id, tenantId]);
+    if (primaryCheck.rows.length === 0) return res.status(403).json({ error: 'Access denied' });
+    for (const mergeId of merge_ids) {
+      const mergeCheck = await pool.query('SELECT id FROM suppliers WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+      if (mergeCheck.rows.length === 0) continue;
+      await pool.query('UPDATE expenses SET supplier_id = $1, supplier_name = (SELECT name FROM suppliers WHERE id = $1) WHERE supplier_id = $2 AND tenant_id = $3', [primary_id, mergeId, tenantId]);
+      await pool.query('DELETE FROM suppliers WHERE id = $1 AND tenant_id = $2', [mergeId, tenantId]);
+    }
+    const result = await pool.query('SELECT * FROM suppliers WHERE id = $1', [primary_id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ============ FUNCTIONS (stubs) ============
 

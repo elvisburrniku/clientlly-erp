@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, Trash2, MoreHorizontal, Mail, Phone, Download, SlidersHorizontal } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Mail, Phone, Download, SlidersHorizontal, Merge, Link2, Copy } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,11 @@ export default function Suppliers() {
   const [filterCategory, setFilterCategory] = useState("");
   const [filterPaymentTerms, setFilterPaymentTerms] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+  const [mergeSelected, setMergeSelected] = useState([]);
+  const [mergePrimary, setMergePrimary] = useState(null);
+  const [portalLinkDialogOpen, setPortalLinkDialogOpen] = useState(false);
+  const [portalLink, setPortalLink] = useState("");
 
   useEffect(() => { loadData(); }, []);
 
@@ -130,6 +135,41 @@ export default function Suppliers() {
     link.click();
   };
 
+  const handleMerge = async () => {
+    if (!mergePrimary || mergeSelected.length < 2) return;
+    const mergeIds = mergeSelected.filter(id => id !== mergePrimary);
+    try {
+      await base44.merge.mergeSuppliers({ primary_id: mergePrimary, merge_ids: mergeIds });
+      toast.success("Furnitorët u bashkuan me sukses");
+      setMergeDialogOpen(false);
+      setMergeSelected([]);
+      setMergePrimary(null);
+      loadData();
+    } catch (err) {
+      toast.error("Gabim gjatë bashkimit");
+    }
+  };
+
+  const toggleMergeSelect = (id) => {
+    setMergeSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const generatePortalLink = async (supplier) => {
+    try {
+      const result = await base44.portal.generateToken({ entity_type: "supplier", entity_id: supplier.id });
+      const link = `${window.location.origin}/portal/vendor/${result.token}`;
+      setPortalLink(link);
+      setPortalLinkDialogOpen(true);
+    } catch (err) {
+      toast.error("Gabim gjatë gjenerimit të linkut");
+    }
+  };
+
+  const copyPortalLink = () => {
+    navigator.clipboard.writeText(portalLink);
+    toast.success("Linku u kopjua");
+  };
+
   const clearFilters = () => {
     setFilterActive("all");
     setFilterCategory("");
@@ -156,6 +196,9 @@ export default function Suppliers() {
          <div className="flex flex-col sm:flex-row gap-3">
            <Button onClick={exportCSV} variant="outline" className="gap-2"><Download className="w-4 h-4" /> CSV</Button>
            <Button onClick={exportPDF} variant="outline" className="gap-2"><Download className="w-4 h-4" /> PDF</Button>
+           <Button variant="outline" onClick={() => { setMergeDialogOpen(true); setMergeSelected([]); setMergePrimary(null); }} className="gap-2" data-testid="button-merge-suppliers">
+             <Merge className="w-4 h-4" /> Bashko
+           </Button>
            <Button onClick={() => { setForm(emptyForm()); setEditingId(null); setDialogOpen(true); }} className="gap-2">
              <Plus className="w-4 h-4" /> Furnitor i Ri
            </Button>
@@ -288,6 +331,9 @@ export default function Suppliers() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleEdit(supplier)}>Redakto</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => generatePortalLink(supplier)}>
+                            <Link2 className="w-4 h-4 mr-2" /> Gjenero Link Portal
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDelete(supplier.id)} className="text-destructive focus:text-destructive">
                             <Trash2 className="w-4 h-4 mr-2" /> Fshi
                           </DropdownMenuItem>
@@ -354,6 +400,63 @@ export default function Suppliers() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
             <Button onClick={handleCreate} disabled={submitting}>{submitting ? "Duke ruajtur..." : (editingId ? "Përditëso" : "Shto")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Merge Dialog */}
+      <Dialog open={mergeDialogOpen} onOpenChange={setMergeDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Bashko Furnitorët Duplikatë</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-4">
+            Zgjidh furnitorët që dëshiron të bashkosh, pastaj zgjedh furnitorin kryesor.
+          </p>
+          <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+            {suppliers.map(s => (
+              <div key={s.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${mergeSelected.includes(s.id) ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`}
+                onClick={() => toggleMergeSelect(s.id)}>
+                <input type="checkbox" checked={mergeSelected.includes(s.id)} readOnly className="w-4 h-4 rounded" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">{s.name}</p>
+                  <p className="text-xs text-muted-foreground">{s.email}</p>
+                </div>
+                {mergeSelected.includes(s.id) && (
+                  <button onClick={(e) => { e.stopPropagation(); setMergePrimary(s.id); }}
+                    className={`text-[10px] font-bold px-2 py-1 rounded-lg transition ${mergePrimary === s.id ? "bg-primary text-white" : "bg-muted text-muted-foreground hover:bg-primary/10"}`}>
+                    {mergePrimary === s.id ? "Kryesor ✓" : "Bëje Kryesor"}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMergeDialogOpen(false)}>Anulo</Button>
+            <Button onClick={handleMerge} disabled={mergeSelected.length < 2 || !mergePrimary} data-testid="button-confirm-merge-suppliers">
+              Bashko ({mergeSelected.length} furnitorë)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Portal Link Dialog */}
+      <Dialog open={portalLinkDialogOpen} onOpenChange={setPortalLinkDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Link i Portalit të Furnitorit</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground mb-3">
+            Ndani këtë link me furnitorin. Linku skadon pas 90 ditëve.
+          </p>
+          <div className="flex gap-2">
+            <Input value={portalLink} readOnly className="text-xs" />
+            <Button onClick={copyPortalLink} variant="outline" className="gap-2 shrink-0" data-testid="button-copy-vendor-portal-link">
+              <Copy className="w-4 h-4" /> Kopjo
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPortalLinkDialogOpen(false)}>Mbyll</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

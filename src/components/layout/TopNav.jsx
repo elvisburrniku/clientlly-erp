@@ -17,12 +17,28 @@ import { useLanguage } from "@/lib/useLanguage";
 
 export default function TopNav() {
   const [user, setUser] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      loadUnreadAnnouncements(u);
+    }).catch(() => {});
   }, []);
+
+  const loadUnreadAnnouncements = async (currentUser) => {
+    if (!currentUser?.tenant_id) return;
+    try {
+      const announcements = await base44.entities.Announcement.filter({ tenant_id: currentUser.tenant_id }, "-created_date", 100);
+      const unread = announcements.filter(a => {
+        const readBy = Array.isArray(a.read_by) ? a.read_by : [];
+        return !readBy.includes(currentUser.id);
+      });
+      setUnreadCount(unread.length);
+    } catch (err) {}
+  };
 
   const initials = user?.full_name
     ? user.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)

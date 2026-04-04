@@ -34,9 +34,9 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
-## Entities (50 total)
+## Entities (54 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue
 
 ## Roles & Permissions
 
@@ -111,7 +111,12 @@ npm start      # Run Express server only (serves built frontend)
 - **Quotes:** Create quotes, approve/convert to invoice
 - **Expenses:** Track expenses with PDF attachments
 - **Cash Management:** Cashbox balance, cash handovers, transactions
-- **Clients/Suppliers:** Full CRUD, balance tracking
+- **Clients/Suppliers:** Full CRUD, balance tracking, merge duplicates, Excel/PDF export
+- **CRM Leads:** Sales pipeline with Kanban board, lead stages (new/contacted/qualified/proposal/won/lost), convert-to-client
+- **Notes:** Polymorphic note system with pin/unpin, color coding, linked to any entity
+- **Announcements:** Company-wide announcements with read/unread tracking, pinned messages, priority levels
+- **Customer Portal:** Token-based public portal for clients to view invoices and payment history
+- **Vendor Portal:** Token-based public portal for suppliers to view bills and payments
 - **Inventory:** Stock management
 - **Reports:** Financial summaries, charts (Recharts)
 - **Settings:** Tenant configuration, invoice templates
@@ -127,3 +132,18 @@ npm start      # Run Express server only (serves built frontend)
 - **Notifications:** In-app notification bell with unread count
 - **Global Search:** Header search bar across all entities
 - **File Upload:** Upload avatars, attachments, documents
+
+## Public Portal Routes (No Auth Required)
+
+- `/portal/client/:token` - Customer self-service portal
+- `/portal/vendor/:token` - Vendor self-service portal
+- Portal tokens generated from Clients/Suppliers pages via "Gjenero Link Portal" action
+- Tokens expire after 90 days
+
+## API Endpoints (Custom, Beyond Entity CRUD)
+
+- `POST /api/portal/generate-token` - Generate portal access token
+- `GET /api/portal/client/:token` - Get client portal data (public)
+- `GET /api/portal/vendor/:token` - Get vendor portal data (public)
+- `POST /api/merge/clients` - Merge duplicate client records
+- `POST /api/merge/suppliers` - Merge duplicate supplier records
