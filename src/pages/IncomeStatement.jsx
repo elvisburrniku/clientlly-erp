@@ -1,0 +1,192 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Download } from "lucide-react";
+import moment from "moment";
+
+export default function IncomeStatement() {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dateFrom, setDateFrom] = useState(() => moment().startOf('year').format('YYYY-MM-DD'));
+  const [dateTo, setDateTo] = useState(() => moment().format('YYYY-MM-DD'));
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/accounting/income-statement?from=${dateFrom}&to=${dateTo}`, { credentials: 'include' });
+      const result = await res.json();
+      setData(result);
+    } catch (err) {
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  const revenueAccounts = data.filter(a => a.account_type === 'revenue');
+  const expenseAccounts = data.filter(a => a.account_type === 'expense');
+
+  const getBalance = (row) => {
+    const d = parseFloat(row.total_debit);
+    const c = parseFloat(row.total_credit);
+    return row.normal_balance === 'credit' ? c - d : d - c;
+  };
+
+  const totalRevenue = revenueAccounts.reduce((s, r) => s + getBalance(r), 0);
+  const totalExpenses = expenseAccounts.reduce((s, r) => s + getBalance(r), 0);
+  const netIncome = totalRevenue - totalExpenses;
+
+  const exportPDF = async () => {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF();
+    const W = 210, margin = 14;
+
+    doc.setFillColor(107, 114, 126);
+    doc.rect(0, 0, W, 25, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('PASQYRA E TË ARDHURAVE (P&L)', margin, 15);
+    doc.setFontSize(8);
+    doc.text(`${moment(dateFrom).format('DD/MM/YYYY')} - ${moment(dateTo).format('DD/MM/YYYY')}`, W - margin, 15, { align: 'right' });
+
+    let y = 35;
+
+    doc.setTextColor(40, 40, 40);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TË ARDHURAT', margin, y);
+    y += 8;
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    revenueAccounts.forEach((row, i) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, W - margin * 2, 5, 'F'); }
+      doc.text(`${row.code} - ${row.name}`, margin + 5, y);
+      doc.text(getBalance(row).toFixed(2), W - margin - 2, y, { align: 'right' });
+      y += 5;
+    });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(200, 230, 200);
+    doc.rect(margin, y, W - margin * 2, 6, 'F');
+    doc.text('TOTALI I TË ARDHURAVE', margin + 5, y + 4);
+    doc.text(totalRevenue.toFixed(2), W - margin - 2, y + 4, { align: 'right' });
+    y += 12;
+
+    doc.setFontSize(11);
+    doc.text('SHPENZIMET', margin, y);
+    y += 8;
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    expenseAccounts.forEach((row, i) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      if (i % 2 === 0) { doc.setFillColor(240, 240, 240); doc.rect(margin, y - 3, W - margin * 2, 5, 'F'); }
+      doc.text(`${row.code} - ${row.name}`, margin + 5, y);
+      doc.text(getBalance(row).toFixed(2), W - margin - 2, y, { align: 'right' });
+      y += 5;
+    });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFillColor(255, 220, 220);
+    doc.rect(margin, y, W - margin * 2, 6, 'F');
+    doc.text('TOTALI I SHPENZIMEVE', margin + 5, y + 4);
+    doc.text(totalExpenses.toFixed(2), W - margin - 2, y + 4, { align: 'right' });
+    y += 12;
+
+    doc.setFillColor(107, 114, 126);
+    doc.rect(margin, y, W - margin * 2, 8, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.text('FITIMI / HUMBJA NETO', margin + 5, y + 5.5);
+    doc.text(netIncome.toFixed(2), W - margin - 2, y + 5.5, { align: 'right' });
+
+    doc.save(`pasqyra-te-ardhurave-${dateFrom}-${dateTo}.pdf`);
+  };
+
+  const exportExcel = async () => {
+    const { utils, writeFile } = await import('xlsx');
+    const wsData = [
+      ['PASQYRA E TË ARDHURAVE'],
+      [`Periudha: ${moment(dateFrom).format('DD/MM/YYYY')} - ${moment(dateTo).format('DD/MM/YYYY')}`],
+      [],
+      ['TË ARDHURAT'],
+      ['Kodi', 'Llogaria', 'Shuma'],
+      ...revenueAccounts.map(r => [r.code, r.name, getBalance(r)]),
+      ['', 'TOTALI I TË ARDHURAVE', totalRevenue],
+      [],
+      ['SHPENZIMET'],
+      ['Kodi', 'Llogaria', 'Shuma'],
+      ...expenseAccounts.map(r => [r.code, r.name, getBalance(r)]),
+      ['', 'TOTALI I SHPENZIMEVE', totalExpenses],
+      [],
+      ['', 'FITIMI / HUMBJA NETO', netIncome],
+    ];
+    const ws = utils.aoa_to_sheet(wsData);
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, 'Pasqyra e Të Ardhurave');
+    writeFile(wb, `pasqyra-te-ardhurave-${dateFrom}-${dateTo}.xlsx`);
+  };
+
+  const renderSection = (title, items, total, colorClass) => (
+    <div className="mb-6">
+      <h3 className="text-base font-bold mb-3">{title}</h3>
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">Nuk ka të dhëna</p>
+      ) : (
+        <div className="space-y-0">
+          {items.map((row, i) => (
+            <div key={row.id} className={`flex justify-between py-2 px-4 ${i % 2 === 0 ? 'bg-muted/10' : ''}`}>
+              <span className="text-sm"><span className="font-mono text-muted-foreground mr-2">{row.code}</span>{row.name}</span>
+              <span className="text-sm font-mono font-semibold">{getBalance(row).toFixed(2)}</span>
+            </div>
+          ))}
+          <div className={`flex justify-between py-2 px-4 font-bold ${colorClass} rounded-lg mt-1`}>
+            <span>{title} Totali</span>
+            <span className="font-mono">{total.toFixed(2)}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="p-6 lg:p-10 space-y-8">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Raporte Financiare</p>
+        <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">Pasqyra e Të Ardhurave</h1>
+        <p className="text-sm text-muted-foreground mt-1">Profit & Loss - Të ardhurat dhe shpenzimet për periudhën</p>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        <div className="flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1">
+            <Label className="text-xs font-semibold mb-2 block">Nga data</Label>
+            <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} data-testid="input-date-from" />
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs font-semibold mb-2 block">Deri në datë</Label>
+            <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} data-testid="input-date-to" />
+          </div>
+          <Button onClick={loadData} disabled={loading} data-testid="button-generate">{loading ? 'Duke ngarkuar...' : 'Gjenero'}</Button>
+          <Button onClick={exportPDF} variant="outline" className="gap-2" data-testid="button-export-pdf"><Download className="w-4 h-4" /> PDF</Button>
+          <Button onClick={exportExcel} variant="outline" className="gap-2" data-testid="button-export-excel"><Download className="w-4 h-4" /> Excel</Button>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
+        {renderSection('Të Ardhurat', revenueAccounts, totalRevenue, 'bg-green-50')}
+        {renderSection('Shpenzimet', expenseAccounts, totalExpenses, 'bg-red-50')}
+
+        <div className={`flex justify-between py-3 px-4 font-bold text-lg rounded-xl mt-4 ${netIncome >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          <span>Fitimi / Humbja Neto</span>
+          <span className="font-mono" data-testid="text-net-income">{netIncome.toFixed(2)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}

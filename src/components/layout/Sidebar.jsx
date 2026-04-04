@@ -8,7 +8,8 @@ import {
   Target, StickyNote, Megaphone,
   HardDrive, Car, Wrench, Fuel, PieChart, Settings2,
   Warehouse, ArrowDownUp, ShoppingCart, ArrowLeftRight as TransferIcon, AlertOctagon, QrCode,
-  Send, Handshake, FolderOpen, Award
+  Send, Handshake, FolderOpen, Award,
+  BookOpen, BookText, Scale, Building2, CreditCard, Contact
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -87,6 +88,18 @@ export default function Sidebar() {
     { label: "Barkode & Etiketa", icon: QrCode, path: "/barcode-labels", module: "inventory" },
   ];
 
+  const accountingItems = [
+    { label: "Plani Kontabël", icon: BookOpen, path: "/chart-of-accounts", module: "accounting" },
+    { label: "Regjistrime", icon: BookText, path: "/journal-entries", module: "accounting" },
+    { label: "Bilanci Provës", icon: Scale, path: "/trial-balance", module: "accounting" },
+    { label: "Pasqyra e Të Ardhurave", icon: TrendingUp, path: "/income-statement", module: "accounting" },
+    { label: "Bilanci", icon: Building2, path: "/balance-sheet", module: "accounting" },
+    { label: "Libri Shitjeve ATK", icon: Receipt, path: "/atk-sales-book", module: "accounting" },
+    { label: "Libri Blerjeve ATK", icon: CreditCard, path: "/atk-purchase-book", module: "accounting" },
+    { label: "Përmbledhje TVSH", icon: DollarSign, path: "/tax-summary", module: "accounting" },
+    { label: "Kartela Financiare", icon: Contact, path: "/financial-cards", module: "accounting" },
+  ];
+
   const performanceItems = [
     { label: t('reports') || "Raportet", icon: BarChart3, path: "/reports", module: "reports" },
     { label: "Royalties", icon: DollarSign, path: "/royalties", module: "royalties" },
@@ -103,6 +116,7 @@ export default function Sidebar() {
   const visibleWarehouseItems = warehouseItems.filter(item => fullAccess || canView(item.module));
   const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
   const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
+  const visibleAccountingItems = accountingItems.filter(item => fullAccess || canView(item.module));
 
   const renderLink = (item) => {
     const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
@@ -178,6 +192,15 @@ export default function Sidebar() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Magazina & Prokurimi</p>
             )}
             {visibleWarehouseItems.map(renderLink)}
+          </>
+        )}
+
+        {visibleAccountingItems.length > 0 && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Kontabilitet</p>
+            )}
+            {visibleAccountingItems.map(renderLink)}
           </>
         )}
 

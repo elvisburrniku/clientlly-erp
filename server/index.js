@@ -548,6 +548,9 @@ const entityTableMap = {
   AgreementAnnex: 'agreement_annexes',
   CompanyDocument: 'company_documents',
   Certificate: 'certificates',
+  ChartOfAccount: 'chart_of_accounts',
+  JournalEntry: 'journal_entries',
+  JournalLine: 'journal_lines',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);
@@ -724,8 +727,548 @@ app.post('/api/proposals/public/:token/respond', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// ============ ACCOUNTING API ROUTES ============
+
+const requireAccountingView = (req, res, next) => {
+  const role = req.session?.user?.role;
+  if (role === 'admin' || role === 'superadmin') return next();
+  pool.query(
+    `SELECT p.can_view FROM permissions p JOIN roles r ON r.id = p.role_id WHERE r.name = $1 AND p.module = 'accounting'`,
+    [role]
+  ).then(result => {
+    if (result.rows.length > 0 && result.rows[0].can_view) return next();
+    res.status(403).json({ error: 'Access denied' });
+  }).catch(() => res.status(403).json({ error: 'Access denied' }));
+};
+
+const requireAccountingCreate = (req, res, next) => {
+  const role = req.session?.user?.role;
+  if (role === 'admin' || role === 'superadmin') return next();
+  pool.query(
+    `SELECT p.can_create FROM permissions p JOIN roles r ON r.id = p.role_id WHERE r.name = $1 AND p.module = 'accounting'`,
+    [role]
+  ).then(result => {
+    if (result.rows.length > 0 && result.rows[0].can_create) return next();
+    res.status(403).json({ error: 'Access denied' });
+  }).catch(() => res.status(403).json({ error: 'Access denied' }));
+};
+
+async function autoGenerateJournalEntry(tenantId, userId, userEmail, { referenceType, referenceId, referenceNumber, description, lines }) {
+  try {
+    const accounts = await pool.query('SELECT id, code, name FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]);
+    if (accounts.rows.length === 0) return null;
+
+    const findAccount = (code) => accounts.rows.find(a => a.code === code);
+
+    const validLines = lines.filter(l => {
+      const acc = findAccount(l.code);
+      return acc && (parseFloat(l.debit) > 0 || parseFloat(l.credit) > 0);
+    }).map(l => {
+      const acc = findAccount(l.code);
+      return { account_id: acc.id, account_code: acc.code, account_name: acc.name, debit: parseFloat(l.debit) || 0, credit: parseFloat(l.credit) || 0 };
+    });
+
+    if (validLines.length < 2) return null;
+
+    const totalDebit = validLines.reduce((s, l) => s + l.debit, 0);
+    const totalCredit = validLines.reduce((s, l) => s + l.credit, 0);
+    if (Math.abs(totalDebit - totalCredit) > 0.01) return null;
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const countResult = await client.query(
+        'SELECT COALESCE(MAX(CAST(SUBSTRING(entry_number FROM 4) AS INTEGER)), 0) + 1 as next_num FROM journal_entries WHERE tenant_id = $1 AND entry_number LIKE $2',
+        [tenantId, 'JE-%']
+      );
+      const entryNumber = `JE-${String(countResult.rows[0].next_num).padStart(5, '0')}`;
+
+      const entryResult = await client.query(
+        `INSERT INTO journal_entries (tenant_id, entry_number, entry_date, description, reference_type, reference_id, reference_number, total_debit, total_credit, status, created_by, created_by_name, posted_at)
+         VALUES ($1, $2, NOW(), $3, $4, $5, $6, $7, $8, 'posted', $9, $10, NOW()) RETURNING *`,
+        [tenantId, entryNumber, description, referenceType, referenceId, referenceNumber, totalDebit, totalCredit, userId, userEmail]
+      );
+      const entry = entryResult.rows[0];
+
+      for (const line of validLines) {
+        await client.query(
+          `INSERT INTO journal_lines (tenant_id, journal_entry_id, account_id, account_code, account_name, debit, credit)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [tenantId, entry.id, line.account_id, line.account_code, line.account_name, line.debit, line.credit]
+        );
+      }
+
+      await client.query('COMMIT');
+      return entry;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Auto journal entry error:', err.message);
+      return null;
+    } finally {
+      client.release();
+    }
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Auto journal entry error:', err.message);
+    return null;
+  }
+}
+
+app.post('/api/accounting/auto-journal/invoice', requireAuth, requireAccountingCreate, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { invoice_id, invoice_number, subtotal, tax_amount, total, client_name } = req.body;
+
+    const entry = await autoGenerateJournalEntry(tenantId, req.session.user.id, req.session.user.email, {
+      referenceType: 'invoice',
+      referenceId: invoice_id,
+      referenceNumber: invoice_number,
+      description: `Faturë ${invoice_number} - ${client_name || ''}`,
+      lines: [
+        { code: '1300', debit: total, credit: 0 },
+        { code: '4100', debit: 0, credit: subtotal },
+        { code: '2200', debit: 0, credit: tax_amount || 0 },
+      ].filter(l => l.debit > 0 || l.credit > 0),
+    });
+
+    res.json({ success: !!entry, entry });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate journal entry' });
+  }
+});
+
+app.post('/api/accounting/auto-journal/expense', requireAuth, requireAccountingCreate, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { expense_id, description, amount, tax_amount, total, supplier_name } = req.body;
+
+    const entry = await autoGenerateJournalEntry(tenantId, req.session.user.id, req.session.user.email, {
+      referenceType: 'expense',
+      referenceId: expense_id,
+      referenceNumber: null,
+      description: `Shpenzim: ${description || supplier_name || ''}`,
+      lines: [
+        { code: '5900', debit: amount, credit: 0 },
+        { code: '2300', debit: tax_amount || 0, credit: 0 },
+        { code: '2100', debit: 0, credit: total },
+      ].filter(l => l.debit > 0 || l.credit > 0),
+    });
+
+    res.json({ success: !!entry, entry });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate journal entry' });
+  }
+});
+
+app.post('/api/accounting/auto-journal/payment', requireAuth, requireAccountingCreate, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { payment_id, invoice_number, amount, client_name, payment_method } = req.body;
+
+    const bankCode = payment_method === 'cash' ? '1100' : '1200';
+    const entry = await autoGenerateJournalEntry(tenantId, req.session.user.id, req.session.user.email, {
+      referenceType: 'payment',
+      referenceId: payment_id,
+      referenceNumber: invoice_number,
+      description: `Pagesë ${invoice_number} - ${client_name || ''}`,
+      lines: [
+        { code: bankCode, debit: amount, credit: 0 },
+        { code: '1300', debit: 0, credit: amount },
+      ],
+    });
+
+    res.json({ success: !!entry, entry });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate journal entry' });
+  }
+});
+
+app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const existing = await pool.query('SELECT COUNT(*) FROM chart_of_accounts WHERE tenant_id = $1', [tenantId]);
+    if (parseInt(existing.rows[0].count) > 0) {
+      return res.json({ message: 'Accounts already seeded', count: parseInt(existing.rows[0].count) });
+    }
+
+    const accounts = [
+      { code: '1000', name: 'Mjetet', name_en: 'Assets', account_type: 'asset', normal_balance: 'debit' },
+      { code: '1100', name: 'Arka (Cash)', name_en: 'Cash', account_type: 'asset', normal_balance: 'debit' },
+      { code: '1200', name: 'Banka', name_en: 'Bank', account_type: 'asset', normal_balance: 'debit' },
+      { code: '1300', name: 'Llogaritë e Arkëtueshme', name_en: 'Accounts Receivable', account_type: 'asset', normal_balance: 'debit' },
+      { code: '1400', name: 'Inventari', name_en: 'Inventory', account_type: 'asset', normal_balance: 'debit' },
+      { code: '1500', name: 'Parapagimet', name_en: 'Prepaid Expenses', account_type: 'asset', normal_balance: 'debit' },
+      { code: '1600', name: 'Mjetet Fikse', name_en: 'Fixed Assets', account_type: 'asset', normal_balance: 'debit' },
+      { code: '1700', name: 'Amortizimi i Akumuluar', name_en: 'Accumulated Depreciation', account_type: 'asset', normal_balance: 'credit' },
+      { code: '2000', name: 'Detyrimet', name_en: 'Liabilities', account_type: 'liability', normal_balance: 'credit' },
+      { code: '2100', name: 'Llogaritë e Pagueshme', name_en: 'Accounts Payable', account_type: 'liability', normal_balance: 'credit' },
+      { code: '2200', name: 'TVSH e Mbledhur', name_en: 'VAT Collected', account_type: 'liability', normal_balance: 'credit' },
+      { code: '2300', name: 'TVSH e Paguar', name_en: 'VAT Paid', account_type: 'liability', normal_balance: 'debit' },
+      { code: '2400', name: 'Pagat e Pagueshme', name_en: 'Wages Payable', account_type: 'liability', normal_balance: 'credit' },
+      { code: '2500', name: 'Detyrime Tatimore', name_en: 'Tax Payable', account_type: 'liability', normal_balance: 'credit' },
+      { code: '2600', name: 'Huatë Afatshkurtra', name_en: 'Short-term Loans', account_type: 'liability', normal_balance: 'credit' },
+      { code: '2700', name: 'Huatë Afatgjata', name_en: 'Long-term Loans', account_type: 'liability', normal_balance: 'credit' },
+      { code: '3000', name: 'Kapitali', name_en: 'Equity', account_type: 'equity', normal_balance: 'credit' },
+      { code: '3100', name: 'Kapitali i Pronarit', name_en: 'Owner Equity', account_type: 'equity', normal_balance: 'credit' },
+      { code: '3200', name: 'Fitimi i Mbajtur', name_en: 'Retained Earnings', account_type: 'equity', normal_balance: 'credit' },
+      { code: '3300', name: 'Tërheqjet e Pronarit', name_en: 'Owner Drawings', account_type: 'equity', normal_balance: 'debit' },
+      { code: '4000', name: 'Të Ardhurat', name_en: 'Revenue', account_type: 'revenue', normal_balance: 'credit' },
+      { code: '4100', name: 'Të Ardhura nga Shitjet', name_en: 'Sales Revenue', account_type: 'revenue', normal_balance: 'credit' },
+      { code: '4200', name: 'Të Ardhura nga Shërbimet', name_en: 'Service Revenue', account_type: 'revenue', normal_balance: 'credit' },
+      { code: '4300', name: 'Të Ardhura të Tjera', name_en: 'Other Revenue', account_type: 'revenue', normal_balance: 'credit' },
+      { code: '4400', name: 'Zbritje në Shitje', name_en: 'Sales Discounts', account_type: 'revenue', normal_balance: 'debit' },
+      { code: '5000', name: 'Shpenzimet', name_en: 'Expenses', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5100', name: 'Kosto e Mallrave të Shitura', name_en: 'Cost of Goods Sold', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5200', name: 'Paga dhe Mëditje', name_en: 'Salaries & Wages', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5300', name: 'Qiraja', name_en: 'Rent Expense', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5400', name: 'Shërbime Komunale', name_en: 'Utilities', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5500', name: 'Furnizime Zyre', name_en: 'Office Supplies', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5600', name: 'Shpenzime Transporti', name_en: 'Transport Expenses', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5700', name: 'Shpenzime Marketingu', name_en: 'Marketing Expenses', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5800', name: 'Shpenzime Amortizimi', name_en: 'Depreciation Expense', account_type: 'expense', normal_balance: 'debit' },
+      { code: '5900', name: 'Shpenzime të Tjera', name_en: 'Other Expenses', account_type: 'expense', normal_balance: 'debit' },
+      { code: '6000', name: 'Shpenzime Interesi', name_en: 'Interest Expense', account_type: 'expense', normal_balance: 'debit' },
+    ];
+
+    for (const acc of accounts) {
+      await pool.query(
+        'INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance) VALUES ($1, $2, $3, $4, $5, $6)',
+        [tenantId, acc.code, acc.name, acc.name_en, acc.account_type, acc.normal_balance]
+      );
+    }
+
+    res.json({ message: 'Default accounts created', count: accounts.length });
+  } catch (err) {
+    console.error('Seed accounts error:', err.message);
+    res.status(500).json({ error: 'Failed to seed accounts' });
+  }
+});
+
+app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { entry_date, description, reference_type, reference_id, reference_number, lines, status } = req.body;
+
+    if (!lines || lines.length < 2) {
+      return res.status(400).json({ error: 'At least 2 journal lines required' });
+    }
+
+    for (const line of lines) {
+      const debit = parseFloat(line.debit) || 0;
+      const credit = parseFloat(line.credit) || 0;
+      if (debit < 0 || credit < 0) return res.status(400).json({ error: 'Amounts must be non-negative' });
+      if (debit > 0 && credit > 0) return res.status(400).json({ error: 'A line cannot have both debit and credit' });
+    }
+
+    const totalDebit = lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
+    const totalCredit = lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
+
+    if (totalDebit === 0) return res.status(400).json({ error: 'Total must be non-zero' });
+    if (Math.abs(totalDebit - totalCredit) > 0.01) return res.status(400).json({ error: 'Debits must equal credits' });
+
+    const accountIds = lines.map(l => l.account_id).filter(Boolean);
+    if (accountIds.length > 0) {
+      const validAccounts = await pool.query(
+        'SELECT id FROM chart_of_accounts WHERE id = ANY($1) AND tenant_id = $2 AND is_active = true',
+        [accountIds, tenantId]
+      );
+      if (validAccounts.rows.length !== accountIds.length) {
+        return res.status(400).json({ error: 'One or more accounts are invalid' });
+      }
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const countResult = await client.query(
+        'SELECT COALESCE(MAX(CAST(SUBSTRING(entry_number FROM 4) AS INTEGER)), 0) + 1 as next_num FROM journal_entries WHERE tenant_id = $1 AND entry_number LIKE $2',
+        [tenantId, 'JE-%']
+      );
+      const entryNumber = `JE-${String(countResult.rows[0].next_num).padStart(5, '0')}`;
+
+      const entryResult = await client.query(
+        `INSERT INTO journal_entries (tenant_id, entry_number, entry_date, description, reference_type, reference_id, reference_number, total_debit, total_credit, status, created_by, created_by_name, posted_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+        [tenantId, entryNumber, entry_date, description, reference_type || null, reference_id || null, reference_number || null,
+         totalDebit, totalCredit, status || 'posted', req.session.user.id, req.session.user.email,
+         (status || 'posted') === 'posted' ? new Date() : null]
+      );
+      const entry = entryResult.rows[0];
+
+      for (const line of lines) {
+        await client.query(
+          `INSERT INTO journal_lines (tenant_id, journal_entry_id, account_id, account_code, account_name, debit, credit, description)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [tenantId, entry.id, line.account_id, line.account_code, line.account_name,
+           parseFloat(line.debit) || 0, parseFloat(line.credit) || 0, line.description || null]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      const fullLines = await pool.query('SELECT * FROM journal_lines WHERE journal_entry_id = $1', [entry.id]);
+      res.json({ ...entry, lines: fullLines.rows });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create journal entry' });
+  }
+});
+
+app.get('/api/accounting/trial-balance', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { from, to } = req.query;
+
+    let dateFilter = '';
+    const params = [tenantId];
+    if (from) { dateFilter += ` AND je.entry_date >= $${params.length + 1}`; params.push(from); }
+    if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
+
+    const result = await pool.query(`
+      SELECT 
+        coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+        COALESCE(SUM(jl.debit), 0) as total_debit,
+        COALESCE(SUM(jl.credit), 0) as total_credit,
+        COALESCE(SUM(jl.debit), 0) - COALESCE(SUM(jl.credit), 0) as balance
+      FROM chart_of_accounts coa
+      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
+      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
+      WHERE coa.tenant_id = $1 AND coa.is_active = true
+      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance
+      HAVING COALESCE(SUM(jl.debit), 0) != 0 OR COALESCE(SUM(jl.credit), 0) != 0
+      ORDER BY coa.code
+    `, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Trial balance error:', err.message);
+    res.status(500).json({ error: 'Failed to load trial balance' });
+  }
+});
+
+app.get('/api/accounting/income-statement', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { from, to } = req.query;
+
+    let dateFilter = '';
+    const params = [tenantId];
+    if (from) { dateFilter += ` AND je.entry_date >= $${params.length + 1}`; params.push(from); }
+    if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
+
+    const result = await pool.query(`
+      SELECT 
+        coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+        COALESCE(SUM(jl.debit), 0) as total_debit,
+        COALESCE(SUM(jl.credit), 0) as total_credit
+      FROM chart_of_accounts coa
+      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
+      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
+      WHERE coa.tenant_id = $1 AND coa.is_active = true AND coa.account_type IN ('revenue', 'expense')
+      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance
+      HAVING COALESCE(SUM(jl.debit), 0) != 0 OR COALESCE(SUM(jl.credit), 0) != 0
+      ORDER BY coa.code
+    `, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Income statement error:', err.message);
+    res.status(500).json({ error: 'Failed to load income statement' });
+  }
+});
+
+app.get('/api/accounting/balance-sheet', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { to } = req.query;
+
+    let dateFilter = '';
+    const params = [tenantId];
+    if (to) { dateFilter += ` AND je.entry_date <= $${params.length + 1}`; params.push(to); }
+
+    const result = await pool.query(`
+      SELECT 
+        coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+        COALESCE(SUM(jl.debit), 0) as total_debit,
+        COALESCE(SUM(jl.credit), 0) as total_credit
+      FROM chart_of_accounts coa
+      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
+      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
+      WHERE coa.tenant_id = $1 AND coa.is_active = true AND coa.account_type IN ('asset', 'liability', 'equity')
+      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance
+      ORDER BY coa.code
+    `, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Balance sheet error:', err.message);
+    res.status(500).json({ error: 'Failed to load balance sheet' });
+  }
+});
+
+app.get('/api/accounting/atk-sales-book', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { from, to } = req.query;
+
+    let dateFilter = '';
+    const params = [tenantId];
+    if (from) { dateFilter += ` AND issue_date >= $${params.length + 1}`; params.push(from); }
+    if (to) { dateFilter += ` AND issue_date <= $${params.length + 1}`; params.push(to); }
+
+    const result = await pool.query(`
+      SELECT id, invoice_number, issue_date, client_name, client_nuis,
+        subtotal, tax_amount, total, status
+      FROM invoices
+      WHERE tenant_id = $1 AND status != 'cancelled' ${dateFilter}
+      ORDER BY issue_date ASC, invoice_number ASC
+    `, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ATK sales book error:', err.message);
+    res.status(500).json({ error: 'Failed to load ATK sales book' });
+  }
+});
+
+app.get('/api/accounting/atk-purchase-book', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { from, to } = req.query;
+
+    let dateFilter = '';
+    const params = [tenantId];
+    if (from) { dateFilter += ` AND expense_date >= $${params.length + 1}`; params.push(from); }
+    if (to) { dateFilter += ` AND expense_date <= $${params.length + 1}`; params.push(to); }
+
+    const result = await pool.query(`
+      SELECT id, description, expense_date, supplier_name, category_name,
+        amount as subtotal, tax_amount, total, status
+      FROM expenses
+      WHERE tenant_id = $1 AND status != 'cancelled' ${dateFilter}
+      ORDER BY expense_date ASC
+    `, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('ATK purchase book error:', err.message);
+    res.status(500).json({ error: 'Failed to load ATK purchase book' });
+  }
+});
+
+app.get('/api/accounting/tax-summary', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { from, to } = req.query;
+
+    let invDateFilter = '';
+    let expDateFilter = '';
+    const invParams = [tenantId];
+    const expParams = [tenantId];
+    if (from) {
+      invDateFilter += ` AND issue_date >= $${invParams.length + 1}`; invParams.push(from);
+      expDateFilter += ` AND expense_date >= $${expParams.length + 1}`; expParams.push(from);
+    }
+    if (to) {
+      invDateFilter += ` AND issue_date <= $${invParams.length + 1}`; invParams.push(to);
+      expDateFilter += ` AND expense_date <= $${expParams.length + 1}`; expParams.push(to);
+    }
+
+    const salesResult = await pool.query(`
+      SELECT 
+        COALESCE(SUM(subtotal), 0) as total_sales,
+        COALESCE(SUM(tax_amount), 0) as vat_collected,
+        COALESCE(SUM(total), 0) as total_with_vat,
+        COUNT(*) as invoice_count
+      FROM invoices
+      WHERE tenant_id = $1 AND status != 'cancelled' ${invDateFilter}
+    `, invParams);
+
+    const purchaseResult = await pool.query(`
+      SELECT 
+        COALESCE(SUM(amount), 0) as total_purchases,
+        COALESCE(SUM(tax_amount), 0) as vat_paid,
+        COALESCE(SUM(total), 0) as total_with_vat,
+        COUNT(*) as expense_count
+      FROM expenses
+      WHERE tenant_id = $1 AND status != 'cancelled' ${expDateFilter}
+    `, expParams);
+
+    const sales = salesResult.rows[0];
+    const purchases = purchaseResult.rows[0];
+
+    res.json({
+      sales,
+      purchases,
+      net_vat: parseFloat(sales.vat_collected) - parseFloat(purchases.vat_paid),
+      vat_collected: parseFloat(sales.vat_collected),
+      vat_paid: parseFloat(purchases.vat_paid),
+    });
+  } catch (err) {
+    console.error('Tax summary error:', err.message);
+    res.status(500).json({ error: 'Failed to load tax summary' });
+  }
+});
+
+app.get('/api/accounting/financial-card/:type/:id', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { type, id } = req.params;
+    const { from, to } = req.query;
+
+    if (type === 'customer') {
+      let dateFilter = '';
+      const params = [tenantId, id];
+      if (from) { dateFilter += ` AND issue_date >= $${params.length + 1}`; params.push(from); }
+      if (to) { dateFilter += ` AND issue_date <= $${params.length + 1}`; params.push(to); }
+
+      const client = await pool.query('SELECT * FROM clients WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+      const invoices = await pool.query(`
+        SELECT id, invoice_number, issue_date, subtotal, tax_amount, total, paid_amount, status
+        FROM invoices WHERE tenant_id = $1 AND client_id = $2 ${dateFilter}
+        ORDER BY issue_date ASC
+      `, params);
+
+      const payments = await pool.query(`
+        SELECT id, amount, payment_date, payment_method, reference, invoice_number
+        FROM payments WHERE tenant_id = $1 AND client_id = $2
+        ORDER BY payment_date ASC
+      `, [tenantId, id]);
+
+      res.json({
+        entity: client.rows[0] || null,
+        invoices: invoices.rows,
+        payments: payments.rows,
+      });
+    } else if (type === 'vendor') {
+      let dateFilter = '';
+      const params = [tenantId, id];
+      if (from) { dateFilter += ` AND expense_date >= $${params.length + 1}`; params.push(from); }
+      if (to) { dateFilter += ` AND expense_date <= $${params.length + 1}`; params.push(to); }
+
+      const supplier = await pool.query('SELECT * FROM suppliers WHERE id = $1 AND tenant_id = $2', [id, tenantId]);
+      const expenses = await pool.query(`
+        SELECT id, description, expense_date, amount as subtotal, tax_amount, total, status, category_name
+        FROM expenses WHERE tenant_id = $1 AND supplier_id = $2 ${dateFilter}
+        ORDER BY expense_date ASC
+      `, params);
+
+      res.json({
+        entity: supplier.rows[0] || null,
+        expenses: expenses.rows,
+        payments: [],
+      });
+    } else {
+      res.status(400).json({ error: 'Invalid type. Use customer or vendor.' });
+    }
+  } catch (err) {
+    console.error('Financial card error:', err.message);
+    res.status(500).json({ error: 'Failed to load financial card' });
   }
 });
 

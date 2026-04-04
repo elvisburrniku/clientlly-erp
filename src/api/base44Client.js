@@ -161,6 +161,9 @@ export const base44 = {
     AgreementAnnex: createEntityClient('AgreementAnnex'),
     CompanyDocument: createEntityClient('CompanyDocument'),
     Certificate: createEntityClient('Certificate'),
+    ChartOfAccount: createEntityClient('ChartOfAccount'),
+    JournalEntry: createEntityClient('JournalEntry'),
+    JournalLine: createEntityClient('JournalLine'),
   },
 
   portal: {

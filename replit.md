@@ -34,9 +34,9 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
-## Entities (80 total)
+## Entities (85 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, Warehouse, WarehouseLocation, StockMovement, PurchaseOrder, StockTransfer, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue, ServiceAppointment, AssetType, Asset, Vehicle, VehicleInsurance, VehicleRegistration, Driver, VehicleReservation, VehicleMaintenance, FuelLog, CustomField, Proposal, Agreement, AgreementAnnex, CompanyDocument, Certificate
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, Warehouse, WarehouseLocation, StockMovement, PurchaseOrder, StockTransfer, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue, ServiceAppointment, AssetType, Asset, Vehicle, VehicleInsurance, VehicleRegistration, Driver, VehicleReservation, VehicleMaintenance, FuelLog, CustomField, Proposal, Agreement, AgreementAnnex, CompanyDocument, Certificate, ChartOfAccount, JournalEntry, JournalLine
 
 ## Proposals, Agreements & Documents Module
 
@@ -150,6 +150,7 @@ npm start      # Run Express server only (serves built frontend)
 - **Milestones:** Project milestones with due dates and completion tracking
 - **Timesheets:** Time tracking against projects/tasks, weekly view, CSV export
 - **Bug Tracking:** Bug reporting with severity levels, Kanban and list views, CSV export
+- **Accounting Module:** Chart of Accounts (Albanian standard), Journal Entries (manual + double-entry), Trial Balance, Income Statement (P&L), Balance Sheet, ATK Sales Book, ATK Purchase Book, Tax Summary (VAT), Financial Cards (customer/vendor)
 - **Super Admin:** Multi-tenant management
 - **Role Management:** Admin page to configure role permissions
 - **Activity Log:** Admin page to view/filter system activity

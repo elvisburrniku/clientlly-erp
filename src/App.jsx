@@ -80,6 +80,15 @@ import ProposalPublic from './pages/ProposalPublic';
 import Agreements from './pages/Agreements';
 import CompanyDocuments from './pages/CompanyDocuments';
 import Certificates from './pages/Certificates';
+import ChartOfAccounts from './pages/ChartOfAccounts';
+import JournalEntries from './pages/JournalEntries';
+import TrialBalance from './pages/TrialBalance';
+import IncomeStatement from './pages/IncomeStatement';
+import BalanceSheet from './pages/BalanceSheet';
+import ATKSalesBook from './pages/ATKSalesBook';
+import ATKPurchaseBook from './pages/ATKPurchaseBook';
+import TaxSummary from './pages/TaxSummary';
+import FinancialCards from './pages/FinancialCards';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -176,6 +185,15 @@ const AuthenticatedApp = () => {
           <Route path="/agreements" element={<PermissionGuard module="agreements"><Agreements /></PermissionGuard>} />
           <Route path="/company-documents" element={<PermissionGuard module="company_documents"><CompanyDocuments /></PermissionGuard>} />
           <Route path="/certificates" element={<PermissionGuard module="certificates"><Certificates /></PermissionGuard>} />
+          <Route path="/chart-of-accounts" element={<PermissionGuard module="accounting"><ChartOfAccounts /></PermissionGuard>} />
+          <Route path="/journal-entries" element={<PermissionGuard module="accounting"><JournalEntries /></PermissionGuard>} />
+          <Route path="/trial-balance" element={<PermissionGuard module="accounting"><TrialBalance /></PermissionGuard>} />
+          <Route path="/income-statement" element={<PermissionGuard module="accounting"><IncomeStatement /></PermissionGuard>} />
+          <Route path="/balance-sheet" element={<PermissionGuard module="accounting"><BalanceSheet /></PermissionGuard>} />
+          <Route path="/atk-sales-book" element={<PermissionGuard module="accounting"><ATKSalesBook /></PermissionGuard>} />
+          <Route path="/atk-purchase-book" element={<PermissionGuard module="accounting"><ATKPurchaseBook /></PermissionGuard>} />
+          <Route path="/tax-summary" element={<PermissionGuard module="accounting"><TaxSummary /></PermissionGuard>} />
+          <Route path="/financial-cards" element={<PermissionGuard module="accounting"><FinancialCards /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
       </Routes>

@@ -195,6 +195,42 @@ CREATE TABLE IF NOT EXISTS proposals (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- ============ ACCOUNTING MODULE ============
+
+CREATE TABLE IF NOT EXISTS chart_of_accounts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  code VARCHAR(20) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  name_en VARCHAR(255),
+  account_type VARCHAR(50) NOT NULL,
+  parent_id UUID,
+  is_active BOOLEAN DEFAULT true,
+  description TEXT,
+  normal_balance VARCHAR(10) DEFAULT 'debit',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS journal_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  entry_number VARCHAR(100),
+  entry_date DATE NOT NULL,
+  description TEXT,
+  reference_type VARCHAR(100),
+  reference_id UUID,
+  reference_number VARCHAR(100),
+  total_debit DECIMAL(15,2) DEFAULT 0,
+  total_credit DECIMAL(15,2) DEFAULT 0,
+  status VARCHAR(50) DEFAULT 'draft',
+  created_by UUID,
+  created_by_name VARCHAR(255),
+  posted_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS agreements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID,
@@ -284,6 +320,55 @@ CROSS JOIN (VALUES
   ('proposals'), ('agreements'), ('company_documents'), ('certificates')
 ) AS m(module)
 WHERE r.name = 'manager'
+ON CONFLICT (role_id, module) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS journal_lines (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  journal_entry_id UUID REFERENCES journal_entries(id) ON DELETE CASCADE,
+  account_id UUID REFERENCES chart_of_accounts(id),
+  account_code VARCHAR(20),
+  account_name VARCHAR(255),
+  debit DECIMAL(15,2) DEFAULT 0,
+  credit DECIMAL(15,2) DEFAULT 0,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chart_of_accounts_tenant ON chart_of_accounts(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_journal_entries_tenant ON journal_entries(tenant_id, entry_date);
+CREATE INDEX IF NOT EXISTS idx_journal_lines_tenant ON journal_lines(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_journal_lines_entry ON journal_lines(journal_entry_id);
+CREATE INDEX IF NOT EXISTS idx_journal_lines_account ON journal_lines(account_id);
+
+-- Add accounting permissions for existing roles
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, m.module, TRUE, TRUE, TRUE, TRUE
+FROM roles r
+CROSS JOIN (VALUES ('accounting')) AS m(module)
+WHERE r.name = 'admin'
+ON CONFLICT (role_id, module) DO NOTHING;
+
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, m.module, TRUE, TRUE, TRUE, FALSE
+FROM roles r
+CROSS JOIN (VALUES ('accounting')) AS m(module)
+WHERE r.name = 'accountant'
+ON CONFLICT (role_id, module) DO NOTHING;
+
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, m.module, TRUE, FALSE, FALSE, FALSE
+FROM roles r
+CROSS JOIN (VALUES ('accounting')) AS m(module)
+WHERE r.name = 'manager'
+ON CONFLICT (role_id, module) DO NOTHING;
+
+-- Add accounting permissions for user role
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, m.module, TRUE, FALSE, FALSE, FALSE
+FROM roles r
+CROSS JOIN (VALUES ('accounting')) AS m(module)
+WHERE r.name = 'user'
 ON CONFLICT (role_id, module) DO NOTHING;
 `;
 
