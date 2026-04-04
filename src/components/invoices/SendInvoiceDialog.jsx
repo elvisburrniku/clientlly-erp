@@ -13,7 +13,7 @@ const buildMessage = (inv) => {
   const items = (inv.items || []).map(it =>
     `  - ${it.name}: ${it.quantity} ${it.unit} x E${it.price_inc_vat} = E${it.line_total}`
   ).join("\n");
-  return `Fatura ${inv.invoice_number}\nKlienti: ${inv.client_name}\n${items}\nSubtotal: E${(inv.subtotal||0).toFixed(2)}\nTVSH: E${(inv.vat_amount||0).toFixed(2)}\nTotal: E${(inv.amount||0).toFixed(2)}\nAfati: ${inv.due_date || "-"}`;
+  return `Fatura ${inv.invoice_number}\nKlienti: ${inv.client_name}\n${items}\nSubtotal: E${parseFloat(inv.subtotal||0).toFixed(2)}\nTVSH: E${parseFloat(inv.vat_amount||0).toFixed(2)}\nTotal: E${parseFloat(inv.amount||0).toFixed(2)}\nAfati: ${inv.due_date || "-"}`;
 };
 
 export default function SendInvoiceDialog({ invoice, open, onClose }) {
@@ -39,9 +39,9 @@ export default function SendInvoiceDialog({ invoice, open, onClose }) {
         <thead><tr><th>Artikulli</th><th>Sasia</th><th>Çmimi</th><th>Total</th></tr></thead>
         <tbody>${itemsHtml}</tbody>
       </table>
-      <p>Subtotal: €${(invoice.subtotal||0).toFixed(2)}</p>
-      <p>TVSH: €${(invoice.vat_amount||0).toFixed(2)}</p>
-      <p><b>Total: €${(invoice.amount||0).toFixed(2)}</b></p>
+      <p>Subtotal: €${parseFloat(invoice.subtotal||0).toFixed(2)}</p>
+      <p>TVSH: €${parseFloat(invoice.vat_amount||0).toFixed(2)}</p>
+      <p><b>Total: €${parseFloat(invoice.amount||0).toFixed(2)}</b></p>
       ${invoice.due_date ? `<p>Afati: ${invoice.due_date}</p>` : ""}
     `;
     await base44.integrations.Core.SendEmail({

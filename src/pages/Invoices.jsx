@@ -200,7 +200,7 @@ export default function Invoices() {
     const headers = ["Nr. Fatures", "Klienti", "Email", "Telefon", "Subtotal", "TVSH", "Total", "Statusi", "Gjendja", "Pagesa", "Afati", "Data"];
     const rows = filtered.map(inv => [
       inv.invoice_number, inv.client_name, inv.client_email || "", inv.client_phone || "",
-      (inv.subtotal || 0).toFixed(2), (inv.vat_amount || 0).toFixed(2), (inv.amount || 0).toFixed(2),
+      parseFloat(inv.subtotal || 0).toFixed(2), parseFloat(inv.vat_amount || 0).toFixed(2), parseFloat(inv.amount || 0).toFixed(2),
       inv.status || "", inv.is_open !== false ? "Hapur" : "Mbyllur", inv.payment_method || "",
       inv.due_date || "", inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
     ]);
@@ -240,7 +240,7 @@ export default function Invoices() {
       doc.setTextColor(30,30,30);
       const row = [
         inv.invoice_number || "", inv.client_name || "",
-        `€${(inv.subtotal||0).toFixed(2)}`, `€${(inv.vat_amount||0).toFixed(2)}`, `€${(inv.amount||0).toFixed(2)}`,
+        `€${parseFloat(inv.subtotal||0).toFixed(2)}`, `€${parseFloat(inv.vat_amount||0).toFixed(2)}`, `€${parseFloat(inv.amount||0).toFixed(2)}`,
         inv.status || "", inv.is_open !== false ? "Hapur" : "Mbyllur", inv.payment_method || "",
         inv.created_date ? new Date(inv.created_date).toLocaleDateString("sq-AL") : "",
       ];
@@ -250,7 +250,7 @@ export default function Invoices() {
     });
     doc.setFillColor(67,56,202); doc.rect(0, 195, W, 10, "F");
     doc.setTextColor(255,255,255); doc.setFontSize(7);
-    doc.text(`Totali: €${filtered.reduce((s,i) => s+(i.amount||0), 0).toFixed(2)}`, W - margin, 201, { align: "right" });
+    doc.text(`Totali: €${filtered.reduce((s,i) => s+parseFloat(i.amount||0), 0).toFixed(2)}`, W - margin, 201, { align: "right" });
     doc.save(`lista_faturat_${new Date().toISOString().slice(0,10)}.pdf`);
   };
 
@@ -273,7 +273,7 @@ export default function Invoices() {
     await base44.integrations.Core.SendEmail({
       to: inv.client_email,
       subject: `Kujtesë: Fatura ${inv.invoice_number} pret pagesën`,
-      body: `<p>Pershendetje ${inv.client_name},</p><p>Ju kujtojmë se fatura <b>${inv.invoice_number}</b> me vlerë <b>€${(inv.amount||0).toFixed(2)}</b>${inv.due_date ? ` me afat ${inv.due_date}` : ""} është ende e papaguar.</p><p>Ju lutem kryeni pagesën sa më parë.</p><p>Faleminderit!</p>`,
+      body: `<p>Pershendetje ${inv.client_name},</p><p>Ju kujtojmë se fatura <b>${inv.invoice_number}</b> me vlerë <b>€${parseFloat(inv.amount||0).toFixed(2)}</b>${inv.due_date ? ` me afat ${inv.due_date}` : ""} është ende e papaguar.</p><p>Ju lutem kryeni pagesën sa më parë.</p><p>Faleminderit!</p>`,
     });
     toast.success("Kujtesa u dërgua");
   };
@@ -391,7 +391,7 @@ export default function Invoices() {
   });
 
   const openCount = invoices.filter(i => i.is_open !== false).length;
-  const totalRevenue = invoices.reduce((s, i) => s + (i.amount || 0), 0);
+  const totalRevenue = invoices.reduce((s, i) => s + parseFloat(i.amount || 0), 0);
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
