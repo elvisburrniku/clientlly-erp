@@ -1361,6 +1361,10 @@ app.post('/api/superadmin/tenants/:tenantId/create-database', requireAuth, requi
       return res.status(409).json({ error: 'Database provisioning already in progress' });
     }
 
+    if (!process.env.SUPABASE_ACCESS_TOKEN) {
+      return res.status(500).json({ error: 'SUPABASE_ACCESS_TOKEN is not configured. Please set this environment variable before provisioning a database.' });
+    }
+
     await pool.query(
       'UPDATE tenants SET database_status = $1, updated_at = NOW() WHERE id = $2',
       ['provisioning', tenantId]
