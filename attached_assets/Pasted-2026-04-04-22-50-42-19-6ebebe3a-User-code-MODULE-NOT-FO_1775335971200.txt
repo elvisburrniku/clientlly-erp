@@ -1,0 +1,113 @@
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+code: 'MODULE_NOT_FOUND',
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+throw err;
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+at Module._load (node:internal/modules/cjs/loader:1038:27)
+
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+requireStack: []
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+}
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+node:internal/modules/cjs/loader:1210
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+Node.js v20.20.0
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+^
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+Error: Cannot find module '/home/runner/workspace/dist/index.cjs'
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+at node:internal/main/run_main_module:28:49 {
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+2026-04-04 22:50:42.19
+6ebebe3a
+User
+at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2026-04-04 22:50:42.19
+6ebebe3a
+System
+command finished with error [node ./dist/index.cjs]: exit status 1
+2026-04-04 22:50:42.31
+6ebebe3a
+User
+node:internal/modules/cjs/loader:1210
+2026-04-04 22:50:42.31
+6ebebe3a
+User
+throw err;
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+at Module._resolveFilename (node:internal/modules/cjs/loader:1207:15)
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+node:internal/modules/cjs/loader:1210
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+at node:internal/main/run_main_module:28:49 {
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+throw err;
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+^
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+at Module._load (node:internal/modules/cjs/loader:1038:27)
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+Node.js v20.20.0
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+}
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+code: 'MODULE_NOT_FOUND',
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+Error: Cannot find module '/home/runner/workspace/dist/index.cjs'
+2026-04-04 22:50:47.54
+6ebebe3a
+User
+requireStack: []
+2026-04-04 22:50:47.55
+6ebebe3a
+System
+command finished with error [node ./dist/index.cjs]: exit status 1
