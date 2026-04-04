@@ -1003,7 +1003,6 @@ CREATE TABLE IF NOT EXISTS drivers (
   status VARCHAR(50) DEFAULT 'active',
   assigned_vehicle_id UUID,
   assigned_vehicle_plate VARCHAR(100),
-  notes TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -1080,3 +1079,122 @@ CREATE TABLE IF NOT EXISTS custom_fields (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- ============ WAREHOUSE MODULE ============
+
+-- Warehouses
+CREATE TABLE IF NOT EXISTS warehouses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  code VARCHAR(50),
+  address VARCHAR(500),
+  city VARCHAR(100),
+  phone VARCHAR(100),
+  manager_name VARCHAR(255),
+  is_active BOOLEAN DEFAULT true,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Warehouse Locations (zones/bins)
+CREATE TABLE IF NOT EXISTS warehouse_locations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  warehouse_id UUID REFERENCES warehouses(id) ON DELETE CASCADE,
+  warehouse_name VARCHAR(255),
+  name VARCHAR(255) NOT NULL,
+  code VARCHAR(50),
+  zone VARCHAR(100),
+  aisle VARCHAR(50),
+  rack VARCHAR(50),
+  shelf VARCHAR(50),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Stock Movements
+CREATE TABLE IF NOT EXISTS stock_movements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  product_id UUID,
+  product_name VARCHAR(255),
+  warehouse_id UUID,
+  warehouse_name VARCHAR(255),
+  location_id UUID,
+  type VARCHAR(50) NOT NULL,
+  quantity DECIMAL(15,2) DEFAULT 0,
+  unit_cost DECIMAL(15,2) DEFAULT 0,
+  reference_type VARCHAR(100),
+  reference_id UUID,
+  reference_number VARCHAR(100),
+  notes TEXT,
+  created_by UUID,
+  created_by_name VARCHAR(255),
+  movement_date TIMESTAMP DEFAULT NOW(),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Purchase Orders
+CREATE TABLE IF NOT EXISTS purchase_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  po_number VARCHAR(100),
+  supplier_id UUID,
+  supplier_name VARCHAR(255),
+  warehouse_id UUID,
+  warehouse_name VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'draft',
+  order_date DATE,
+  expected_date DATE,
+  received_date DATE,
+  items JSONB DEFAULT '[]',
+  subtotal DECIMAL(15,2) DEFAULT 0,
+  tax_amount DECIMAL(15,2) DEFAULT 0,
+  total DECIMAL(15,2) DEFAULT 0,
+  notes TEXT,
+  approved_by UUID,
+  approved_by_name VARCHAR(255),
+  approved_date TIMESTAMP,
+  created_by UUID,
+  created_by_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Stock Transfers
+CREATE TABLE IF NOT EXISTS stock_transfers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  transfer_number VARCHAR(100),
+  from_warehouse_id UUID,
+  from_warehouse_name VARCHAR(255),
+  to_warehouse_id UUID,
+  to_warehouse_name VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'draft',
+  items JSONB DEFAULT '[]',
+  notes TEXT,
+  transfer_date DATE,
+  approved_by UUID,
+  approved_by_name VARCHAR(255),
+  approved_date TIMESTAMP,
+  created_by UUID,
+  created_by_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Add reorder & barcode columns to products
+ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_point DECIMAL(15,2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS reorder_qty DECIMAL(15,2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS barcode VARCHAR(100);
+ALTER TABLE products ADD COLUMN IF NOT EXISTS cost_price DECIMAL(15,2) DEFAULT 0;
+
+-- Add warehouse_id to inventory
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS warehouse_id UUID;
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS warehouse_name VARCHAR(255);
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS min_quantity DECIMAL(15,2) DEFAULT 0;
+ALTER TABLE inventory ADD COLUMN IF NOT EXISTS last_restocked DATE;

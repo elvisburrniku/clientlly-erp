@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -17,17 +18,20 @@ const emptyForm = () => ({
   min_quantity: 10,
   unit: "cope",
   notes: "",
+  warehouse_id: "",
 });
 
 export default function Inventory() {
   const [inventory, setInventory] = useState([]);
   const [products, setProducts] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState(emptyForm());
   const [submitting, setSubmitting] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [filterWarehouse, setFilterWarehouse] = useState("");
 
   useEffect(() => {
     loadData();
@@ -35,12 +39,14 @@ export default function Inventory() {
 
   const loadData = async () => {
     setLoading(true);
-    const [inv, prod] = await Promise.all([
+    const [inv, prod, wh] = await Promise.all([
       base44.entities.Inventory.list("-created_date", 100),
       base44.entities.Product.list("-created_date", 100),
+      base44.entities.Warehouse.list("name", 100),
     ]);
     setInventory(inv);
     setProducts(prod);
+    setWarehouses(wh);
     setLoading(false);
   };
 
@@ -55,6 +61,8 @@ export default function Inventory() {
       return;
     }
 
+    const whId = form.warehouse_id && form.warehouse_id !== "none" ? form.warehouse_id : null;
+    const warehouse = whId ? warehouses.find(w => w.id === whId) : null;
     await base44.entities.Inventory.create({
       product_id: selectedProduct.id,
       product_name: selectedProduct.name,
@@ -63,6 +71,8 @@ export default function Inventory() {
       unit: selectedProduct.unit || "cope",
       notes: form.notes,
       last_restocked: moment().format("YYYY-MM-DD"),
+      warehouse_id: whId,
+      warehouse_name: warehouse?.name || null,
     });
     
     setDialogOpen(false);
@@ -121,8 +131,9 @@ export default function Inventory() {
     );
   }
 
-  const lowStockItems = inventory.filter(i => i.quantity <= i.min_quantity);
-  const totalItems = inventory.length;
+  const filteredInventory = inventory.filter(i => !filterWarehouse || filterWarehouse === "all" || i.warehouse_id === filterWarehouse);
+  const lowStockItems = filteredInventory.filter(i => i.quantity <= i.min_quantity);
+  const totalItems = filteredInventory.length;
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -136,6 +147,19 @@ export default function Inventory() {
           <Plus className="w-4 h-4" /> Shto Produkt
         </Button>
       </div>
+
+      {/* Warehouse Filter */}
+      {warehouses.length > 0 && (
+        <div className="flex gap-3">
+          <Select value={filterWarehouse} onValueChange={setFilterWarehouse}>
+            <SelectTrigger className="w-[220px]" data-testid="select-inventory-warehouse"><SelectValue placeholder="Të gjitha magazinat" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Të gjitha magazinat</SelectItem>
+              {warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -151,7 +175,7 @@ export default function Inventory() {
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Totali në Magazinë</p>
-          <p className="text-2xl font-bold mt-1">{inventory.reduce((s, i) => s + i.quantity, 0)}</p>
+          <p className="text-2xl font-bold mt-1">{filteredInventory.reduce((s, i) => s + i.quantity, 0)}</p>
         </div>
       </div>
 
@@ -171,7 +195,7 @@ export default function Inventory() {
       {/* Table */}
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
-          <p className="font-semibold text-sm">{inventory.length} produkte në inventar</p>
+          <p className="font-semibold text-sm">{filteredInventory.length} produkte në inventar</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -186,7 +210,7 @@ export default function Inventory() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {inventory.length === 0 ? (
+              {filteredInventory.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-16">
                     <div className="flex flex-col items-center gap-3">
@@ -198,7 +222,7 @@ export default function Inventory() {
                   </td>
                 </tr>
               ) : (
-                inventory.map((item) => {
+                filteredInventory.map((item) => {
                   const isLowStock = item.quantity <= item.min_quantity;
                   return (
                     <tr key={item.id} className="hover:bg-muted/20 transition-colors">
@@ -273,6 +297,18 @@ export default function Inventory() {
                 <p className="text-xs text-muted-foreground mt-2">Zgjedhur: <span className="font-semibold">{selectedProduct.name}</span></p>
               )}
             </div>
+            {warehouses.length > 0 && (
+              <div>
+                <Label>Magazina</Label>
+                <Select value={form.warehouse_id} onValueChange={v => setForm({...form, warehouse_id: v})}>
+                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh magazinën (opsionale)" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Pa magazinë</SelectItem>
+                    {warehouses.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>Sasia Fillestare *</Label>
               <Input type="number" min="0" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: parseFloat(e.target.value) || 0 })} className="mt-1.5" />

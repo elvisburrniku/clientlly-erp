@@ -67,6 +67,14 @@ import CustomFields from './pages/CustomFields';
 import Login from './pages/Login';
 import ActivityLog from './pages/ActivityLog';
 import RoleManagement from './pages/RoleManagement';
+import Warehouses from './pages/Warehouses';
+import StockMovements from './pages/StockMovements';
+import PurchaseOrders from './pages/PurchaseOrders';
+import StockTransfers from './pages/StockTransfers';
+import StockAlerts from './pages/StockAlerts';
+import StockValuation from './pages/StockValuation';
+import ProcurementAnalytics from './pages/ProcurementAnalytics';
+import BarcodeLabels from './pages/BarcodeLabels';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -150,6 +158,14 @@ const AuthenticatedApp = () => {
           <Route path="/fuel-logs" element={<PermissionGuard module="fuel_logs"><FuelLogs /></PermissionGuard>} />
           <Route path="/fleet-reports" element={<PermissionGuard module="fleet_reports"><FleetReports /></PermissionGuard>} />
           <Route path="/custom-fields" element={<PermissionGuard module="custom_fields"><CustomFields /></PermissionGuard>} />
+          <Route path="/warehouses" element={<PermissionGuard module="inventory"><Warehouses /></PermissionGuard>} />
+          <Route path="/stock-movements" element={<PermissionGuard module="inventory"><StockMovements /></PermissionGuard>} />
+          <Route path="/purchase-orders" element={<PermissionGuard module="inventory"><PurchaseOrders /></PermissionGuard>} />
+          <Route path="/stock-transfers" element={<PermissionGuard module="inventory"><StockTransfers /></PermissionGuard>} />
+          <Route path="/stock-alerts" element={<PermissionGuard module="inventory"><StockAlerts /></PermissionGuard>} />
+          <Route path="/stock-valuation" element={<PermissionGuard module="inventory"><StockValuation /></PermissionGuard>} />
+          <Route path="/procurement-analytics" element={<PermissionGuard module="inventory"><ProcurementAnalytics /></PermissionGuard>} />
+          <Route path="/barcode-labels" element={<PermissionGuard module="inventory"><BarcodeLabels /></PermissionGuard>} />
           <Route path="*" element={<PageNotFound />} />
         </Route>
         <Route path="/onboarding" element={<Onboarding />} />

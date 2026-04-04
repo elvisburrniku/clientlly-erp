@@ -34,9 +34,9 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
-## Entities (75 total)
+## Entities (80 total)
 
-Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue, ServiceAppointment, AssetType, Asset, Vehicle, VehicleInsurance, VehicleRegistration, Driver, VehicleReservation, VehicleMaintenance, FuelLog, CustomField
+Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User, Lead, Note, Announcement, PortalToken, Department, JobPosition, Employee, Attendance, Shift, Schedule, LeaveType, LeaveBalance, LeaveRequest, Payroll, EmployeeAdvance, Holiday, Warehouse, WarehouseLocation, StockMovement, PurchaseOrder, StockTransfer, ProjectStage, ProjectLabel, Project, ProjectMember, Milestone, Task, TaskComment, Timesheet, Bug, CreditNote, DebitNote, Bill, ExpenseRequest, Revenue, ServiceAppointment, AssetType, Asset, Vehicle, VehicleInsurance, VehicleRegistration, Driver, VehicleReservation, VehicleMaintenance, FuelLog, CustomField
 
 ## Roles & Permissions
 
@@ -117,7 +117,14 @@ npm start      # Run Express server only (serves built frontend)
 - **Announcements:** Company-wide announcements with read/unread tracking, pinned messages, priority levels
 - **Customer Portal:** Token-based public portal for clients to view invoices and payment history
 - **Vendor Portal:** Token-based public portal for suppliers to view bills and payments
-- **Inventory:** Stock management
+- **Inventory:** Stock management with warehouse filtering
+- **Warehouses:** Multiple warehouses with locations/zones, CRUD management
+- **Stock Movements:** Track in/out/adjustment/transfer movements per product
+- **Purchase Orders:** Full PO workflow (draft → submitted → approved → ordered → received → closed), PDF export
+- **Stock Transfers:** Move stock between warehouses with approval workflow
+- **Stock Alerts:** Low stock alerts with configurable reorder points per product
+- **Stock Valuation:** Dashboard showing total value by warehouse and category
+- **Procurement Analytics:** Supplier performance, stock aging, ABC analysis
 - **Reports:** Financial summaries, charts (Recharts)
 - **Service Calendar:** Appointment scheduling with monthly/weekly/daily views, status tracking, team assignment
 - **Assets:** Asset tracking with types, depreciation, value summaries

@@ -151,6 +151,11 @@ export const base44 = {
     VehicleMaintenance: createEntityClient('VehicleMaintenance'),
     FuelLog: createEntityClient('FuelLog'),
     CustomField: createEntityClient('CustomField'),
+    Warehouse: createEntityClient('Warehouse'),
+    WarehouseLocation: createEntityClient('WarehouseLocation'),
+    StockMovement: createEntityClient('StockMovement'),
+    PurchaseOrder: createEntityClient('PurchaseOrder'),
+    StockTransfer: createEntityClient('StockTransfer'),
   },
 
   portal: {

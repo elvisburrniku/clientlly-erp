@@ -538,6 +538,11 @@ const entityTableMap = {
   VehicleMaintenance: 'vehicle_maintenance',
   FuelLog: 'fuel_logs',
   CustomField: 'custom_fields',
+  Warehouse: 'warehouses',
+  WarehouseLocation: 'warehouse_locations',
+  StockMovement: 'stock_movements',
+  PurchaseOrder: 'purchase_orders',
+  StockTransfer: 'stock_transfers',
 };
 
 const noTenantColumnEntities = new Set(['Tenant']);

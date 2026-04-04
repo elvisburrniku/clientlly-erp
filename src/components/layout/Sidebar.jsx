@@ -6,7 +6,8 @@ import {
   FolderKanban, Timer, Bug,
   FileMinus, FilePlus, Receipt, ClipboardCheck, TrendingUp,
   Target, StickyNote, Megaphone,
-  HardDrive, Car, Wrench, Fuel, PieChart, Settings2
+  HardDrive, Car, Wrench, Fuel, PieChart, Settings2,
+  Warehouse, ArrowDownUp, ShoppingCart, ArrowLeftRight as TransferIcon, AlertOctagon, QrCode
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -70,6 +71,17 @@ export default function Sidebar() {
     { label: "Fushat e Personalizuara", icon: Settings2, path: "/custom-fields", module: "custom_fields" },
   ];
 
+  const warehouseItems = [
+    { label: "Magazinat", icon: Warehouse, path: "/warehouses", module: "inventory" },
+    { label: "Lëvizjet e Stokut", icon: ArrowDownUp, path: "/stock-movements", module: "inventory" },
+    { label: "Porositë e Blerjes", icon: ShoppingCart, path: "/purchase-orders", module: "inventory" },
+    { label: "Transfertat Stokut", icon: TransferIcon, path: "/stock-transfers", module: "inventory" },
+    { label: "Alarmet e Stokut", icon: AlertOctagon, path: "/stock-alerts", module: "inventory" },
+    { label: "Vlerësimi Stokut", icon: PieChart, path: "/stock-valuation", module: "inventory" },
+    { label: "Analitika Prokurimit", icon: TrendingUp, path: "/procurement-analytics", module: "inventory" },
+    { label: "Barkode & Etiketa", icon: QrCode, path: "/barcode-labels", module: "inventory" },
+  ];
+
   const performanceItems = [
     { label: t('reports') || "Raportet", icon: BarChart3, path: "/reports", module: "reports" },
     { label: "Royalties", icon: DollarSign, path: "/royalties", module: "royalties" },
@@ -83,6 +95,7 @@ export default function Sidebar() {
 
   const visibleMenuItems = menuItems.filter(item => fullAccess || canView(item.module));
   const visibleFleetItems = serviceFleetItems.filter(item => fullAccess || canView(item.module));
+  const visibleWarehouseItems = warehouseItems.filter(item => fullAccess || canView(item.module));
   const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
   const visibleHrItems = hrItems.filter(item => fullAccess || canView(item.module));
 
@@ -151,6 +164,15 @@ export default function Sidebar() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Shërbime & Flotë</p>
             )}
             {visibleFleetItems.map(renderLink)}
+          </>
+        )}
+
+        {visibleWarehouseItems.length > 0 && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Magazina & Prokurimi</p>
+            )}
+            {visibleWarehouseItems.map(renderLink)}
           </>
         )}
 
