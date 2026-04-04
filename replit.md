@@ -2,7 +2,7 @@
 
 ## Overview
 
-A comprehensive ERP (Enterprise Resource Planning) application for Albanian-speaking businesses, featuring invoicing, quotes, expenses, cash management, inventory, and reporting. The UI is in Albanian.
+A comprehensive ERP (Enterprise Resource Planning) application for Albanian-speaking businesses, featuring invoicing, quotes, expenses, cash management, inventory, and reporting. The UI supports Albanian and English.
 
 ## Architecture
 
@@ -16,19 +16,67 @@ A comprehensive ERP (Enterprise Resource Planning) application for Albanian-spea
 
 | Path | Purpose |
 |------|---------|
-| `server/index.js` | Express API server (auth + entity CRUD + function stubs) |
-| `server/entityRouter.js` | Generic entity CRUD router used by all 23 entities |
+| `server/index.js` | Express API server (auth, entity CRUD, uploads, notifications, search, permissions, activity logs) |
+| `server/entityRouter.js` | Generic entity CRUD router with activity logging |
 | `server/db.js` | PostgreSQL pool connection |
-| `server/schema.sql` | Database schema (all tables) |
-| `src/api/base44Client.js` | Frontend API client replacing Base44 SDK |
+| `server/migrate.js` | Auto-migration for roles, permissions, notifications, activity_logs, uploaded_files tables |
+| `server/permissions.js` | Role-based permission middleware and API |
+| `server/activityLog.js` | Activity/audit logging helper and API |
+| `src/api/base44Client.js` | Frontend API client |
 | `src/lib/AuthContext.jsx` | React auth context |
 | `src/lib/TenantContext.jsx` | Multi-tenant context |
+| `src/lib/usePermissions.jsx` | Permissions context and hooks (canView, canCreate, canEdit, canDelete) |
+| `src/lib/useLanguage.jsx` | Language provider with server-side persistence |
+| `src/components/layout/NotificationBell.jsx` | Notification bell with unread count and popover |
+| `src/components/layout/GlobalSearch.jsx` | Global search bar with results dropdown |
+| `src/pages/ActivityLog.jsx` | Admin activity log viewer with filters |
+| `src/pages/RoleManagement.jsx` | Admin role and permission management UI |
 | `src/pages/Login.jsx` | Login/register page |
 | `src/App.jsx` | Root router |
 
 ## Entities (23 total)
 
 Tenant, Client, Supplier, Product, Unit, ServiceCategory, Invoice, InvoiceSettings, InvoiceTemplate, Quote, QuoteTemplate, Expense, ExpenseCategory, CategoryBudget, Payment, CashTransaction, CashboxSettings, CashHandover, Transfer, Inventory, Reminder, ReportTemplate, User
+
+## Roles & Permissions
+
+- **4 default roles:** admin (full access), manager, accountant, user
+- **Granular permissions:** per-module can_view, can_create, can_edit, can_delete
+- **Middleware enforcement:** `requirePermission(entityName)` checks role permissions on API routes
+- **Frontend guards:** `usePermissions()` hook provides `canView`, `canCreate`, `canEdit`, `canDelete`
+- **Admin UI:** `/role-management` page for configuring role permissions
+
+## File Uploads
+
+- Multer-based upload to `uploads/` directory (organized by category)
+- Endpoints: `POST /api/upload/:category`, `GET /api/files/:category/:filename`
+- Categories: avatar, attachment, document, general
+- Max file size: 10MB, supports images, PDFs, office docs
+
+## Notifications
+
+- In-app notification bell with unread count badge
+- API: `GET /api/notifications`, `GET /api/notifications/unread-count`, `PATCH /api/notifications/:id/read`, `PATCH /api/notifications/mark-all-read`
+- Polling every 30 seconds for new notifications
+
+## Activity/Audit Log
+
+- Auto-logs all entity CRUD operations (create, update, delete)
+- Records user, action, entity type/name, timestamp, IP address
+- Admin page at `/activity-log` with entity type and action filters
+- API: `GET /api/activity-logs` (admin only)
+
+## Global Search
+
+- Single endpoint `GET /api/search?q=term` searches across clients, invoices, products, suppliers, expenses
+- Frontend search bar in header with keyboard navigation and results dropdown
+- Routes to entity detail pages on selection
+
+## Localization
+
+- Language switcher persists preference to user profile (server-side) and localStorage
+- Translations for Albanian (sq), English (en), Spanish (es), German (de), Macedonian (mk)
+- Fallback chain: selected language → English → key name
 
 ## Scripts
 
@@ -43,19 +91,14 @@ npm start      # Run Express server only (serves built frontend)
 - **Build:** `npm run build` (Vite outputs to `dist/`)
 - **Run:** `node server/index.js` (serves `dist/` as static + API on port 5000)
 - Production server uses `PORT` env var (default 5000 in production)
+- Database migration runs automatically on server start
 
 ## Important Conventions
 
-- **Field aliasing:** Frontend uses `created_date`/`updated_date` (from Base44), DB uses `created_at`/`updated_at`. The `addVirtualFields()` function in `server/entityRouter.js` handles this by adding virtual fields to all API responses.
-- **User security:** The User entity router excludes `password_hash` from all query results using a specific column list.
+- **Field aliasing:** Frontend uses `created_date`/`updated_date` (from Base44), DB uses `created_at`/`updated_at`. The `addVirtualFields()` function handles this.
+- **User security:** The User entity router excludes `password_hash` from all query results.
 - **Multi-tenant:** All entities are scoped by `tenant_id`. Frontend filters data by `user.tenant_id`.
-
-## Migration Notes
-
-- Migrated from Base44 platform to Replit (April 2026)
-- All Base44 SDK calls replaced with `src/api/base44Client.js` which calls local Express API
-- Authentication replaced with local session-based auth (register/login/logout)
-- Email/file upload integrations are stubbed — need external service (e.g., SendGrid, Cloudinary) to enable
+- **Users table uses UUID** for the `id` column (not integer).
 
 ## Features
 
@@ -68,3 +111,8 @@ npm start      # Run Express server only (serves built frontend)
 - **Reports:** Financial summaries, charts (Recharts)
 - **Settings:** Tenant configuration, invoice templates
 - **Super Admin:** Multi-tenant management
+- **Role Management:** Admin page to configure role permissions
+- **Activity Log:** Admin page to view/filter system activity
+- **Notifications:** In-app notification bell with unread count
+- **Global Search:** Header search bar across all entities
+- **File Upload:** Upload avatars, attachments, documents

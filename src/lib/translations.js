@@ -396,6 +396,45 @@ export const translations = {
     confirmDelete: "A jeni i sigurt?",
     areYouSure: "A jeni i sigurt se dëshironi ta fshini?",
     deleteForever: "Kjo nuk mund të prapakthehet",
+
+    // Notifications & Activity
+    notifications: "Njoftimet",
+    noNotifications: "Nuk ka njoftime",
+    markAllRead: "Shëno të gjitha si të lexuara",
+    justNow: "Tani",
+
+    // Activity Log
+    activityLog: "Regjistri i Aktivitetit",
+    activityLogDescription: "Ndiqni të gjitha ndryshimet e bëra në sistem",
+    noActivityLogs: "Nuk ka regjistrime aktiviteti",
+    allEntities: "Të Gjitha Entitetet",
+    allActions: "Të Gjitha Veprimet",
+    created: "krijoi",
+    updated: "përditësoi",
+    deleted: "fshiu",
+
+    // Roles & Permissions
+    roleManagement: "Menaxhimi i Roleve",
+    roleManagementDescription: "Konfiguro lejet për secilin rol",
+    permissionsSaved: "Lejet u ruajtën me sukses",
+    module: "Moduli",
+    view: "Shiko",
+    administration: "Administrimi",
+    other: "Të Tjera",
+    menu: "Menuja",
+    companyPerformance: "Performanca e Kompanisë",
+
+    // Search
+    searchPlaceholder: "Kërko klientë, fatura, produkte...",
+    searching: "Duke kërkuar...",
+
+    // Profile
+    profile: "Profili",
+    logout: "Dil",
+
+    // Access Control
+    accessDenied: "Qasja e Ndaluar",
+    noPermission: "Nuk keni leje për të parë këtë faqe.",
   },
 
   en: {
@@ -795,6 +834,45 @@ export const translations = {
     confirmDelete: "Are you sure?",
     areYouSure: "Are you sure you want to delete?",
     deleteForever: "This cannot be undone",
+
+    // Notifications & Activity
+    notifications: "Notifications",
+    noNotifications: "No notifications",
+    markAllRead: "Mark all read",
+    justNow: "Just now",
+
+    // Activity Log
+    activityLog: "Activity Log",
+    activityLogDescription: "Track all changes made in the system",
+    noActivityLogs: "No activity logs found",
+    allEntities: "All Entities",
+    allActions: "All Actions",
+    created: "created",
+    updated: "updated",
+    deleted: "deleted",
+
+    // Roles & Permissions
+    roleManagement: "Role Management",
+    roleManagementDescription: "Configure permissions for each role",
+    permissionsSaved: "Permissions saved successfully",
+    module: "Module",
+    view: "View",
+    administration: "Administration",
+    other: "Other",
+    menu: "Menu",
+    companyPerformance: "Company Performance",
+
+    // Search
+    searchPlaceholder: "Search clients, invoices, products...",
+    searching: "Searching...",
+
+    // Profile
+    profile: "Profile",
+    logout: "Log out",
+
+    // Access Control
+    accessDenied: "Access Denied",
+    noPermission: "You do not have permission to view this page.",
   },
 
   es: {

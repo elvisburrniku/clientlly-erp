@@ -23,30 +23,42 @@ export const TenantProvider = ({ children }) => {
 
   const loadTenant = async () => {
     setIsLoadingTenant(true);
-    if (!user?.tenant_id) {
+    try {
+      if (!user?.tenant_id) {
+        setNeedsOnboarding(true);
+        setIsLoadingTenant(false);
+        return;
+      }
+      const res = await fetch('/api/tenant/me', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          setTenant(data);
+          setNeedsOnboarding(false);
+        } else {
+          setNeedsOnboarding(true);
+        }
+      } else {
+        setNeedsOnboarding(true);
+      }
+    } catch {
       setNeedsOnboarding(true);
+    } finally {
       setIsLoadingTenant(false);
-      return;
     }
-    const tenants = await base44.entities.Tenant.filter({ id: user.tenant_id });
-    if (tenants.length > 0) {
-      setTenant(tenants[0]);
-      setNeedsOnboarding(false);
-    } else {
-      setNeedsOnboarding(true);
-    }
-    setIsLoadingTenant(false);
   };
 
   const refreshTenant = async () => {
-    const currentUser = await base44.auth.me();
-    if (currentUser?.tenant_id) {
-      const tenants = await base44.entities.Tenant.filter({ id: currentUser.tenant_id });
-      if (tenants.length > 0) {
-        setTenant(tenants[0]);
-        setNeedsOnboarding(false);
+    try {
+      const res = await fetch('/api/tenant/me', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data) {
+          setTenant(data);
+          setNeedsOnboarding(false);
+        }
       }
-    }
+    } catch {}
   };
 
   return (

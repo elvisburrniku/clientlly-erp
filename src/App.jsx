@@ -5,6 +5,8 @@ import { LanguageProvider } from '@/lib/useLanguage.jsx'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { PermissionsProvider } from '@/lib/usePermissions';
+import PermissionGuard from '@/components/PermissionGuard';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
@@ -34,6 +36,8 @@ import Onboarding from './pages/Onboarding';
 import SuperAdmin from './pages/SuperAdmin';
 import ReportTemplates from './pages/ReportTemplates';
 import Login from './pages/Login';
+import ActivityLog from './pages/ActivityLog';
+import RoleManagement from './pages/RoleManagement';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,37 +64,41 @@ const AuthenticatedApp = () => {
   }
 
   return (
-    <Routes>
-      <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/invoices" element={<Invoices />} />
-        <Route path="/invoices/:id" element={<InvoiceDetail />} />
-        <Route path="/quotes" element={<Quotes />} />
-        <Route path="/expenses" element={<Expenses />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/reminders" element={<Reminders />} />
-        <Route path="/clients" element={<Clients />} />
-        <Route path="/client-detail/:clientId" element={<ClientDetail />} />
-        <Route path="/suppliers" element={<Suppliers />} />
-        <Route path="/cashbox" element={<Cashbox />} />
-        <Route path="/cash-handover" element={<CashHandover />} />
-        <Route path="/cash-handover-request" element={<CashHandoverRequest />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/royalties" element={<Royalties />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/catalog" element={<ProductCatalog />} />
-        <Route path="/transfers" element={<Transfers />} />
-        <Route path="/debtors" element={<Debtors />} />
-        <Route path="/debtor-detail/:debtorName" element={<DebtorDetail />} />
-        <Route path="/invoice-analytics" element={<InvoiceAnalytics />} />
-        <Route path="/client" element={<ClientPortal />} />
-        <Route path="/super-admin" element={<SuperAdmin />} />
-        <Route path="/report-templates" element={<ReportTemplates />} />
-        <Route path="*" element={<PageNotFound />} />
-      </Route>
-      <Route path="/onboarding" element={<Onboarding />} />
-    </Routes>
+    <PermissionsProvider>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<PermissionGuard module="dashboard"><Dashboard /></PermissionGuard>} />
+          <Route path="/invoices" element={<PermissionGuard module="invoices"><Invoices /></PermissionGuard>} />
+          <Route path="/invoices/:id" element={<PermissionGuard module="invoices"><InvoiceDetail /></PermissionGuard>} />
+          <Route path="/quotes" element={<PermissionGuard module="quotes"><Quotes /></PermissionGuard>} />
+          <Route path="/expenses" element={<PermissionGuard module="expenses"><Expenses /></PermissionGuard>} />
+          <Route path="/products" element={<PermissionGuard module="products"><Products /></PermissionGuard>} />
+          <Route path="/reminders" element={<PermissionGuard module="reminders"><Reminders /></PermissionGuard>} />
+          <Route path="/clients" element={<PermissionGuard module="clients"><Clients /></PermissionGuard>} />
+          <Route path="/client-detail/:clientId" element={<PermissionGuard module="clients"><ClientDetail /></PermissionGuard>} />
+          <Route path="/suppliers" element={<PermissionGuard module="suppliers"><Suppliers /></PermissionGuard>} />
+          <Route path="/cashbox" element={<PermissionGuard module="cashbox"><Cashbox /></PermissionGuard>} />
+          <Route path="/cash-handover" element={<PermissionGuard module="cash_handover"><CashHandover /></PermissionGuard>} />
+          <Route path="/cash-handover-request" element={<PermissionGuard module="cash_handover"><CashHandoverRequest /></PermissionGuard>} />
+          <Route path="/reports" element={<PermissionGuard module="reports"><Reports /></PermissionGuard>} />
+          <Route path="/royalties" element={<PermissionGuard module="royalties"><Royalties /></PermissionGuard>} />
+          <Route path="/inventory" element={<PermissionGuard module="inventory"><Inventory /></PermissionGuard>} />
+          <Route path="/settings" element={<PermissionGuard module="settings"><Settings /></PermissionGuard>} />
+          <Route path="/catalog" element={<PermissionGuard module="products"><ProductCatalog /></PermissionGuard>} />
+          <Route path="/transfers" element={<PermissionGuard module="transfers"><Transfers /></PermissionGuard>} />
+          <Route path="/debtors" element={<PermissionGuard module="debtors"><Debtors /></PermissionGuard>} />
+          <Route path="/debtor-detail/:debtorName" element={<PermissionGuard module="debtors"><DebtorDetail /></PermissionGuard>} />
+          <Route path="/invoice-analytics" element={<PermissionGuard module="invoices"><InvoiceAnalytics /></PermissionGuard>} />
+          <Route path="/client" element={<ClientPortal />} />
+          <Route path="/super-admin" element={<PermissionGuard adminOnly><SuperAdmin /></PermissionGuard>} />
+          <Route path="/report-templates" element={<PermissionGuard module="report_templates"><ReportTemplates /></PermissionGuard>} />
+          <Route path="/activity-log" element={<PermissionGuard adminOnly><ActivityLog /></PermissionGuard>} />
+          <Route path="/role-management" element={<PermissionGuard adminOnly><RoleManagement /></PermissionGuard>} />
+          <Route path="*" element={<PageNotFound />} />
+        </Route>
+        <Route path="/onboarding" element={<Onboarding />} />
+      </Routes>
+    </PermissionsProvider>
   );
 };
 

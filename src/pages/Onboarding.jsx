@@ -44,37 +44,34 @@ export default function Onboarding() {
     }
     setLoading(true);
 
-    // Check code uniqueness
-    const existing = await base44.entities.Tenant.filter({ code: form.code });
-    if (existing.length > 0) {
-      setError("Ky kod është i zënë. Zgjidh një tjetër.");
-      setLoading(false);
-      return;
+    try {
+      const res = await fetch('/api/onboarding/create-tenant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: form.name,
+          code: form.code,
+          phone: form.phone,
+          address: form.address,
+          nipt: form.nipt,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error === 'Code already taken' ? "Ky kod është i zënë. Zgjidh një tjetër." : (data.error || "Gabim"));
+        setLoading(false);
+        return;
+      }
+
+      await checkAppState();
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 500);
+    } catch {
+      setError("Gabim gjatë krijimit të kompanisë.");
     }
-
-    // Create tenant
-    const tenant = await base44.entities.Tenant.create({
-      name: form.name,
-      code: form.code,
-      owner_email: user.email,
-      status: "active",
-      plan: "free",
-      phone: form.phone,
-      address: form.address,
-      nipt: form.nipt,
-    });
-
-    // Update user with tenant_id
-    await base44.auth.updateMe({
-      tenant_id: tenant.id,
-      tenant_name: tenant.name,
-    });
-
-    // Refresh auth state to pickup tenant_id
-    await checkAppState();
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 500);
     setLoading(false);
   };
 

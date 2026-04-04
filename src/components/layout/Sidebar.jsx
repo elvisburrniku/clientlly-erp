@@ -1,40 +1,74 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, FileText, Users, Truck, Wallet, BarChart3, Settings, 
-  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart
+  ChevronLeft, ChevronRight, DollarSign, Package, Bell, ArrowRightLeft, AlertCircle, ShieldCheck, FileBarChart, Activity, Shield
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/AuthContext";
-
-const menuItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/" },
-  { label: "Faturat", icon: FileText, path: "/invoices" },
-  { label: "Ofertat", icon: FileText, path: "/quotes" },
-  { label: "Produktet", icon: Package, path: "/products" },
-  { label: "Kujtesat", icon: Bell, path: "/reminders" },
-  { label: "Klientët", icon: Users, path: "/clients" },
-  { label: "Furnitorët", icon: Truck, path: "/suppliers" },
-  { label: "Arka", icon: Wallet, path: "/cashbox" },
-  { label: "Transfertat", icon: ArrowRightLeft, path: "/transfers" },
-  { label: "Borxhet", icon: AlertCircle, path: "/debtors" },
-  { label: "Shpenzimet", icon: DollarSign, path: "/expenses" },
-  { label: "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover" },
-];
-
-const performanceItems = [
-  { label: "Performanca e Kompanisë", section: true },
-  { label: "Raportet", icon: BarChart3, path: "/reports" },
-  { label: "Royalties", icon: DollarSign, path: "/royalties" },
-  { label: "Template-e Raporteve", icon: FileBarChart, path: "/report-templates" },
-];
-
-
+import { usePermissions } from "@/lib/usePermissions";
+import { useLanguage } from "@/lib/useLanguage";
 
 export default function Sidebar() {
   const location = useLocation();
   const { user } = useAuth();
+  const { canView, fullAccess } = usePermissions();
   const [collapsed, setCollapsed] = useState(false);
+  const { t } = useLanguage();
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+
+  const menuItems = [
+    { label: t('dashboard') || "Dashboard", icon: LayoutDashboard, path: "/", module: "dashboard" },
+    { label: t('invoices') || "Faturat", icon: FileText, path: "/invoices", module: "invoices" },
+    { label: "Ofertat", icon: FileText, path: "/quotes", module: "quotes" },
+    { label: t('products') || "Produktet", icon: Package, path: "/products", module: "products" },
+    { label: t('reminders') || "Kujtesat", icon: Bell, path: "/reminders", module: "reminders" },
+    { label: t('clients') || "Klientët", icon: Users, path: "/clients", module: "clients" },
+    { label: t('suppliers') || "Furnitorët", icon: Truck, path: "/suppliers", module: "suppliers" },
+    { label: t('cashbox') || "Arka", icon: Wallet, path: "/cashbox", module: "cashbox" },
+    { label: t('transfers') || "Transfertat", icon: ArrowRightLeft, path: "/transfers", module: "transfers" },
+    { label: t('debtors') || "Borxhet", icon: AlertCircle, path: "/debtors", module: "debtors" },
+    { label: t('expenses') || "Shpenzimet", icon: DollarSign, path: "/expenses", module: "expenses" },
+    { label: t('cashHandover') || "Dorëzimi i Parave", icon: DollarSign, path: "/cash-handover", module: "cash_handover" },
+  ];
+
+  const performanceItems = [
+    { label: t('reports') || "Raportet", icon: BarChart3, path: "/reports", module: "reports" },
+    { label: "Royalties", icon: DollarSign, path: "/royalties", module: "royalties" },
+    { label: t('reportTemplates') || "Template-e Raporteve", icon: FileBarChart, path: "/report-templates", module: "report_templates" },
+  ];
+
+  const adminItems = [
+    { label: t('activityLog') || "Activity Log", icon: Activity, path: "/activity-log", module: "activity_log" },
+    { label: t('roleManagement') || "Role Management", icon: Shield, path: "/role-management", module: "users" },
+  ];
+
+  const visibleMenuItems = menuItems.filter(item => fullAccess || canView(item.module));
+  const visiblePerfItems = performanceItems.filter(item => fullAccess || canView(item.module));
+
+  const renderLink = (item) => {
+    const isActive = location.pathname === item.path;
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        data-testid={`nav-link-${item.path.replace('/', '') || 'dashboard'}`}
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+          isActive
+            ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
+            : "text-white/55 hover:bg-white/8 hover:text-white/90"
+        )}
+      >
+        <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-white/50")} />
+        {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+        {isActive && !collapsed && (
+          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
+        )}
+      </Link>
+    );
+  };
 
   return (
     <aside
@@ -46,7 +80,6 @@ export default function Sidebar() {
         collapsed ? "w-[68px]" : "w-[250px]"
       )}
     >
-      {/* Logo */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-white/10">
         <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
           <span className="text-white font-bold text-sm">E</span>
@@ -58,76 +91,34 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 py-5 px-3 space-y-0.5 overflow-y-auto">
-        {!collapsed && (
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3">Menuja</p>
+        {!collapsed && visibleMenuItems.length > 0 && (
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3">{t('menu') || 'Menuja'}</p>
         )}
-        {menuItems.slice(0, 10).map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
-                  : "text-white/55 hover:bg-white/8 hover:text-white/90"
-              )}
-            >
-              <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-white/50")} />
-              {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
-              {isActive && !collapsed && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
-              )}
-            </Link>
-          );
-        })}
+        {visibleMenuItems.map(renderLink)}
+
+        {visiblePerfItems.length > 0 && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">{t('companyPerformance') || 'Performanca e Kompanisë'}</p>
+            )}
+            {visiblePerfItems.map(renderLink)}
+          </>
+        )}
 
         {!collapsed && (
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Performanca e Kompanisë</p>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">{t('other') || 'Të Tjera'}</p>
         )}
-        {performanceItems.filter(item => !item.section).map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
-                  : "text-white/55 hover:bg-white/8 hover:text-white/90"
-              )}
-            >
-              <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-white/50")} />
-              {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
-              {isActive && !collapsed && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
-              )}
-            </Link>
-          );
-        })}
+        {(fullAccess || canView('settings')) && renderLink({ label: t('settings') || "Parametrat", icon: Settings, path: "/settings", module: "settings" })}
 
-        {!collapsed && (
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">Të Tjera</p>
+        {isAdmin && (
+          <>
+            {!collapsed && (
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 px-3 mb-3 mt-6">{t('administration') || 'Administration'}</p>
+            )}
+            {adminItems.map(renderLink)}
+          </>
         )}
-        <Link
-          to="/settings"
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-            location.pathname === '/settings'
-              ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
-              : "text-white/55 hover:bg-white/8 hover:text-white/90"
-          )}
-        >
-          <Settings className={cn("w-5 h-5 shrink-0", location.pathname === '/settings' ? "text-white" : "text-white/50")} />
-          {!collapsed && <span className="whitespace-nowrap">Parametrat</span>}
-          {location.pathname === '/settings' && !collapsed && (
-            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
-          )}
-        </Link>
 
         {user?.role === "superadmin" && (
           <>
@@ -136,6 +127,7 @@ export default function Sidebar() {
             )}
             <Link
               to="/super-admin"
+              data-testid="nav-link-super-admin"
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 location.pathname === '/super-admin'
@@ -143,17 +135,17 @@ export default function Sidebar() {
                   : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300"
               )}
             >
-              <ShieldCheck className={cn("w-5 h-5 shrink-0")} />
+              <ShieldCheck className="w-5 h-5 shrink-0" />
               {!collapsed && <span className="whitespace-nowrap">Tenantët</span>}
             </Link>
           </>
         )}
       </nav>
 
-      {/* Collapse toggle */}
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="flex items-center justify-center h-12 border-t border-white/10 text-white/30 hover:text-white transition-colors"
+        data-testid="button-toggle-sidebar"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
