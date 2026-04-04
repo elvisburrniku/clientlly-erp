@@ -1,0 +1,750 @@
+# Chart of Accounts / Accounting Implementation Guide
+
+This document explains how Odoo installs a chart of accounts (CoA), how the
+chart template functions are structured, and how loaded accounts are managed
+after installation.
+
+Scope:
+- CoA template discovery and registration
+- CoA installation, reload, and demo loading flow
+- CSV/template record materialization and XML-ID resolution
+- Post-install company and journal defaults
+- Account, account group, and root-code behavior
+- Localization extension points
+
+## High-Level Flow
+
+```mermaid
+flowchart TD
+    A["User selects a CoA in Accounting settings"] --> B["res.config.settings.set_values()"]
+    B --> C["account.chart.template.try_loading()"]
+    C --> D["account.chart.template._load()"]
+    D --> E["_get_chart_template_data()"]
+    E --> F["_pre_reload_data() if template already installed"]
+    E --> G["_pre_load_data()"]
+    G --> H["_load_data()"]
+    H --> I["_post_load_data()"]
+    I --> J["_load_translations()"]
+    J --> K["account.group._adapt_parent_account_group()"]
+    K --> L["_install_demo() if requested and first install"]
+    L --> M["Recursive _load() for child companies"]
+```
+
+## Function Map
+
+| Area | Function | Implementation summary |
+| --- | --- | --- |
+| Template declaration | `template()` | Decorator that tags template provider methods with `(template_code, model, demo)` metadata and stores the originating module for code translations. |
+| Template registry | `AccountChartTemplate._template_register` | Lazily builds a registry `{demo -> template_code -> model -> [functions]}` by scanning decorated methods across the class MRO and keeping the effective override while preserving the module of the original decorator. |
+| Template discovery | `IrModuleModule._get_module_template()` | Imports `odoo.addons.<module>.models`, scans template modules for `@template(..., model='template_data')` functions, and derives each template's code, parent, country, sequence, visibility, and owning module. |
+| Template selection | `_get_chart_template_mapping()`, `_select_chart_template()`, `_guess_chart_template()` | Exposes available CoA templates from `ir.module.module.account_templates`, sorts them for UI selection, and chooses a default from the company country. |
+| User-triggered install | `ResConfigSettings.set_values()` | When the settings wizard's `chart_template` differs from the company value, it calls `try_loading()` and starts accounting onboarding. |
+| Auto-install on company creation | `ResCompany.create()` | If a new branch/subsidiary inherits a parent company with an existing `chart_template`, a precommit callback calls `_load()` on the child company. |
+| Auto-install after localization module install | `ResCompany.install_l10n_modules()` and `IrModuleModule.write()` | When a localization module is installed, Odoo updates existing companies with new module data and can auto-install a best-matching chart template on companies that still have none. |
+| Main entrypoint | `AccountChartTemplate.try_loading()` | Validates input, converts company IDs into records, guesses a template if none is provided, blocks direct use of meta templates such as `syscohada/syscebnl`, then delegates to `_load()`. |
+| CoA installation engine | `AccountChartTemplate._load()` | Runs the full chart loading transaction in company-scoped context, installs the template module if needed, wipes existing template records when a fresh root install is allowed, preprocesses template data, loads records, applies post-setup defaults, imports translations, syncs account-group hierarchy, optionally installs demo data, and recurses into subsidiaries. |
+| Demo loading | `_install_demo()` and demo template methods | Loads demo-only template records with `demo=True`, writes them with `_load_data()`, and posts the demo invoices in `_post_load_demo_data()`. |
+| Reload preprocessing | `_pre_reload_data()` | On reload, keeps only safe updates, avoids re-creating journals/accounts/taxes/fiscal positions when `force_create=False`, remaps XML-IDs to existing records when possible, renames obsolete taxes to `[old] ...`, and transforms x2many create commands into updates when records already exist. |
+| Data preprocessing | `_pre_load_data()` | Applies template-level company values, ensures fiscal country/currency are set, normalizes account codes to `code_digits`, defers fiscal positions/reconciliation models to the end, drops unknown template fields unless strict checking is enabled, and applies translated values for fields that are normally untranslatable. |
+| Record materialization | `_load_data()` | Converts XML-ID references into real database IDs, delays relational writes when target records are not created yet, creates/updates records through ORM `_load_records()`, and registers company-scoped XML-IDs such as `account.<company_id>_<local_id>`. |
+| Post-install setup | `_post_load_data()` | Creates utility liquidity accounts, guarantees the unaffected earnings account exists, wires default bank/cash journal accounts, sets default sale/purchase journals and taxes, writes company-specific property defaults through `ir.default`, and configures predefined reconciliation models. |
+| Utility liquidity accounts | `_setup_utility_bank_accounts()`, `_create_outstanding_accounts()`, `_get_accounts_data_values()` | Creates suspense, transfer, cash difference, and early-payment discount accounts for root companies, reuses parent-company accounts for branch companies, and creates outstanding payment/receipt accounts as standalone XML-ID-backed records. |
+| Foreign VAT tax setup | `_instantiate_foreign_taxes()` | Generates taxes for a foreign country by cloning the foreign template's tax/tax-group definitions, mapping required account references to newly created local accounts inferred from existing company tax accounts, and writing prefixed XML-IDs to avoid collisions. |
+| Template data assembly | `_get_chart_template_data()` and `_get_chart_template_model_data()` | Merges provider output from the root template and all parent templates, in dependency order defined by `TEMPLATE_MODELS`, and records which module supplied each translatable field. |
+| CSV parsing | `_parse_csv()` | Reads `data/template/<model>-<template>.csv` across the parent-template chain, casts values by field type, supports inline translations with `field@lang`, and turns slash-path columns into nested x2many `Command.create(...)` payloads. |
+| XML-ID helpers | `company_xmlid()`, `ref()`, `_get_parent_template()` | Builds company-scoped XML-IDs for local template records, resolves XML-IDs with branch fallback to the parent company, and walks the template parent chain. |
+| Tax tag mapping | `_get_tag_mapper()`, `_deref_account_tags()` | Resolves tax tag names in CSV templates to `account.account.tag` IDs for the localization country, while allowing explicit XML-ID references. |
+| Template translation | `_load_translations()` and helpers | Reconstructs template data per company, imports model translations for loaded records, and fills missing translations for existing records from Python code translations in the originating module or `account`. |
+| Existing accounting check | `ResCompany._existing_accounting()` | Returns true if any journal item exists for the company subtree; this blocks destructive first-load behavior and currency changes after accounting has started. |
+| CoA requirement guard | `ResCompany.get_chart_of_accounts_or_fail()` | Raises a redirect to accounting configuration if the current company has no account records. |
+| Unaffected earnings fallback | `ResCompany.get_unaffected_earnings_account()` | Finds or creates an `equity_unaffected` account with a free code below `999999` and stores it with a deterministic company XML-ID. |
+| Account code generation | `AccountAccount._search_new_account_code()` | Finds the next available account code in the active company, using numeric increment when possible and `.copy`, `.copy2`, ... as fallback, while checking parent/child company conflicts. |
+| Account creation | `AccountAccount.create()` | Groups incoming rows by company set, generates codes from `prefix` + `code_digits` for template-created utility accounts, writes under the correct `allowed_company_ids`, then enforces uniqueness. |
+| Account updates | `AccountAccount.write()` | Toggles residuals when `reconcile` changes, rejects incompatible currency or deprecation changes, writes with deferred code checks, then re-runs uniqueness validation when code/company assignments changed. |
+| Account code uniqueness | `AccountAccount._ensure_code_is_unique()` | Verifies each account has a code for every root company it belongs to and that no account in a parent/child company tree shares the same code. |
+| Account grouping | `AccountAccount._compute_account_group()` | Assigns each account to the most specific `account.group` whose prefix interval covers the account code, using SQL ordered by longest prefix. |
+| Account root nodes | `AccountRoot._from_account_code()` and `_compute_root()` | Represents the first two digits of an account code as a virtual hierarchy used by search panels and grouping. |
+| Group hierarchy | `AccountGroup._adapt_parent_account_group()` | Recomputes parent groups by finding the most specific shorter-prefix interval enclosing each group, using one SQL update over the company scope. |
+
+## Installation Lifecycle in Detail
+
+### 1. Declaring a template
+
+Localization modules contribute template fragments with `@template(...)` methods on
+`account.chart.template`.
+
+Example from the generic CoA template provider:
+
+```python
+@template('generic_coa')
+def _get_generic_coa_template_data(self):
+    return {
+        'name': _("Generic (Minimal) Chart of Accounts"),
+        'country': None,
+        'property_account_receivable_id': 'receivable',
+        'property_account_payable_id': 'payable',
+    }
+```
+
+Key points:
+- `model='template_data'` is the default and is used for metadata/default company
+  properties rather than real records.
+- `@template('generic_coa', 'res.company')` and
+  `@template('generic_coa', 'account.account')` attach records for specific models.
+- Methods without a fixed template code, such as `@template(model='account.account')`,
+  are shared root-template providers and receive `template_code` dynamically.
+
+### 2. Discovering available templates
+
+`ir.module.module.account_templates` is computed by `_compute_account_templates()`,
+which calls `_get_module_template()` per module.
+
+Implementation details:
+- Only the base `account` module and modules in the accounting chart localization
+  category are scanned.
+- `_get_module_template()` imports the module's `models` package and inspects
+  Python submodules whose name starts with `template_`.
+- It only considers decorated functions whose model marker is `template_data`.
+- Country metadata is normalized by `templ()`, including flag/name display and
+  `country_id`.
+
+This means a localization module becomes selectable in Accounting settings as soon
+as it exposes a `template_data` provider and is installable.
+
+### 3. Selecting and loading a template
+
+The settings wizard stores the selected template in
+`res.config.settings.chart_template`. On save, `set_values()` calls
+`env['account.chart.template'].try_loading(...)`.
+
+`try_loading()` does the following:
+- exits early if no company is provided
+- warns if called before the registry is fully loaded in a non-demo context
+- browses an integer company ID into a `res.company` record
+- guesses a template from company country when no explicit code is given
+- rejects direct selection of `syscohada` and `syscebnl`
+- calls `_load()`
+
+Example:
+
+```python
+def try_loading(self, template_code, company, install_demo=False, force_create=True):
+    if not company:
+        return
+    if isinstance(company, int):
+        company = self.env['res.company'].browse([company])
+
+    template_code = template_code or company and self._guess_chart_template(company.country_id)
+
+    if template_code in {'syscohada', 'syscebnl'} and template_code != company.chart_template:
+        raise UserError(_("The %s chart template shouldn't be selected directly...", template_code))
+
+    return self._load(template_code, company, install_demo, force_create)
+```
+
+### 4. Running `_load()`
+
+`_load()` is the core installation engine.
+
+Security and context:
+- Only system/admin users may install chart templates.
+- The method sudoes itself and then switches to a company-scoped context:
+  `default_company_id`, `allowed_company_ids`, `tracking_disable=True`,
+  `delay_account_group_sync=True`, `lang='en_US'`, and
+  `chart_template_load=True`.
+- `lang='en_US'` is intentional: records are loaded in source language first,
+  then `_load_translations()` imports translated values.
+
+Module dependency installation:
+- The selected template's owning module is taken from
+  `_get_chart_template_mapping()`.
+- If that module is not installed, `_load()` installs it immediately, resets the
+  transaction/registry, and recreates a fresh `account.chart.template` env.
+
+Fresh install versus reload:
+- `reload_template = template_code == company.chart_template`
+- For first install on a root company with no posted accounting data, `_load()`
+  deletes existing `account.move` records and all template-model records in reverse
+  dependency order before loading the new chart.
+- On reload, `_pre_reload_data()` is used to avoid unsafe overwrites and
+  `install_demo` is forcibly disabled.
+- For branch companies, only `res.company` values are loaded directly; the chart
+  records are inherited/shared from the parent company's chart where appropriate.
+
+Data pipeline:
+- `_get_chart_template_data(template_code)` gathers all template records and
+  metadata.
+- `template_data = data.pop('template_data')` separates metadata from records.
+- `_pre_reload_data(...)` optionally reconciles template rows with existing rows.
+- `_pre_load_data(...)` normalizes company defaults and raw record payloads.
+- `_load_data(data)` writes the records.
+- `_post_load_data(template_code, company, template_data)` wires defaults that
+  depend on records now existing.
+- `_load_translations(companies=company)` imports translations.
+- `account.group._adapt_parent_account_group(company=company)` recomputes the
+  group tree after batched writes.
+- `_install_demo(company)` may run in a savepoint if this was the first install and
+  demo data was requested.
+- The method then recursively calls `_load()` for each `company.child_ids`.
+
+Example:
+
+```python
+self = self.with_context(
+    default_company_id=company.id,
+    allowed_company_ids=[company.id],
+    tracking_disable=True,
+    delay_account_group_sync=True,
+    lang='en_US',
+    chart_template_load=True,
+)
+
+data = self._get_chart_template_data(template_code)
+template_data = data.pop('template_data')
+
+if reload_template:
+    self._pre_reload_data(company, template_data, data, force_create)
+    install_demo = False
+
+data = self._pre_load_data(template_code, company, template_data, data)
+self._load_data(data)
+self._post_load_data(template_code, company, template_data)
+self._load_translations(companies=company)
+```
+
+## Template Data Model
+
+`_get_chart_template_data()` returns a dictionary shaped like:
+
+```python
+{
+    'template_data': {
+        'name': '...',
+        'code_digits': 6,
+        'property_account_receivable_id': 'receivable',
+    },
+    'res.company': {
+        <company_id>: {'account_fiscal_country_id': 'base.us', ...},
+    },
+    'account.account': {
+        'receivable': {'code': '120', 'name': 'Receivable', ...},
+    },
+    'account.tax': {
+        'vat_sale': {'amount': 21, 'repartition_line_ids': [...], ...},
+    },
+}
+```
+
+Implementation notes:
+- Parent templates are loaded from generic parent to child-specific template with
+  `_get_parent_template(template_code)[::-1]`.
+- Models are processed in `TEMPLATE_MODELS` order:
+  `account.group`, `account.account`, `account.fiscal.position`,
+  `account.tax.group`, `account.tax`, `account.journal`,
+  `account.reconcile.model`.
+- Later providers update the same XML-ID dict, so child templates can override
+  parent values field by field.
+- For fields that are translatable or manually translated despite being
+  untranslatable, `__translation_module__` records which module supplied the value.
+
+## CSV Template Parsing
+
+Root provider methods such as `_get_account_account()`, `_get_account_group()`,
+`_get_account_tax_group()`, `_get_account_tax()`, and
+`_get_account_fiscal_position()` delegate to `_parse_csv()`.
+
+`_parse_csv()` reads template CSVs named like:
+- `account.account-<template>.csv`
+- `account.tax-<template>.csv`
+
+Supported CSV conventions:
+- `id` identifies the target XML-ID.
+- A normal field column such as `name` or `code` writes that field.
+- A translated field column such as `name@fr_BE` is preserved for later
+  translation import.
+- A slash-path column such as
+  `repartition_line_ids/repartition_type` creates nested x2many commands and
+  fills the last created child row.
+- Booleans, ints, and floats are parsed with `ast.literal_eval()`;
+  char fields are stripped.
+- Parent-template CSV files are applied first, then child-template CSV files can
+  override/update the same IDs.
+
+Tax-specific parsing:
+- `_get_account_tax()` parses `account.tax` CSV rows and then calls
+  `_deref_account_tags()`.
+- `_deref_account_tags()` resolves `tag_ids` stored as names split by
+  `TAX_TAG_DELIMITER = '||'` into concrete tag IDs for the template country.
+- `_get_tag_mapper()` accepts either existing tag names or explicit XML-ID
+  references like `module.some_xmlid`.
+
+Example:
+
+```python
+@template(model='account.tax')
+def _get_account_tax(self, template_code):
+    tax_data = self._parse_csv(template_code, 'account.tax')
+    self._deref_account_tags(template_code, tax_data)
+    return tax_data
+```
+
+## Record Loading and XML-ID Resolution
+
+`_load_data()` turns the template payload into database rows through ORM
+`_load_records()`.
+
+### XML-ID behavior
+
+`company_xmlid('cash')` becomes `account.<company_id>_cash`.
+
+`company_xmlid('base.us')` stays `base.us` because dotted XML-IDs are considered
+global IDs owned by another module.
+
+`ref(xmlid)` resolves:
+- first the current company's local XML-ID
+- then the same XML-ID on the first parent company if needed
+
+That fallback is what lets branch companies reuse parent-company chart records.
+
+### Reference dereferencing
+
+The nested `deref_values()` helper converts references before writing:
+- many2one fields holding a string XML-ID are replaced by `self.ref(xmlid).id`
+- integer / many2one_reference fields with non-digit strings are also treated as
+  XML-ID references
+- x2many command payloads are dereferenced recursively
+- x2many string lists such as `"tax_a,tax_b"` become `Command.set([...])`
+- unresolved references on `res.company` fall back to the current company or root
+  company field value
+
+### Delayed relational writes
+
+The nested `delay()` helper avoids writing relations to records that do not exist
+yet.
+
+How it works:
+- As each model block is processed, fields pointing to models that are still
+  pending are temporarily removed and stored in `to_delay`.
+- If delayed fields exist, the model is appended back to the processing queue with
+  only those deferred fields.
+- For `account.tax.repartition_line_ids` on a new tax, delayed creation prepends
+  `Command.clear()` so default repartition lines created by `account.tax.create()`
+  do not remain alongside template lines.
+- Stored `many2one_reference` pairs are also delayed if the referenced target
+  model is not loaded yet.
+
+This gives template authors freedom to reference records declared later in the
+same chart template while still writing through ORM.
+
+Example:
+
+```python
+def company_xmlid(self, xmlid, company=None):
+    if '.' in xmlid:
+        return xmlid
+    company = company or self.env.company
+    return f"account.{company.id}_{xmlid}"
+
+def ref(self, xmlid, raise_if_not_found=True):
+    return (
+        self.env.ref(self.company_xmlid(xmlid), raise_if_not_found=False)
+        or self.env.ref(self.company_xmlid(xmlid, self.env.company.parent_ids[0]), raise_if_not_found)
+    )
+```
+
+## Reload and Upgrade Semantics
+
+`_pre_reload_data()` is where Odoo decides what can be safely updated when a chart
+template is reloaded for a company that already uses that template.
+
+Main rules:
+- Template-level `property_*` values are removed from `template_data` except the
+  stock-related ones managed later.
+- `account.reconcile.model` data is skipped unless `force_update=True`.
+- Existing company values are protected by clearing the `res.company` payload
+  except `anglo_saxon_accounting`.
+- Existing journals are matched by XML-ID, translated code, or translated name/type
+  to avoid alias uniqueness conflicts; when matched, their XML-IDs are rebound with
+  `ir.model.data._update_xmlids(...)` and the journal payload is skipped.
+- If any account groups already exist, `account.group` data is skipped.
+- Existing fiscal positions, tax groups, and taxes are updated only when allowed by
+  `force_create` / `force_update`.
+- Existing taxes whose core shape changed are renamed to `[old] ...`, their
+  `account.<company_id>_<xmlid>` bindings are deleted, and the new template taxes
+  can then be created under the original XML-IDs.
+- Existing accounts are matched by XML-ID first, then by code prefix with zero
+  padding normalized to `code_digits`.
+- For matched accounts, `reconcile` is not overwritten, and usually only
+  `tag_ids` are refreshed unless `force_update=True`.
+- x2many `Command.create(...)` operations are rewritten into `Command.update(...)`
+  against existing child rows where possible.
+
+Practical consequence:
+- `try_loading(template_code, company, force_create=False)` behaves like a
+  conservative sync/update and skips rows that would require creating missing
+  taxes, tax groups, fiscal positions, or accounts.
+- `force_create=True` allows creating missing rows and replacing changed taxes,
+  but `_pre_reload_data()` still protects user-owned fields and avoids obvious
+  duplicates.
+
+## Post-Load Company and Journal Setup
+
+`_post_load_data()` applies defaults that depend on the chart records now being
+available.
+
+What it sets:
+- Suspense, transfer, cash difference, and early-payment discount accounts through
+  `_setup_utility_bank_accounts()`.
+- The `equity_unaffected` account through
+  `company.get_unaffected_earnings_account()`.
+- `suspense_account_id`, `profit_account_id`, and `loss_account_id` on bank/cash
+  journals when missing.
+- Company default journals `tax_cash_basis_journal_id` and
+  `currency_exchange_journal_id` from template XML-IDs `caba` and `exch`.
+- Default accounts on `sale` and `purchase` journals from company
+  `income_account_id` / `expense_account_id`.
+- Company default sale/purchase taxes from the first matching company taxes if not
+  already set.
+- Product default taxes for existing products that have taxes in another company
+  but none matching this company.
+- `company.tax_exigibility = True` when cash-basis taxes exist in a root company.
+- Partner/product property defaults through `ir.default`, including
+  receivable/payable accounts and product-category income/expense accounts.
+- The transfer account on `internal_transfer_reco` and the bank fees account on
+  `bank_fees_reco`.
+
+Utility account implementation:
+- `_get_accounts_data_values()` defines account payloads using either explicit
+  codes (`999998`, `999997`) or a `prefix` + `code_digits` pair.
+- `AccountAccount.create()` converts `prefix` + `code_digits` into an available
+  code by calling `_search_new_account_code()`.
+- `_setup_utility_bank_accounts()` skips fields already set on the company.
+- Branch companies reuse the parent company's utility accounts instead of creating
+  their own root-level liquidity accounts.
+- `_create_outstanding_accounts()` creates outstanding receipt/payment accounts as
+  standalone XML-ID-backed records because they are not stored directly on
+  `res.company`.
+
+Example:
+
+```python
+def _get_accounts_data_values(self, company, template_data, bank_prefix='', code_digits=0):
+    bank_prefix = bank_prefix or company.bank_account_code_prefix
+    code_digits = code_digits or int(template_data.get('code_digits', 6))
+    return {
+        'account_journal_suspense_account_id': {
+            'name': _("Bank Suspense Account"),
+            'prefix': bank_prefix,
+            'code_digits': code_digits,
+            'account_type': 'asset_current',
+        },
+        'transfer_account_id': {
+            'name': _("Funds in Transit"),
+            'prefix': company.transfer_account_code_prefix,
+            'code_digits': code_digits,
+            'account_type': 'asset_current',
+            'reconcile': True,
+        },
+    }
+```
+
+## Account Model Behavior After CoA Load
+
+### Account code storage and company sharing
+
+`account.account.code` is computed from `code_store`, a company-dependent field.
+
+Implementation details:
+- `_compute_code()` reads `code_store` from the active company's `root_id`.
+- `_inverse_code()` writes back to the root-company slot, invalidates `code`, and
+  recomputes for the active company.
+- `company_ids` is a many2many, so one logical account can be shared by several
+  companies in the same hierarchy, but each root company keeps its own code value.
+- Bank/cash accounts cannot be shared by multiple companies.
+
+### Code generation and uniqueness
+
+`_search_new_account_code(start_code, cache=None)` and `_ensure_code_is_unique()`
+use the same definition of availability:
+- a code is unavailable if another account in a parent or child company already
+  uses it
+- when incrementing numeric suffixes fails, `.copy`, `.copy2`, ... `.copy99` are
+  used as a fallback
+
+`create()` and `write()` defer code checks during the ORM write and call
+`_ensure_code_is_unique()` afterward so multi-row operations can be validated in
+one pass.
+
+Example:
+
+```python
+def _search_new_account_code(self, start_code, cache=None):
+    if cache is None:
+        cache = {start_code}
+
+    def code_is_available(new_code):
+        return (
+            new_code not in cache
+            and not self.sudo().search_count([
+                ('code', '=', new_code),
+                '|',
+                ('company_ids', 'parent_of', self.env.company.id),
+                ('company_ids', 'child_of', self.env.company.id),
+            ], limit=1)
+        )
+
+    ...
+```
+
+### Account type, reconciliation, and tags
+
+Several account fields are inferred from code/type:
+- `_compute_account_group()` assigns the matching `account.group` based on the
+  longest enclosing code-prefix interval.
+- `_compute_account_root()` maps the first two code digits to `account.root`.
+- `_compute_account_type()` copies the closest previous account's type by code
+  ordering if no explicit type was provided.
+- `_compute_account_tags()` copies the closest previous account's tags by code
+  ordering if no tags were provided.
+- `_compute_reconcile()` enforces receivable/payable accounts as reconcilable,
+  disables reconciliation for income/expense/equity/off-balance/bank-cash-like
+  types, and leaves other asset/liability accounts unchanged.
+
+Constraints:
+- Receivable/payable accounts must be reconcilable.
+- Off-balance accounts cannot be reconcilable and cannot have taxes.
+- Account codes may only contain letters, digits, and dots.
+- A journal's currency must match the currency on linked journal/payment accounts
+  when the journal uses a dedicated foreign currency.
+- An account used as a sale/purchase journal default cannot be receivable/payable.
+- An account linked to journal items, fiscal-position mappings, or tax
+  repartition lines cannot be removed.
+
+### Account group hierarchy
+
+`account.group` rows define intervals of code prefixes:
+- `code_prefix_start`
+- `code_prefix_end`
+
+The hierarchy is maintained by `_adapt_parent_account_group()`:
+- For each group, the parent is the most specific shorter prefix range that fully
+  contains the child range.
+- The method runs as one SQL `UPDATE ... FROM ...` statement and invalidates
+  `parent_id` if rows changed.
+- `_load()` sets `delay_account_group_sync=True` during bulk writes, then performs
+  one explicit hierarchy recompute after all groups/accounts are loaded.
+
+Prefix constraints:
+- `code_prefix_start` and `code_prefix_end` must have the same length.
+- Ranges at the same granularity cannot overlap in the same company.
+- The computed start/end methods keep both boundaries coherent when one side is
+  edited.
+
+Example:
+
+```python
+def _adapt_parent_account_group(self, company=None):
+    if self.env.context.get('delay_account_group_sync'):
+        return
+
+    company_ids = company.ids if company else self.company_id.ids
+    if not company_ids:
+        return
+
+    self.flush_model()
+    query = SQL("""
+        WITH relation AS MATERIALIZED (
+            SELECT DISTINCT ON (child.id)
+                   child.id AS child_id,
+                   parent.id AS parent_id
+              FROM account_group parent
+        RIGHT JOIN account_group child
+                ON char_length(parent.code_prefix_start) < char_length(child.code_prefix_start)
+               AND parent.code_prefix_start <= LEFT(child.code_prefix_start, char_length(parent.code_prefix_start))
+               AND parent.code_prefix_end >= LEFT(child.code_prefix_end, char_length(parent.code_prefix_end))
+        ...
+    """, tuple(company_ids))
+    self.env.cr.execute(query)
+```
+
+### Account root grouping
+
+`account.root` is a virtual model (`_auto = False`) where each record ID is the
+first one or two characters of an account code.
+
+It is used mainly for search panel grouping:
+- `_from_account_code(code)` returns the root record for `code[:2]`.
+- `_compute_root()` derives `name` and one-character parent hierarchy.
+- `_search()` only supports narrow synthetic lookups and asks users to filter on
+  account/display name for unsupported domains.
+
+## Foreign VAT / Multi-VAT Implementation
+
+`_instantiate_foreign_taxes(country, company)` is a shortcut for creating foreign
+country taxes inside a company that already has a domestic chart.
+
+Algorithm:
+- Skip if the company already has taxes for that foreign country.
+- Guess that country's chart template with `_guess_chart_template(country)`.
+- Load that template's `account.tax.group` and `account.tax` payloads.
+- Build an `existing_accounts` map from foreign template XML-IDs to newly created
+  local accounts inferred from:
+  - a local tax group's payable/receivable/advance accounts
+  - matching domestic tax repartition-line accounts
+  - a local cash-basis transition account, if needed
+- Replace account references in tax groups, tax repartition lines, and
+  `cash_basis_transition_account_id` with the mapped account IDs.
+- Set each tax's `country_id` to the foreign country.
+- Drop fiscal-position links and `original_tax_ids`, because those mappings are
+  not safe to infer automatically.
+- Prefix every XML-ID with the foreign template code and rewrite
+  `children_tax_ids` for tax groups to the same prefixed IDs.
+- Call `_load_data()` to create the foreign tax groups and taxes.
+
+Limitations:
+- The method is intentionally "best effort"; it tries to reuse the closest local
+  account structure but does not guarantee a legally perfect foreign setup.
+- If no safe local account candidate exists for a template reference, that
+  account field is left empty rather than forcing a wrong mapping.
+
+## Translation Pipeline
+
+Chart templates are loaded in `en_US` first, then `_load_translations()` imports
+translations.
+
+Supported translation sources:
+- CSV/template inline fields like `name@fr_BE`
+- Python code translations from the module that provided a field value, tracked in
+  `__translation_module__`
+- Fallback to generic language code, e.g. `fr` when `fr_BE` is not present
+- Final fallback from the localization module to `account`
+
+Important helpers:
+- `_get_translatable_template_model_fields()` lists translated fields on all
+  `TEMPLATE_MODELS`.
+- `_get_untranslatable_fields_to_translate()` currently opts into translating
+  `account.journal.code`, even though that field is not normally translatable.
+- `_get_untranslatable_fields_target_language()` uses
+  `company.partner_id.lang` or the environment language.
+- `_get_untranslated_translatable_template_model_records()` finds existing chart
+  records with missing translations by SQL over JSON-translated fields and
+  `ir_model_data`.
+- `_get_field_translation()` resolves inline and code-based translations for one
+  field.
+- `IrModuleModule._load_module_terms()` schedules `_load_translations()` and tax
+  tag translation after module language files are loaded.
+
+## Extension Points for New Localizations
+
+To implement a new localization chart template:
+
+1. Add a `template_<country>` Python module in your module's `models` package.
+2. Inherit `account.chart.template`.
+3. Provide a `@template('<code>')` method returning template metadata.
+4. Provide `@template('<code>', '<model>')` methods for custom model rows.
+5. Add CSV files under `data/template/` for models handled by the shared root
+   providers, such as `account.account-<code>.csv` and `account.tax-<code>.csv`.
+6. Use parent templates if your chart extends another localization by returning
+   `'parent': '<parent_code>'` in template metadata.
+
+Minimal pattern:
+
+```python
+from odoo import models, _
+from odoo.addons.account.models.chart_template import template
+
+
+class AccountChartTemplate(models.AbstractModel):
+    _inherit = 'account.chart.template'
+
+    @template('my_country')
+    def _get_my_country_template_data(self):
+        return {
+            'name': _("My Country Chart of Accounts"),
+            'country': 'XY',
+            'parent': 'generic_coa',
+            'code_digits': 6,
+            'property_account_receivable_id': 'receivable',
+            'property_account_payable_id': 'payable',
+        }
+
+    @template('my_country', 'res.company')
+    def _get_my_country_res_company(self):
+        return {
+            self.env.company.id: {
+                'account_fiscal_country_id': 'base.xy',
+                'bank_account_code_prefix': '101',
+                'cash_account_code_prefix': '102',
+                'transfer_account_code_prefix': '109',
+            },
+        }
+```
+
+## Implementation Gotchas
+
+Keep these behaviors in mind when changing chart-loader logic or authoring new
+templates:
+
+- Local XML-IDs without a dot are company-scoped under the `account` module. Do not
+  assume plain IDs are globally unique.
+- `ref(xmlid)` may resolve a parent-company record when running in a branch
+  company.
+- `_load()` deliberately delays account-group hierarchy sync and performs it once
+  after the bulk load for performance and consistency.
+- Reload is not a full destructive reinstall once accounting entries exist.
+  Existing records are matched and protected, and `force_create=False` skips
+  missing rows.
+- Creating branch companies under a root company with a template triggers chart
+  loading automatically in a precommit callback.
+- `lang='en_US'` during CoA load is intentional. If a new template function relies
+  on translated values at load time, it may behave differently than expected.
+- Avoid reusing `syscohada` or `syscebnl` directly in UI flows; country-specific
+  child templates should be selected instead.
+- If a CSV field references a model/field that is not installed, `_pre_load_data()`
+  drops it silently unless `l10n_check_fields_complete=True` is in context.
+- `account.account.create()` interprets `prefix` + `code_digits` as a request to
+  auto-generate a free code and removes those helper keys in `_load_records_write()`.
+- Changing bank/cash prefixes on a company rewrites existing liquidity account
+  codes via `reflect_code_prefix_change()`.
+- Company currency cannot be changed once journal items exist in the company
+  subtree.
+
+## Quick Call Graph by Scenario
+
+### Install a chart from settings
+
+`res.config.settings.set_values()` ->
+`account.chart.template.try_loading()` ->
+`account.chart.template._load()` ->
+`_get_chart_template_data()` ->
+`_pre_load_data()` ->
+`_load_data()` ->
+`_post_load_data()` ->
+`_load_translations()` ->
+`account.group._adapt_parent_account_group()`
+
+### Reload the same chart template
+
+`res.config.settings.reload_template()` ->
+`account.chart.template.try_loading(company.chart_template, company)` ->
+`_load()` ->
+`_pre_reload_data(force_create=True by default)` ->
+`_pre_load_data()` ->
+`_load_data()` ->
+`_post_load_data()` ->
+`_load_translations()`
+
+### Create a child company under a parent with an existing chart
+
+`res.company.create()` ->
+precommit callback ->
+`account.chart.template._load(parent.chart_template, child_company, install_demo=False)`
+
+### Install a localization module after companies already exist
+
+`ir.module.module.write({'state': 'installed'})` ->
+for each company with `chart_template`:
+`_get_chart_template_data(company.chart_template, demo, module_name)` ->
+`_pre_reload_data(force_update=True)` ->
+`_pre_load_data()` ->
+`_load_data()`
