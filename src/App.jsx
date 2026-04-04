@@ -1,5 +1,4 @@
 import { Toaster } from "@/components/ui/toaster"
-import { base44 } from "@/api/base44Client"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { LanguageProvider } from '@/lib/useLanguage.jsx'
@@ -34,11 +33,11 @@ import InvoiceAnalytics from './pages/InvoiceAnalytics';
 import Onboarding from './pages/Onboarding';
 import SuperAdmin from './pages/SuperAdmin';
 import ReportTemplates from './pages/ReportTemplates';
+import Login from './pages/Login';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -47,13 +46,11 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login
-      base44.auth.redirectToLogin(window.location.href);
+      navigateToLogin();
       return (
         <div className="fixed inset-0 flex items-center justify-center">
           <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -62,7 +59,6 @@ const AuthenticatedApp = () => {
     }
   }
 
-  // Render the main app
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -100,17 +96,21 @@ const AuthenticatedApp = () => {
 
 
 function App() {
-
   return (
     <LanguageProvider>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClientInstance}>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/*" element={
+              <AuthProvider>
+                <AuthenticatedApp />
+              </AuthProvider>
+            } />
+          </Routes>
+        </Router>
+        <Toaster />
+      </QueryClientProvider>
     </LanguageProvider>
   )
 }

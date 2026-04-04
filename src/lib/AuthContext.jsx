@@ -24,13 +24,8 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       setIsAuthenticated(false);
       setUser(null);
-      if (error?.status === 403 || error?.status === 401) {
-        const reason = error?.data?.extra_data?.reason;
-        if (reason === 'user_not_registered') {
-          setAuthError({ type: 'user_not_registered', message: 'User not registered' });
-        } else {
-          setAuthError({ type: 'auth_required', message: 'Authentication required' });
-        }
+      if (error?.status === 401 || error?.status === 403) {
+        setAuthError({ type: 'auth_required', message: 'Authentication required' });
       } else {
         setAuthError({ type: 'auth_required', message: 'Authentication required' });
       }
@@ -39,14 +34,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch (e) {}
     setUser(null);
     setIsAuthenticated(false);
-    base44.auth.logout();
+    window.location.href = '/login';
   };
 
   const navigateToLogin = () => {
-    base44.auth.redirectToLogin(window.location.href);
+    window.location.href = `/login?next=${encodeURIComponent(window.location.href)}`;
   };
 
   return (
