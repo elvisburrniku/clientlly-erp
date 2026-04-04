@@ -128,6 +128,7 @@ export default function Sidebar() {
 
   const accountingItems = [
     { label: "Plani Kontabël", icon: BookOpen, path: "/chart-of-accounts", module: "accounting" },
+    { label: "Librat Kontabël", icon: ClipboardList, path: "/journals", module: "accounting" },
     { label: "Regjistrime", icon: BookText, path: "/journal-entries", module: "accounting" },
     { label: "Bilanci Provës", icon: Scale, path: "/trial-balance", module: "accounting" },
     { label: "Pasqyra e Të Ardhurave", icon: TrendingUp, path: "/income-statement", module: "accounting" },

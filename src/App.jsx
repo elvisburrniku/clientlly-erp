@@ -87,6 +87,7 @@ import CompanyDocuments from './pages/CompanyDocuments';
 import Certificates from './pages/Certificates';
 import ChartOfAccounts from './pages/ChartOfAccounts';
 import JournalEntries from './pages/JournalEntries';
+import Journals from './pages/Journals';
 import TrialBalance from './pages/TrialBalance';
 import IncomeStatement from './pages/IncomeStatement';
 import BalanceSheet from './pages/BalanceSheet';
@@ -193,6 +194,7 @@ const AuthenticatedApp = () => {
           <Route path="/certificates" element={<PermissionGuard module="certificates"><Certificates /></PermissionGuard>} />
           <Route path="/chart-of-accounts" element={<PermissionGuard module="accounting"><ChartOfAccounts /></PermissionGuard>} />
           <Route path="/journal-entries" element={<PermissionGuard module="accounting"><JournalEntries /></PermissionGuard>} />
+          <Route path="/journals" element={<PermissionGuard module="accounting"><Journals /></PermissionGuard>} />
           <Route path="/trial-balance" element={<PermissionGuard module="accounting"><TrialBalance /></PermissionGuard>} />
           <Route path="/income-statement" element={<PermissionGuard module="accounting"><IncomeStatement /></PermissionGuard>} />
           <Route path="/balance-sheet" element={<PermissionGuard module="accounting"><BalanceSheet /></PermissionGuard>} />

@@ -1,29 +1,39 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Eye, Trash2, BookOpen, Download } from "lucide-react";
+import { Plus, Eye, Trash2, BookOpen, Filter } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import moment from "moment";
 import { Card } from "@/components/ui/card";
 
+const JOURNAL_TYPE_COLORS = {
+  sale: 'bg-green-100 text-green-700',
+  purchase: 'bg-orange-100 text-orange-700',
+  bank: 'bg-blue-100 text-blue-700',
+  cash: 'bg-yellow-100 text-yellow-700',
+  general: 'bg-gray-100 text-gray-700',
+};
+
 export default function JournalEntries() {
   const [entries, setEntries] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [viewEntry, setViewEntry] = useState(null);
   const [viewLines, setViewLines] = useState([]);
   const [viewOpen, setViewOpen] = useState(false);
+  const [filterJournal, setFilterJournal] = useState('all');
   const { toast } = useToast();
 
   const [form, setForm] = useState({
     entry_date: moment().format('YYYY-MM-DD'),
     description: '',
     status: 'posted',
+    journal_id: '',
     lines: [
       { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
       { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
@@ -35,12 +45,15 @@ export default function JournalEntries() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [ent, acc] = await Promise.all([
-        base44.entities.JournalEntry.list('-entry_date', 500),
-        base44.entities.ChartOfAccount.list('code', 1000),
+      const [entRes, accRes, jRes] = await Promise.all([
+        fetch('/api/accounting/journal-entries', { credentials: 'include' }),
+        fetch('/api/accounting/accounts-with-balances', { credentials: 'include' }),
+        fetch('/api/accounting/journals', { credentials: 'include' }),
       ]);
-      setEntries(ent);
-      setAccounts(acc);
+      const [entData, accData, jData] = await Promise.all([entRes.json(), accRes.json(), jRes.json()]);
+      setEntries(Array.isArray(entData) ? entData : []);
+      setAccounts(Array.isArray(accData) ? accData : []);
+      setJournals(Array.isArray(jData) ? jData : []);
     } catch (err) {
       console.error(err);
     }
@@ -52,6 +65,7 @@ export default function JournalEntries() {
       entry_date: moment().format('YYYY-MM-DD'),
       description: '',
       status: 'posted',
+      journal_id: journals.length > 0 ? journals.find(j => j.type === 'general')?.id || journals[0].id : '',
       lines: [
         { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
         { account_id: '', account_code: '', account_name: '', debit: '', credit: '', description: '' },
@@ -96,6 +110,11 @@ export default function JournalEntries() {
       toast({ title: 'Gabim', description: 'Debiti duhet të jetë i barabartë me Kreditin', variant: 'destructive' });
       return;
     }
+    const validLines = form.lines.filter(l => l.account_id && (parseFloat(l.debit) || parseFloat(l.credit)));
+    if (validLines.length < 2) {
+      toast({ title: 'Gabim', description: 'Nevojiten të paktën 2 linja të vlefshme', variant: 'destructive' });
+      return;
+    }
     try {
       const res = await fetch('/api/accounting/journal-entry', {
         method: 'POST',
@@ -104,8 +123,9 @@ export default function JournalEntries() {
         body: JSON.stringify({
           entry_date: form.entry_date,
           description: form.description,
-          lines: form.lines.filter(l => l.account_id && (parseFloat(l.debit) || parseFloat(l.credit))),
+          lines: validLines,
           status: form.status || 'posted',
+          journal_id: form.journal_id || null,
         }),
       });
       if (!res.ok) {
@@ -123,8 +143,9 @@ export default function JournalEntries() {
   const viewEntryDetails = async (entry) => {
     setViewEntry(entry);
     try {
-      const lines = await base44.entities.JournalLine.filter({ journal_entry_id: entry.id });
-      setViewLines(lines);
+      const res = await fetch(`/api/accounting/journal-entries/${entry.id}/lines`, { credentials: 'include' });
+      const data = await res.json();
+      setViewLines(Array.isArray(data) ? data : []);
     } catch (err) {
       setViewLines([]);
     }
@@ -134,13 +155,19 @@ export default function JournalEntries() {
   const handleDelete = async (id) => {
     if (!window.confirm('A jeni i sigurt?')) return;
     try {
-      await base44.entities.JournalEntry.delete(id);
+      await fetch(`/api/entities/JournalEntry/${id}`, { method: 'DELETE', credentials: 'include' });
       toast({ title: 'Regjistrimi u fshi' });
       await loadData();
     } catch (err) {
       toast({ title: 'Gabim', description: err.message, variant: 'destructive' });
     }
   };
+
+  const journalMap = Object.fromEntries(journals.map(j => [j.id, j]));
+
+  const filteredEntries = filterJournal === 'all'
+    ? entries
+    : entries.filter(e => e.journal_id === filterJournal);
 
   if (loading) {
     return <div className="flex items-center justify-center h-96"><div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" /></div>;
@@ -152,7 +179,7 @@ export default function JournalEntries() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-1">Kontabilitet</p>
           <h1 className="text-3xl font-bold tracking-tight" data-testid="text-page-title">Regjistrime Kontabël</h1>
-          <p className="text-sm text-muted-foreground mt-1">Krijo dhe menaxho regjistrimet kontabël (journal entries)</p>
+          <p className="text-sm text-muted-foreground mt-1">Krijo dhe menaxho regjistrimet kontabël</p>
         </div>
         <Button onClick={openCreate} className="gap-2" data-testid="button-create-entry">
           <Plus className="w-4 h-4" /> Regjistrim i Ri
@@ -174,14 +201,42 @@ export default function JournalEntries() {
         </Card>
       </div>
 
+      <div className="flex items-center gap-3 flex-wrap" data-testid="journal-filter-bar">
+        <Filter className="w-4 h-4 text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">Filtro sipas librit:</span>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setFilterJournal('all')}
+            className={`text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors ${filterJournal === 'all' ? 'bg-primary text-primary-foreground border-primary' : 'bg-white border-border text-muted-foreground hover:bg-muted/30'}`}
+            data-testid="filter-all"
+          >
+            Të Gjitha ({entries.length})
+          </button>
+          {journals.map(j => {
+            const count = entries.filter(e => e.journal_id === j.id).length;
+            const colorClass = JOURNAL_TYPE_COLORS[j.type] || JOURNAL_TYPE_COLORS.general;
+            return (
+              <button
+                key={j.id}
+                onClick={() => setFilterJournal(j.id)}
+                className={`text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors ${filterJournal === j.id ? 'bg-primary text-primary-foreground border-primary' : `${colorClass} border-transparent hover:opacity-80`}`}
+                data-testid={`filter-journal-${j.id}`}
+              >
+                {j.sequence_prefix} – {j.name} ({count})
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border bg-muted/20">
               <th className="text-left py-3 px-6 font-semibold text-muted-foreground">Nr.</th>
+              <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Libri</th>
               <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Data</th>
               <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Përshkrimi</th>
-              <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Referenca</th>
               <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Debit</th>
               <th className="text-right py-3 px-4 font-semibold text-muted-foreground">Kredit</th>
               <th className="text-center py-3 px-4 font-semibold text-muted-foreground">Statusi</th>
@@ -189,29 +244,39 @@ export default function JournalEntries() {
             </tr>
           </thead>
           <tbody>
-            {entries.length === 0 ? (
+            {filteredEntries.length === 0 ? (
               <tr><td colSpan="8" className="text-center py-12 text-muted-foreground">Nuk ka regjistrime kontabël</td></tr>
-            ) : entries.map((entry, i) => (
-              <tr key={entry.id} className={`${i % 2 === 0 ? 'bg-muted/10' : ''} hover:bg-muted/30`} data-testid={`row-entry-${entry.id}`}>
-                <td className="py-3 px-6 font-mono text-sm font-semibold">{entry.entry_number}</td>
-                <td className="py-3 px-4">{moment(entry.entry_date).format('DD/MM/YYYY')}</td>
-                <td className="py-3 px-4 max-w-[200px] truncate">{entry.description || '-'}</td>
-                <td className="py-3 px-4 text-muted-foreground">{entry.reference_number || '-'}</td>
-                <td className="py-3 px-4 text-right font-mono">{parseFloat(entry.total_debit || 0).toFixed(2)}</td>
-                <td className="py-3 px-4 text-right font-mono">{parseFloat(entry.total_credit || 0).toFixed(2)}</td>
-                <td className="py-3 px-4 text-center">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${entry.status === 'posted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {entry.status === 'posted' ? 'Postuar' : 'Draft'}
-                  </span>
-                </td>
-                <td className="py-3 px-6 text-right">
-                  <div className="flex gap-1 justify-end">
-                    <button onClick={() => viewEntryDetails(entry)} className="p-1 hover:bg-muted rounded" data-testid={`button-view-${entry.id}`}><Eye className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => handleDelete(entry.id)} className="p-1 hover:bg-red-50 text-red-500 rounded" data-testid={`button-delete-${entry.id}`}><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            ) : filteredEntries.map((entry, i) => {
+              const journal = entry.journal_id ? journalMap[entry.journal_id] : null;
+              const jColorClass = journal ? (JOURNAL_TYPE_COLORS[journal.type] || JOURNAL_TYPE_COLORS.general) : 'bg-gray-100 text-gray-600';
+              return (
+                <tr key={entry.id} className={`${i % 2 === 0 ? 'bg-muted/10' : ''} hover:bg-muted/30`} data-testid={`row-entry-${entry.id}`}>
+                  <td className="py-3 px-6 font-mono text-sm font-semibold">{entry.entry_number}</td>
+                  <td className="py-3 px-4">
+                    {journal ? (
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${jColorClass}`}>{journal.sequence_prefix}</span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4">{moment(entry.entry_date).format('DD/MM/YYYY')}</td>
+                  <td className="py-3 px-4 max-w-[200px] truncate">{entry.description || '-'}</td>
+                  <td className="py-3 px-4 text-right font-mono">{parseFloat(entry.total_debit || 0).toFixed(2)}</td>
+                  <td className="py-3 px-4 text-right font-mono">{parseFloat(entry.total_credit || 0).toFixed(2)}</td>
+                  <td className="py-3 px-4 text-center">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${entry.status === 'posted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {entry.status === 'posted' ? 'Postuar' : 'Draft'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-6 text-right">
+                    <div className="flex gap-1 justify-end">
+                      <button onClick={() => viewEntryDetails(entry)} className="p-1 hover:bg-muted rounded" data-testid={`button-view-${entry.id}`}><Eye className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => handleDelete(entry.id)} className="p-1 hover:bg-red-50 text-red-500 rounded" data-testid={`button-delete-${entry.id}`}><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -222,10 +287,20 @@ export default function JournalEntries() {
             <DialogTitle>Regjistrim i Ri Kontabël</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label className="text-xs font-semibold mb-1.5 block">Data</Label>
                 <Input type="date" value={form.entry_date} onChange={e => setForm(f => ({ ...f, entry_date: e.target.value }))} data-testid="input-entry-date" />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">Libri Kontabël</Label>
+                <Select value={form.journal_id || 'none'} onValueChange={v => setForm(f => ({ ...f, journal_id: v === 'none' ? '' : v }))}>
+                  <SelectTrigger data-testid="select-entry-journal"><SelectValue placeholder="Zgjidh librin..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Pa libër —</SelectItem>
+                    {journals.map(j => <SelectItem key={j.id} value={j.id}>{j.sequence_prefix} – {j.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-xs font-semibold mb-1.5 block">Statusi</Label>
@@ -252,9 +327,10 @@ export default function JournalEntries() {
                 {form.lines.map((line, idx) => (
                   <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-muted/20 p-2 rounded-lg">
                     <div className="col-span-5">
-                      <Select value={line.account_id} onValueChange={v => updateLine(idx, 'account_id', v)}>
+                      <Select value={line.account_id || 'none'} onValueChange={v => updateLine(idx, 'account_id', v === 'none' ? '' : v)}>
                         <SelectTrigger className="text-xs" data-testid={`select-line-account-${idx}`}><SelectValue placeholder="Zgjidh llogarinë" /></SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="none">— Zgjidh llogarinë —</SelectItem>
                           {accounts.map(a => <SelectItem key={a.id} value={a.id}>{a.code} - {a.name}</SelectItem>)}
                         </SelectContent>
                       </Select>
@@ -303,6 +379,9 @@ export default function JournalEntries() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div><span className="text-muted-foreground">Data:</span> {moment(viewEntry.entry_date).format('DD/MM/YYYY')}</div>
                 <div><span className="text-muted-foreground">Statusi:</span> {viewEntry.status === 'posted' ? 'Postuar' : 'Draft'}</div>
+                {viewEntry.journal_id && journalMap[viewEntry.journal_id] && (
+                  <div><span className="text-muted-foreground">Libri:</span> {journalMap[viewEntry.journal_id].name}</div>
+                )}
                 <div className="col-span-2"><span className="text-muted-foreground">Përshkrimi:</span> {viewEntry.description || '-'}</div>
               </div>
               <table className="w-full text-sm border-t">

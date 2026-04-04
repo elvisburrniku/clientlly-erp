@@ -937,6 +937,22 @@ app.post('/api/accounting/auto-journal/payment', requireAuth, requireAccountingC
   }
 });
 
+// Helper: find the most specific account group for a given code within a tenant
+async function computeAccountGroup(code, tenantId, tPool) {
+  const result = await tPool.query(
+    `SELECT id, code_prefix_start, code_prefix_end,
+       (CAST(code_prefix_end AS INTEGER) - CAST(code_prefix_start AS INTEGER)) as range_size
+     FROM account_groups
+     WHERE tenant_id = $1
+       AND code_prefix_start <= $2
+       AND code_prefix_end >= $2
+     ORDER BY range_size ASC
+     LIMIT 1`,
+    [tenantId, code]
+  );
+  return result.rows.length > 0 ? result.rows[0].id : null;
+}
+
 app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req, res) => {
   try {
     const tenantId = req.session.user.tenant_id;
@@ -946,53 +962,151 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
       return res.json({ message: 'Accounts already seeded', count: parseInt(existing.rows[0].count) });
     }
 
-    const accounts = [
-      { code: '1000', name: 'Mjetet', name_en: 'Assets', account_type: 'asset', normal_balance: 'debit' },
-      { code: '1100', name: 'Arka (Cash)', name_en: 'Cash', account_type: 'asset', normal_balance: 'debit' },
-      { code: '1200', name: 'Banka', name_en: 'Bank', account_type: 'asset', normal_balance: 'debit' },
-      { code: '1300', name: 'Llogaritë e Arkëtueshme', name_en: 'Accounts Receivable', account_type: 'asset', normal_balance: 'debit' },
-      { code: '1400', name: 'Inventari', name_en: 'Inventory', account_type: 'asset', normal_balance: 'debit' },
-      { code: '1500', name: 'Parapagimet', name_en: 'Prepaid Expenses', account_type: 'asset', normal_balance: 'debit' },
-      { code: '1600', name: 'Mjetet Fikse', name_en: 'Fixed Assets', account_type: 'asset', normal_balance: 'debit' },
-      { code: '1700', name: 'Amortizimi i Akumuluar', name_en: 'Accumulated Depreciation', account_type: 'asset', normal_balance: 'credit' },
-      { code: '2000', name: 'Detyrimet', name_en: 'Liabilities', account_type: 'liability', normal_balance: 'credit' },
-      { code: '2100', name: 'Llogaritë e Pagueshme', name_en: 'Accounts Payable', account_type: 'liability', normal_balance: 'credit' },
-      { code: '2200', name: 'TVSH e Mbledhur', name_en: 'VAT Collected', account_type: 'liability', normal_balance: 'credit' },
-      { code: '2300', name: 'TVSH e Paguar', name_en: 'VAT Paid', account_type: 'liability', normal_balance: 'debit' },
-      { code: '2400', name: 'Pagat e Pagueshme', name_en: 'Wages Payable', account_type: 'liability', normal_balance: 'credit' },
-      { code: '2500', name: 'Detyrime Tatimore', name_en: 'Tax Payable', account_type: 'liability', normal_balance: 'credit' },
-      { code: '2600', name: 'Huatë Afatshkurtra', name_en: 'Short-term Loans', account_type: 'liability', normal_balance: 'credit' },
-      { code: '2700', name: 'Huatë Afatgjata', name_en: 'Long-term Loans', account_type: 'liability', normal_balance: 'credit' },
-      { code: '3000', name: 'Kapitali', name_en: 'Equity', account_type: 'equity', normal_balance: 'credit' },
-      { code: '3100', name: 'Kapitali i Pronarit', name_en: 'Owner Equity', account_type: 'equity', normal_balance: 'credit' },
-      { code: '3200', name: 'Fitimi i Mbajtur', name_en: 'Retained Earnings', account_type: 'equity', normal_balance: 'credit' },
-      { code: '3300', name: 'Tërheqjet e Pronarit', name_en: 'Owner Drawings', account_type: 'equity', normal_balance: 'debit' },
-      { code: '4000', name: 'Të Ardhurat', name_en: 'Revenue', account_type: 'revenue', normal_balance: 'credit' },
-      { code: '4100', name: 'Të Ardhura nga Shitjet', name_en: 'Sales Revenue', account_type: 'revenue', normal_balance: 'credit' },
-      { code: '4200', name: 'Të Ardhura nga Shërbimet', name_en: 'Service Revenue', account_type: 'revenue', normal_balance: 'credit' },
-      { code: '4300', name: 'Të Ardhura të Tjera', name_en: 'Other Revenue', account_type: 'revenue', normal_balance: 'credit' },
-      { code: '4400', name: 'Zbritje në Shitje', name_en: 'Sales Discounts', account_type: 'revenue', normal_balance: 'debit' },
-      { code: '5000', name: 'Shpenzimet', name_en: 'Expenses', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5100', name: 'Kosto e Mallrave të Shitura', name_en: 'Cost of Goods Sold', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5200', name: 'Paga dhe Mëditje', name_en: 'Salaries & Wages', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5300', name: 'Qiraja', name_en: 'Rent Expense', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5400', name: 'Shërbime Komunale', name_en: 'Utilities', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5500', name: 'Furnizime Zyre', name_en: 'Office Supplies', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5600', name: 'Shpenzime Transporti', name_en: 'Transport Expenses', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5700', name: 'Shpenzime Marketingu', name_en: 'Marketing Expenses', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5800', name: 'Shpenzime Amortizimi', name_en: 'Depreciation Expense', account_type: 'expense', normal_balance: 'debit' },
-      { code: '5900', name: 'Shpenzime të Tjera', name_en: 'Other Expenses', account_type: 'expense', normal_balance: 'debit' },
-      { code: '6000', name: 'Shpenzime Interesi', name_en: 'Interest Expense', account_type: 'expense', normal_balance: 'debit' },
-    ];
+    const client = await tPool.connect();
+    try {
+      await client.query('BEGIN');
 
-    for (const acc of accounts) {
-      await tPool.query(
-        'INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance) VALUES ($1, $2, $3, $4, $5, $6)',
-        [tenantId, acc.code, acc.name, acc.name_en, acc.account_type, acc.normal_balance]
-      );
+      // 1. Seed account groups (hierarchical)
+      const groups = [
+        { name: '1 - Mjetet', name_en: 'Assets', start: '1000', end: '1999', account_type: 'asset', sequence: 10, parentKey: null },
+        { name: '11 - Arka (Kasa)', name_en: 'Cash', start: '1100', end: '1199', account_type: 'asset', sequence: 11, parentKey: '1000' },
+        { name: '12 - Banka', name_en: 'Bank', start: '1200', end: '1299', account_type: 'asset', sequence: 12, parentKey: '1000' },
+        { name: '13 - Llogaritë Arkëtueshme', name_en: 'Accounts Receivable', start: '1300', end: '1399', account_type: 'asset', sequence: 13, parentKey: '1000' },
+        { name: '14 - Inventari', name_en: 'Inventory', start: '1400', end: '1499', account_type: 'asset', sequence: 14, parentKey: '1000' },
+        { name: '15 - Parapagimet', name_en: 'Prepaid Expenses', start: '1500', end: '1599', account_type: 'asset', sequence: 15, parentKey: '1000' },
+        { name: '16 - Mjetet Fikse', name_en: 'Fixed Assets', start: '1600', end: '1699', account_type: 'asset', sequence: 16, parentKey: '1000' },
+        { name: '17 - Amortizimi i Akumuluar', name_en: 'Accumulated Depreciation', start: '1700', end: '1799', account_type: 'asset', sequence: 17, parentKey: '1000' },
+        { name: '2 - Detyrimet', name_en: 'Liabilities', start: '2000', end: '2999', account_type: 'liability', sequence: 20, parentKey: null },
+        { name: '21 - Llogaritë e Pagueshme', name_en: 'Accounts Payable', start: '2100', end: '2199', account_type: 'liability', sequence: 21, parentKey: '2000' },
+        { name: '22 - TVSH e Mbledhur', name_en: 'VAT Collected', start: '2200', end: '2299', account_type: 'liability', sequence: 22, parentKey: '2000' },
+        { name: '23 - TVSH e Paguar', name_en: 'VAT Paid', start: '2300', end: '2399', account_type: 'liability', sequence: 23, parentKey: '2000' },
+        { name: '24 - Pagat e Pagueshme', name_en: 'Wages Payable', start: '2400', end: '2499', account_type: 'liability', sequence: 24, parentKey: '2000' },
+        { name: '25 - Detyrime Tatimore', name_en: 'Tax Payable', start: '2500', end: '2599', account_type: 'liability', sequence: 25, parentKey: '2000' },
+        { name: '26 - Hua Afatshkurtra', name_en: 'Short-term Loans', start: '2600', end: '2699', account_type: 'liability', sequence: 26, parentKey: '2000' },
+        { name: '27 - Hua Afatgjata', name_en: 'Long-term Loans', start: '2700', end: '2799', account_type: 'liability', sequence: 27, parentKey: '2000' },
+        { name: '3 - Kapitali', name_en: 'Equity', start: '3000', end: '3999', account_type: 'equity', sequence: 30, parentKey: null },
+        { name: '31 - Kapitali i Pronarit', name_en: "Owner's Capital", start: '3100', end: '3199', account_type: 'equity', sequence: 31, parentKey: '3000' },
+        { name: '32 - Fitimi i Mbajtur', name_en: 'Retained Earnings', start: '3200', end: '3299', account_type: 'equity', sequence: 32, parentKey: '3000' },
+        { name: '33 - Tërheqjet e Pronarit', name_en: 'Owner Drawings', start: '3300', end: '3399', account_type: 'equity', sequence: 33, parentKey: '3000' },
+        { name: '4 - Të Ardhurat', name_en: 'Revenue', start: '4000', end: '4999', account_type: 'revenue', sequence: 40, parentKey: null },
+        { name: '41 - Të Ardhura nga Shitjet', name_en: 'Sales Revenue', start: '4100', end: '4199', account_type: 'revenue', sequence: 41, parentKey: '4000' },
+        { name: '42 - Të Ardhura nga Shërbimet', name_en: 'Service Revenue', start: '4200', end: '4299', account_type: 'revenue', sequence: 42, parentKey: '4000' },
+        { name: '43 - Të Ardhura të Tjera', name_en: 'Other Revenue', start: '4300', end: '4399', account_type: 'revenue', sequence: 43, parentKey: '4000' },
+        { name: '44 - Zbritje në Shitje', name_en: 'Sales Discounts', start: '4400', end: '4499', account_type: 'revenue', sequence: 44, parentKey: '4000' },
+        { name: '5 - Shpenzimet', name_en: 'Expenses', start: '5000', end: '6999', account_type: 'expense', sequence: 50, parentKey: null },
+        { name: '51 - Kosto e Mallrave', name_en: 'Cost of Goods Sold', start: '5100', end: '5199', account_type: 'expense', sequence: 51, parentKey: '5000' },
+        { name: '52 - Paga dhe Mëditje', name_en: 'Salaries & Wages', start: '5200', end: '5299', account_type: 'expense', sequence: 52, parentKey: '5000' },
+        { name: '53 - Qiraja', name_en: 'Rent Expense', start: '5300', end: '5399', account_type: 'expense', sequence: 53, parentKey: '5000' },
+        { name: '54 - Shërbime Komunale', name_en: 'Utilities', start: '5400', end: '5499', account_type: 'expense', sequence: 54, parentKey: '5000' },
+        { name: '55 - Furnizime Zyre', name_en: 'Office Supplies', start: '5500', end: '5599', account_type: 'expense', sequence: 55, parentKey: '5000' },
+        { name: '56 - Transport', name_en: 'Transport', start: '5600', end: '5699', account_type: 'expense', sequence: 56, parentKey: '5000' },
+        { name: '57 - Marketingu', name_en: 'Marketing', start: '5700', end: '5799', account_type: 'expense', sequence: 57, parentKey: '5000' },
+        { name: '58 - Amortizimi', name_en: 'Depreciation', start: '5800', end: '5899', account_type: 'expense', sequence: 58, parentKey: '5000' },
+        { name: '59 - Shpenzime të Tjera', name_en: 'Other Expenses', start: '5900', end: '5999', account_type: 'expense', sequence: 59, parentKey: '5000' },
+        { name: '60 - Shpenzime Interesi', name_en: 'Interest Expense', start: '6000', end: '6099', account_type: 'expense', sequence: 60, parentKey: '5000' },
+      ];
+
+      // Insert root groups first, then child groups
+      const groupIdMap = {}; // parentKey (start code) -> inserted UUID
+      for (const g of groups) {
+        const parentId = g.parentKey ? groupIdMap[g.parentKey] : null;
+        const r = await client.query(
+          `INSERT INTO account_groups (tenant_id, name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+          [tenantId, g.name, g.name_en, g.start, g.end, g.account_type, g.sequence, parentId]
+        );
+        groupIdMap[g.start] = r.rows[0].id;
+      }
+
+      // 2. Seed accounts with enhanced fields
+      const accounts = [
+        { code: '1000', name: 'Mjetet', name_en: 'Assets', account_type: 'asset', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '1100', name: 'Arka (Cash)', name_en: 'Cash', account_type: 'asset', normal_balance: 'debit', account_subtype: 'liquidity', reconcile: false },
+        { code: '1200', name: 'Banka', name_en: 'Bank', account_type: 'asset', normal_balance: 'debit', account_subtype: 'liquidity', reconcile: false },
+        { code: '1300', name: 'Llogaritë e Arkëtueshme', name_en: 'Accounts Receivable', account_type: 'asset', normal_balance: 'debit', account_subtype: 'receivable', reconcile: true },
+        { code: '1400', name: 'Inventari', name_en: 'Inventory', account_type: 'asset', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '1500', name: 'Parapagimet', name_en: 'Prepaid Expenses', account_type: 'asset', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '1600', name: 'Mjetet Fikse', name_en: 'Fixed Assets', account_type: 'asset', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '1700', name: 'Amortizimi i Akumuluar', name_en: 'Accumulated Depreciation', account_type: 'asset', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '2000', name: 'Detyrimet', name_en: 'Liabilities', account_type: 'liability', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '2100', name: 'Llogaritë e Pagueshme', name_en: 'Accounts Payable', account_type: 'liability', normal_balance: 'credit', account_subtype: 'payable', reconcile: true },
+        { code: '2200', name: 'TVSH e Mbledhur', name_en: 'VAT Collected', account_type: 'liability', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '2300', name: 'TVSH e Paguar', name_en: 'VAT Paid', account_type: 'liability', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '2400', name: 'Pagat e Pagueshme', name_en: 'Wages Payable', account_type: 'liability', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '2500', name: 'Detyrime Tatimore', name_en: 'Tax Payable', account_type: 'liability', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '2600', name: 'Huatë Afatshkurtra', name_en: 'Short-term Loans', account_type: 'liability', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '2700', name: 'Huatë Afatgjata', name_en: 'Long-term Loans', account_type: 'liability', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '3000', name: 'Kapitali', name_en: 'Equity', account_type: 'equity', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '3100', name: 'Kapitali i Pronarit', name_en: 'Owner Equity', account_type: 'equity', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '3200', name: 'Fitimi i Mbajtur', name_en: 'Retained Earnings', account_type: 'equity', normal_balance: 'credit', account_subtype: 'equity_unaffected', reconcile: false },
+        { code: '3300', name: 'Tërheqjet e Pronarit', name_en: 'Owner Drawings', account_type: 'equity', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '4000', name: 'Të Ardhurat', name_en: 'Revenue', account_type: 'revenue', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '4100', name: 'Të Ardhura nga Shitjet', name_en: 'Sales Revenue', account_type: 'revenue', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '4200', name: 'Të Ardhura nga Shërbimet', name_en: 'Service Revenue', account_type: 'revenue', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '4300', name: 'Të Ardhura të Tjera', name_en: 'Other Revenue', account_type: 'revenue', normal_balance: 'credit', account_subtype: 'other', reconcile: false },
+        { code: '4400', name: 'Zbritje në Shitje', name_en: 'Sales Discounts', account_type: 'revenue', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5000', name: 'Shpenzimet', name_en: 'Expenses', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5100', name: 'Kosto e Mallrave të Shitura', name_en: 'Cost of Goods Sold', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5200', name: 'Paga dhe Mëditje', name_en: 'Salaries & Wages', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5300', name: 'Qiraja', name_en: 'Rent Expense', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5400', name: 'Shërbime Komunale', name_en: 'Utilities', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5500', name: 'Furnizime Zyre', name_en: 'Office Supplies', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5600', name: 'Shpenzime Transporti', name_en: 'Transport Expenses', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5700', name: 'Shpenzime Marketingu', name_en: 'Marketing Expenses', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5800', name: 'Shpenzime Amortizimi', name_en: 'Depreciation Expense', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '5900', name: 'Shpenzime të Tjera', name_en: 'Other Expenses', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+        { code: '6000', name: 'Shpenzime Interesi', name_en: 'Interest Expense', account_type: 'expense', normal_balance: 'debit', account_subtype: 'other', reconcile: false },
+      ];
+
+      const insertedAccounts = {};
+      for (const acc of accounts) {
+        // Find group using range logic
+        let groupId = null;
+        let bestRange = Infinity;
+        for (const [startCode, gId] of Object.entries(groupIdMap)) {
+          const g = groups.find(g => g.start === startCode);
+          if (g && acc.code >= g.start && acc.code <= g.end) {
+            const range = parseInt(g.end) - parseInt(g.start);
+            if (range < bestRange) {
+              bestRange = range;
+              groupId = gId;
+            }
+          }
+        }
+        const r = await client.query(
+          `INSERT INTO chart_of_accounts (tenant_id, code, name, name_en, account_type, normal_balance, account_subtype, reconcile, account_group_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+          [tenantId, acc.code, acc.name, acc.name_en, acc.account_type, acc.normal_balance, acc.account_subtype, acc.reconcile, groupId]
+        );
+        insertedAccounts[acc.code] = r.rows[0].id;
+      }
+
+      // 3. Seed default journals with wired default accounts
+      const journalDefs = [
+        { name: 'Shitje', name_en: 'Sales', type: 'sale', sequence_prefix: 'INV', default_code: '4100', sequence: 10 },
+        { name: 'Blerje', name_en: 'Purchase', type: 'purchase', sequence_prefix: 'BILL', default_code: '5100', sequence: 20 },
+        { name: 'Bankë', name_en: 'Bank', type: 'bank', sequence_prefix: 'BANK', default_code: '1200', sequence: 30 },
+        { name: 'Arkë', name_en: 'Cash', type: 'cash', sequence_prefix: 'CASH', default_code: '1100', sequence: 40 },
+        { name: 'Ndryshime të Tjera', name_en: 'Miscellaneous', type: 'general', sequence_prefix: 'MISC', default_code: null, sequence: 50 },
+      ];
+
+      for (const j of journalDefs) {
+        const defaultAccId = j.default_code ? (insertedAccounts[j.default_code] || null) : null;
+        await client.query(
+          `INSERT INTO journals (tenant_id, name, name_en, type, sequence_prefix, default_account_id, sequence)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [tenantId, j.name, j.name_en, j.type, j.sequence_prefix, defaultAccId, j.sequence]
+        );
+      }
+
+      await client.query('COMMIT');
+      res.json({ message: 'Plani kontabël u krijua me sukses', count: accounts.length, groups: groups.length });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
-
-    res.json({ message: 'Default accounts created', count: accounts.length });
   } catch (err) {
     console.error('Seed accounts error:', err.message);
     res.status(500).json({ error: 'Failed to seed accounts' });
@@ -1002,7 +1116,7 @@ app.post('/api/accounting/seed-accounts', requireAuth, requireAdmin, async (req,
 app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, async (req, res) => {
   try {
     const tenantId = req.session.user.tenant_id;
-    const { entry_date, description, reference_type, reference_id, reference_number, lines, status } = req.body;
+    const { entry_date, description, reference_type, reference_id, reference_number, lines, status, journal_id } = req.body;
     const tPool = await getPoolForReq(req);
 
     if (!lines || lines.length < 2) {
@@ -1033,21 +1147,38 @@ app.post('/api/accounting/journal-entry', requireAuth, requireAccountingCreate, 
       }
     }
 
+    // Determine journal and sequence prefix
+    let resolvedJournalId = journal_id || null;
+    let sequencePrefix = 'JE';
+    if (resolvedJournalId) {
+      const journalRow = await tPool.query(
+        'SELECT id, sequence_prefix FROM journals WHERE id = $1 AND tenant_id = $2',
+        [resolvedJournalId, tenantId]
+      );
+      if (journalRow.rows.length > 0) {
+        sequencePrefix = journalRow.rows[0].sequence_prefix;
+      }
+    }
+
     const client = await tPool.connect();
     try {
       await client.query('BEGIN');
+
+      const prefixPattern = `${sequencePrefix}-%`;
+      const prefixLen = sequencePrefix.length + 1;
       const countResult = await client.query(
-        'SELECT COALESCE(MAX(CAST(SUBSTRING(entry_number FROM 4) AS INTEGER)), 0) + 1 as next_num FROM journal_entries WHERE tenant_id = $1 AND entry_number LIKE $2',
-        [tenantId, 'JE-%']
+        `SELECT COALESCE(MAX(CAST(SUBSTRING(entry_number FROM $1) AS INTEGER)), 0) + 1 as next_num
+         FROM journal_entries WHERE tenant_id = $2 AND entry_number LIKE $3`,
+        [prefixLen + 1, tenantId, prefixPattern]
       );
-      const entryNumber = `JE-${String(countResult.rows[0].next_num).padStart(5, '0')}`;
+      const entryNumber = `${sequencePrefix}-${String(countResult.rows[0].next_num).padStart(5, '0')}`;
 
       const entryResult = await client.query(
-        `INSERT INTO journal_entries (tenant_id, entry_number, entry_date, description, reference_type, reference_id, reference_number, total_debit, total_credit, status, created_by, created_by_name, posted_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+        `INSERT INTO journal_entries (tenant_id, entry_number, entry_date, description, reference_type, reference_id, reference_number, total_debit, total_credit, status, created_by, created_by_name, posted_at, journal_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
         [tenantId, entryNumber, entry_date, description, reference_type || null, reference_id || null, reference_number || null,
          totalDebit, totalCredit, status || 'posted', req.session.user.id, req.session.user.email,
-         (status || 'posted') === 'posted' ? new Date() : null]
+         (status || 'posted') === 'posted' ? new Date() : null, resolvedJournalId]
       );
       const entry = entryResult.rows[0];
 
@@ -1089,14 +1220,19 @@ app.get('/api/accounting/trial-balance', requireAuth, requireAccountingView, asy
     const result = await tPool.query(`
       SELECT 
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+        coa.account_subtype, coa.reconcile,
+        ag.id as group_id, ag.name as group_name, ag.name_en as group_name_en,
+        ag.code_prefix_start, ag.sequence as group_sequence,
         COALESCE(SUM(jl.debit), 0) as total_debit,
         COALESCE(SUM(jl.credit), 0) as total_credit,
         COALESCE(SUM(jl.debit), 0) - COALESCE(SUM(jl.credit), 0) as balance
       FROM chart_of_accounts coa
+      LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
       LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
       LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
       WHERE coa.tenant_id = $1 AND coa.is_active = true
-      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance
+      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+               coa.account_subtype, coa.reconcile, ag.id, ag.name, ag.name_en, ag.code_prefix_start, ag.sequence
       HAVING COALESCE(SUM(jl.debit), 0) != 0 OR COALESCE(SUM(jl.credit), 0) != 0
       ORDER BY coa.code
     `, params);
@@ -1122,13 +1258,17 @@ app.get('/api/accounting/income-statement', requireAuth, requireAccountingView, 
     const result = await tPool.query(`
       SELECT 
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+        ag.id as group_id, ag.name as group_name, ag.name_en as group_name_en,
+        ag.code_prefix_start, ag.sequence as group_sequence,
         COALESCE(SUM(jl.debit), 0) as total_debit,
         COALESCE(SUM(jl.credit), 0) as total_credit
       FROM chart_of_accounts coa
+      LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
       LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
       LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
       WHERE coa.tenant_id = $1 AND coa.is_active = true AND coa.account_type IN ('revenue', 'expense')
-      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance
+      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+               ag.id, ag.name, ag.name_en, ag.code_prefix_start, ag.sequence
       HAVING COALESCE(SUM(jl.debit), 0) != 0 OR COALESCE(SUM(jl.credit), 0) != 0
       ORDER BY coa.code
     `, params);
@@ -1153,13 +1293,17 @@ app.get('/api/accounting/balance-sheet', requireAuth, requireAccountingView, asy
     const result = await tPool.query(`
       SELECT 
         coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+        ag.id as group_id, ag.name as group_name, ag.name_en as group_name_en,
+        ag.code_prefix_start, ag.sequence as group_sequence,
         COALESCE(SUM(jl.debit), 0) as total_debit,
         COALESCE(SUM(jl.credit), 0) as total_credit
       FROM chart_of_accounts coa
+      LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
       LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
       LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted' ${dateFilter}
       WHERE coa.tenant_id = $1 AND coa.is_active = true AND coa.account_type IN ('asset', 'liability', 'equity')
-      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance
+      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+               ag.id, ag.name, ag.name_en, ag.code_prefix_start, ag.sequence
       ORDER BY coa.code
     `, params);
 
@@ -1332,6 +1476,202 @@ app.get('/api/accounting/financial-card/:type/:id', requireAuth, requireAccounti
   } catch (err) {
     console.error('Financial card error:', err.message);
     res.status(500).json({ error: 'Failed to load financial card' });
+  }
+});
+
+// ============ JOURNAL ENTRIES LIST ============
+
+app.get('/api/accounting/journal-entries', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      `SELECT * FROM journal_entries WHERE tenant_id = $1 ORDER BY entry_date DESC, entry_number DESC LIMIT 1000`,
+      [tenantId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load journal entries' });
+  }
+});
+
+app.get('/api/accounting/journal-entries/:id/lines', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { id } = req.params;
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      'SELECT * FROM journal_lines WHERE journal_entry_id = $1 AND tenant_id = $2 ORDER BY id',
+      [id, tenantId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load journal lines' });
+  }
+});
+
+// ============ ACCOUNT GROUPS ============
+
+app.get('/api/accounting/account-groups', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      'SELECT * FROM account_groups WHERE tenant_id = $1 ORDER BY sequence ASC, code_prefix_start ASC',
+      [tenantId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load account groups' });
+  }
+});
+
+app.post('/api/accounting/account-groups', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id } = req.body;
+    if (!name || !code_prefix_start || !code_prefix_end) {
+      return res.status(400).json({ error: 'name, code_prefix_start, and code_prefix_end are required' });
+    }
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      `INSERT INTO account_groups (tenant_id, name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, name, name_en || null, code_prefix_start, code_prefix_end, account_type || null, sequence || 10, parent_id || null]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create account group' });
+  }
+});
+
+app.put('/api/accounting/account-groups/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { id } = req.params;
+    const { name, name_en, code_prefix_start, code_prefix_end, account_type, sequence, parent_id } = req.body;
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      `UPDATE account_groups SET name=$1, name_en=$2, code_prefix_start=$3, code_prefix_end=$4, account_type=$5, sequence=$6, parent_id=$7, updated_at=NOW()
+       WHERE id=$8 AND tenant_id=$9 RETURNING *`,
+      [name, name_en || null, code_prefix_start, code_prefix_end, account_type || null, sequence || 10, parent_id || null, id, tenantId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Group not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update account group' });
+  }
+});
+
+app.delete('/api/accounting/account-groups/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { id } = req.params;
+    const tPool = await getPoolForReq(req);
+    await tPool.query('DELETE FROM account_groups WHERE id=$1 AND tenant_id=$2', [id, tenantId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete account group' });
+  }
+});
+
+// ============ JOURNALS ============
+
+app.get('/api/accounting/journals', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      `SELECT j.*, coa.code as default_account_code, coa.name as default_account_name
+       FROM journals j
+       LEFT JOIN chart_of_accounts coa ON coa.id = j.default_account_id
+       WHERE j.tenant_id = $1 ORDER BY j.sequence ASC`,
+      [tenantId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load journals' });
+  }
+});
+
+app.post('/api/accounting/journals', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { name, name_en, type, sequence_prefix, default_account_id, sequence } = req.body;
+    if (!name || !sequence_prefix) return res.status(400).json({ error: 'name and sequence_prefix are required' });
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      `INSERT INTO journals (tenant_id, name, name_en, type, sequence_prefix, default_account_id, sequence)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [tenantId, name, name_en || null, type || 'general', sequence_prefix, default_account_id || null, sequence || 10]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create journal' });
+  }
+});
+
+app.put('/api/accounting/journals/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { id } = req.params;
+    const { name, name_en, type, sequence_prefix, default_account_id, is_active, sequence } = req.body;
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(
+      `UPDATE journals SET name=$1, name_en=$2, type=$3, sequence_prefix=$4, default_account_id=$5, is_active=$6, sequence=$7, updated_at=NOW()
+       WHERE id=$8 AND tenant_id=$9 RETURNING *`,
+      [name, name_en || null, type || 'general', sequence_prefix, default_account_id || null, is_active !== false, sequence || 10, id, tenantId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Journal not found' });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update journal' });
+  }
+});
+
+app.delete('/api/accounting/journals/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const { id } = req.params;
+    const tPool = await getPoolForReq(req);
+    await tPool.query('DELETE FROM journals WHERE id=$1 AND tenant_id=$2', [id, tenantId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete journal' });
+  }
+});
+
+// ============ ACCOUNTS WITH BALANCES ============
+
+app.get('/api/accounting/accounts-with-balances', requireAuth, requireAccountingView, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    const tPool = await getPoolForReq(req);
+    const result = await tPool.query(`
+      SELECT
+        coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+        coa.reconcile, coa.account_subtype, coa.is_active, coa.description,
+        coa.account_group_id,
+        ag.name as group_name, ag.name_en as group_name_en,
+        ag.code_prefix_start, ag.sequence as group_sequence,
+        ag.parent_id as group_parent_id,
+        COALESCE(SUM(jl.debit), 0) as total_debit,
+        COALESCE(SUM(jl.credit), 0) as total_credit,
+        COALESCE(SUM(jl.debit), 0) - COALESCE(SUM(jl.credit), 0) as raw_balance
+      FROM chart_of_accounts coa
+      LEFT JOIN account_groups ag ON ag.id = coa.account_group_id
+      LEFT JOIN journal_lines jl ON jl.account_id = coa.id AND jl.tenant_id = $1
+      LEFT JOIN journal_entries je ON je.id = jl.journal_entry_id AND je.status = 'posted'
+      WHERE coa.tenant_id = $1 AND coa.is_active = true
+      GROUP BY coa.id, coa.code, coa.name, coa.name_en, coa.account_type, coa.normal_balance,
+               coa.reconcile, coa.account_subtype, coa.is_active, coa.description, coa.account_group_id,
+               ag.name, ag.name_en, ag.code_prefix_start, ag.sequence, ag.parent_id
+      ORDER BY coa.code
+    `, [tenantId]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Accounts with balances error:', err.message);
+    res.status(500).json({ error: 'Failed to load accounts' });
   }
 });
 

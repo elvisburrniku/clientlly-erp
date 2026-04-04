@@ -1463,3 +1463,47 @@ CREATE INDEX IF NOT EXISTS idx_journal_date ON journal_entries(entry_date);
 CREATE INDEX IF NOT EXISTS idx_journal_lines_entry ON journal_lines(journal_entry_id);
 CREATE INDEX IF NOT EXISTS idx_journal_lines_account ON journal_lines(account_id);
 CREATE INDEX IF NOT EXISTS idx_journal_lines_tenant ON journal_lines(tenant_id);
+
+-- Account Groups (hierarchical grouping by code prefix ranges)
+CREATE TABLE IF NOT EXISTS account_groups (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  name_en VARCHAR(255),
+  code_prefix_start VARCHAR(20) NOT NULL,
+  code_prefix_end VARCHAR(20) NOT NULL,
+  parent_id UUID REFERENCES account_groups(id),
+  account_type VARCHAR(50),
+  sequence INTEGER DEFAULT 10,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Journals (Sales, Purchase, Bank, Cash, Misc)
+CREATE TABLE IF NOT EXISTS journals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  name_en VARCHAR(255),
+  type VARCHAR(50) NOT NULL DEFAULT 'general',
+  sequence_prefix VARCHAR(20) NOT NULL DEFAULT 'JE',
+  default_account_id UUID REFERENCES chart_of_accounts(id),
+  is_active BOOLEAN DEFAULT true,
+  sequence INTEGER DEFAULT 10,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Enhanced chart_of_accounts columns
+ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS reconcile BOOLEAN DEFAULT false;
+ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS account_subtype VARCHAR(50) DEFAULT 'other';
+ALTER TABLE chart_of_accounts ADD COLUMN IF NOT EXISTS account_group_id UUID REFERENCES account_groups(id);
+
+-- Add journal_id to journal_entries
+ALTER TABLE journal_entries ADD COLUMN IF NOT EXISTS journal_id UUID REFERENCES journals(id);
+
+-- Indexes for new tables
+CREATE INDEX IF NOT EXISTS idx_account_groups_tenant ON account_groups(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_journals_tenant ON journals(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_coa_group ON chart_of_accounts(account_group_id);
+CREATE INDEX IF NOT EXISTS idx_journal_entries_journal ON journal_entries(journal_id);
