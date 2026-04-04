@@ -89,6 +89,9 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
     try {
       const { _sort, _limit = 1000, _offset = 0, ...filters } = req.query;
       const tenantId = getTenantId(req);
+      if (shouldScopeTenant(req) && !tenantId) {
+        return res.json([]);
+      }
       let startIdx = 1;
       const tenantConditions = [];
       const tenantValues = [];
@@ -117,6 +120,9 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
     try {
       const { _sort, _limit = 1000, _offset = 0, ...filters } = req.body || {};
       const tenantId = getTenantId(req);
+      if (shouldScopeTenant(req) && !tenantId) {
+        return res.json([]);
+      }
       let startIdx = 1;
       const tenantConditions = [];
       const tenantValues = [];
@@ -144,6 +150,9 @@ export function createEntityRouter(pool, tableName, entityName, options = {}) {
   router.get('/:id', async (req, res) => {
     try {
       const tenantId = getTenantId(req);
+      if (shouldScopeTenant(req) && !tenantId) {
+        return res.status(404).json({ error: 'Not found' });
+      }
       let query = `SELECT ${selectColumns} FROM ${tableName} WHERE id = $1`;
       const values = [req.params.id];
       if (shouldScopeTenant(req) && tenantId) {
