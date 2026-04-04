@@ -1,0 +1,282 @@
+# erp-portokalli Complete Feature Catalog
+
+This document lists the business and platform features implemented in the `erp-portokalli` Laravel application.
+
+The catalog was compiled from `routes/web.php`, `routes/tenant.php`, `routes/tenant-api.php`, `routes/inventory-procurement.php`, `routes/stock.php`, `routes/motorpool.php`, `routes/vehicle-management.php`, `routes/pos-api.php`, and the controller/service classes under `app/`.
+
+## 1. Multi-Tenancy, Authentication, Security, and Platform Core
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Multi-tenant ERP runtime | Tenant initialization by domain, tenant asset serving, tenant switch links, user tenant switching, connected-tenant lookup, tenant status checks, central + tenant API separation |
+| Tenant administration | Tenant CRUD for super admin, failed queue job retry/delete, retry-all jobs per tenant, regenerate tenant database, reseed tenant database, refresh tenant database |
+| User authentication | Web login/logout, API login/logout/refresh, mobile login, mobile register, mobile Apple login, forgot/reset password, email verification, profile fetch/update, password change |
+| Passkeys / WebAuthn | WebAuthn registration options, WebAuthn registration, WebAuthn login options, WebAuthn login, recovery/lost-device controller support |
+| OAuth account linking | Google login, Apple account fetch, Apple account sync, Apple account unsync |
+| Customer portal authentication | Customer login, customer language-aware login, customer password reset, customer dashboard session, customer logout |
+| Vendor portal authentication | Vendor login, vendor language-aware login, vendor password reset, vendor dashboard session, vendor logout |
+| Authorization and roles | Role CRUD, permission CRUD, assign permissions to roles, role redirect target configuration, role/permission API for SPA, Spatie permission integration |
+| Localization | Language switching, translatable strings, frontend localization support |
+| PWA support | Laravel PWA package integration and POS PWA SPA route serving |
+| File delivery and media serving | File manager routes, default image serving, user avatar serving, attachment serving, Spatie media download/delete/feature image actions, public path content serving, storage path content serving |
+| Temporary uploads | Generic temp file upload/delete, institutional temp file upload/delete, bill temp file upload/delete, rule temp file upload/delete, agreement temp file upload/delete, report temp file upload/delete |
+| Activity and audit logs | Activity log index/show, SPA activity log feed, activity-log users, filter options, stats, activity analysis endpoint |
+| Notifications | SPA notification list, unread count, mark one notification read, mark all notifications read |
+| Webhooks and automations | GitLab webhook endpoint, Telegram approval webhook endpoint, Telegram service classes, Jira command/service classes, automated artisan commands for reminders/sync/performance/accounting |
+| Table personalization | Per-user table preferences API for hidden rows, row ordering, and column visibility |
+| Global search and helpers | Global search API, route helper endpoints for current user, countries, cities, city lookup by country, branch lookup, account refresh |
+
+## 2. Dashboard, Settings, Company Configuration, and Administration
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Main SPA dashboard | `/spa/*` shell route, dashboard API data endpoint, dashboard settings read/update |
+| Dashboard analytics | Income vs expense stats, monthly invoice chart, weekly invoice chart, aggregate counters, certificate statistics, calendar statistics, invoice statistics, payables statistics, department stats, employee stats, bank stats, salary lookup, goal target metrics, yearly goals, yearly income/expense chart, daily income/expense chart, yearly department totals, chart year list, year-over-year differences |
+| System settings | System settings CRUD, email settings, environment settings, company settings, client-company settings, payment settings, business settings, tenant settings, test email sending, default accounts creation, account config persistence |
+| Configuration center | Company config, employee config, inventory config, client config, account plan config, restaurant floors/tables config, project classes config, asset types config |
+| Business settings API | SPA settings get/update, proposal settings API, business settings logo/favicon/seal upload |
+| Plans and subscriptions | Plan CRUD, upgrade plan flow, activate user plan, PayPal plan payment, plan payment status lookup |
+| Business health score | Business health score page/API and comparison API |
+| Trash management | Trash views for invoices, pro invoices, and users; restore/force-delete flows exposed in corresponding modules |
+| Admin utility data | Cache values, system utilities, business/company logo and branding settings, app-level operational helpers |
+
+## 3. Users, Employees, HR, Attendance, Payroll, and Leave Management
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| User management | User CRUD, profile update, password update, user restore, user ordering, user type check, impersonation for company role, unique-user validation |
+| Employee master data | Attendance employee CRUD, HR employee list/show/create/update/delete API, department CRUD, job position CRUD, attendance positions, attendance departments, attendance areas |
+| HR contracts | User contract create/edit/update/download, contract type CRUD, contract type API, contract document info/file/edition API, custom contract create/edit/delete-all, company switching for contracts |
+| Attendance check-in/out | Employee attendance home view, manual tap check-in/out, attended/attended-before lookup, attendance CRUD, daily attendance API, today/current attendance APIs, admin check-in API |
+| Attendance reporting | Attendance export, attendance Excel export, check-in/check-out export, attendance API docs page, late-time report, attendance check report API, sheet report, daily list JSON, overtime report API |
+| Shift and schedule management | Schedule CRUD, shift CRUD, timetable CRUD, bulk schedule assign, employee schedule lookup, shift copy, shift duplicate, shift calendar view, create/update/delete calendar schedules, weekly calendar data, time interval CRUD, time interval enable/disable toggle, full SPA APIs for schedules/shifts/time intervals |
+| Biometric devices | Fingerprint device CRUD, mass destroy, assign employees to device, pull attendance from device, clear fingerprint attendance helper |
+| Holidays and leave types | Attendance holiday CRUD, attendance leave CRUD, HR leave CRUD, HR leave API, employee-leave available days lookup, calculate working days, leave summaries, leave holidays lookup |
+| Leave requests | Create/update/delete leave requests, approve/reject leave requests, leave request PDF, SPA leave-request CRUD, assign users/admins/employees, bulk approve/reject/delete |
+| Employee leave records | Employee leave CRUD under HR, employee-leave API, attachment download, available leave days, working-day calculation, employee leave PDF, restore/delete flows |
+| Payroll and salary | Salary index, employee salary creation, salary additions, show own additions, additions data for SPA, pay all salaries, pay selected salaries, delete salary, employee PDF export, employee Excel export, bank export, range-based Excel/PDF exports |
+| Salary additions API | Mobile/tenant API for additions list, show by user, show single, create, update, delete |
+| Advances for employees | Employee advance CRUD, employee advance return CRUD, employee check-in route |
+| HR calendar and history | Human resource calendar CRUD, my-history page, holiday history page |
+| Performance evaluation | Evaluation list, APPK view, employee evaluation view, create/update/show/delete, delete-all and APPK delete-all, SPA evaluation API, goals CRUD |
+
+## 4. Recruitment, Training, Study Guides, Quizzes, and Assignments
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Recruitment campaigns | Recruitment CRUD, job-position lookup for recruitment, public application page, application submit flow, apply-done page |
+| Candidate management | Candidate create, candidate edit/update/delete, candidate show, candidate questionnaire view |
+| Open positions | Open position listing and CRUD controller support |
+| Interview management | Interview CRUD, interview question CRUD |
+| Study guides | Study guide CRUD, SPA study-guide CRUD API, create-data API, restore API |
+| Quiz authoring and delivery | Quiz CRUD, quiz certificate generation, test certificate generation, SPA quiz CRUD API, question create/delete API |
+| Assignment management | Assign CRUD, SPA assignment list/create/update/delete, assignment form-data API, bulk delete, bulk restore |
+| Tests and questions | Test CRUD/update route, question CRUD |
+
+## 5. CRM, Customers, Vendors, Leads, Notes, Tags, and Communication
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Customer CRUD | Customer create/edit/show/delete, restore, restore all, force delete, delete selected, customer search, action URLs API, initialize customer, async export start/status/download |
+| Customer exports and finance | Customer Excel export, customer PDF export, customer financial card, financial card Excel, print financial-card invoices, send financial card, customer invoice-payment lookup |
+| Customer merge and enrichment | Customer merge list, merge customers, SPA merge API, tags assign/list, customer city relation, latest customer certificate lookup, invoices/pro-invoices JSON for a customer, institutional products for customer |
+| Customer portal | Customer dashboard, proposal list/details, invoice list/details, invoice send, invoice send mail, Stripe invoice payment, payment list, transaction list, profile edit, billing/shipping update, language switch |
+| Vendor CRUD | Vendor create/edit/show/delete, restore, force delete, delete selected, vendor Excel/PDF export |
+| Vendor finance | Vendor financial card, vendor financial card Excel, print vendor financial-card invoices, send financial card, export all vendor financial cards |
+| Vendor portal | Vendor dashboard, bill list/details, bill send, bill send mail, bill payments, transactions, profile edit, billing/shipping update, password update |
+| Supplier management | Supplier index/create/store/show/edit/update/delete, supplier performance view, supplier data API |
+| Leads and sales pipeline | Lead CRUD, lead stage CRUD, lead source CRUD, labels CRUD |
+| Notes | Notes web CRUD, SPA notes CRUD, pin/unpin notes, note attachments upload/download/remove, note user lookup, note color CRUD |
+| Announcements | Announcement CRUD, unread announcements, mark announcement read, delete all, SPA announcement APIs, bulk delete, restore, bulk restore, permanent delete, bulk permanent delete, pin/unpin announcement |
+| Messaging and chat | Chatify messenger model/controller support and message APIs |
+| Contact management | Access-request/contact-management message send API |
+| Issues | Issue report API, issue listing API, download issue attachment, update issue status |
+
+## 6. Proposals, Software Proposals, Agreements, Certificates, and Business Documents
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Proposals | Proposal CRUD, customer proposal view, customer acceptance route, PDF generation, preview by template/color, template settings save, duplicate proposal, convert proposal, status change, restore, restore all, force delete, delete-all, permanent delete-all, product attach/remove, item lookup, send/resend email, new module create/show, work-regulations document route |
+| Proposal APIs | Proposal list API, proposal show API, proposal delete API, employee list API, proposal settings API |
+| Software proposals | Software proposal CRUD, change status, send email, customer proposal page, convert to invoice, delete all, SPA software proposal list/create/update/delete/show, restore, force delete, trash count, delete all |
+| Software proposal templates | Template software proposal CRUD, SPA template software proposal CRUD, template data fetch, legacy template-software-proposals API |
+| Agreements/contracts module | Agreement list/create/edit/progress/archive views, customer agreement view, agreement PDF and annex PDF, annex create/edit/progress, update agreement, update annex, delete agreement |
+| Agreement APIs | Agreement list/archive/edit-data, create/update/delete, restore, force delete, delete-all, restore-all, progress update, annex create/edit/update/progress update, PDF/annex PDF, send/resend email, mark unsettled, mark continue, update status, template data lookup |
+| Agreement templates | Agreement template list/create/edit views, SPA agreement-template CRUD API |
+| Settings for agreement master data | CRUD APIs for tax-price, team, service, property, machine, and automatic renewal values used by agreements |
+| Company documents | Company document CRUD, archive view, SPA company document list/archive/create/update/delete/restore APIs |
+| Rules | Rule CRUD, rule temp file upload/delete |
+| Institutional documents/workflow | Institutionale list/create/edit/update/delete/archive, restore, restore-all, force delete, delete all, download/show, SPA institutionale list/form-data/edit-data/create/update/convert-to-invoice APIs |
+| Reports / Raports module | Raports list/create/edit/detail/show/delete, restore, restore-all, force delete, delete-all, SPA raport CRUD API, restore-all/delete-all, generate report |
+| Certificates | Truly certificate CRUD, customer certificate page, latest certificate lookup, report route, PDF merge, send/resend certificate email, restore, force delete, delete one, delete all, permanent delete all, short link, SPA certificate list/edit-data/customer-specific/create/update/show/PDF/PDF-v2/delete/restore/force/send-email/resend-email |
+| Certificate support data | Certificate service/zones/sanitary-report controllers and mobile API support for customer/user/service lookup |
+| E-signatures | Invoice signature page, signature save, e-signature save, audit trail, verification endpoint, signature stats |
+| PDF editor | Upload PDF, load PDF by id, save edited PDF |
+
+## 7. Products, Inventory, Warehouse, Procurement, Rentals, and Stock Tracking
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Product/service catalog | Product/service CRUD, product cards, search by name/filters, product detail, category CRUD, unit CRUD, add/remove extra units, update prices, update dimensions, logistics report, barcode/label printing, cart add/update/remove/empty |
+| Product import/export | ZIP upload screen, ZIP upload, upload file into batch, batch upload, Excel upload screen, Excel upload, Excel export |
+| Stock and warehouse | Stock CRUD, product-stock PDF, stock Excel export, stock update endpoint, stock movement create/store, stock move route, stock history, stock alerts, legacy `stocks` resource, warehouse CRUD, product-by-warehouse lookup |
+| Initial inventory | Initial inventory CRUD and confirmation |
+| Output sheets | Output sheet create-form data and CRUD |
+| Stock transfers | Stock transfer CRUD, print, approval page/update, ship, receive, transfer-stocks create/store |
+| Purchase orders | Purchase order CRUD, submit, approve/process-approve, place/process-place with email, cancel, receive/process-receive, close, duplicate, PDF, print, email form/send email, suggestions, PO analytics, PO data API |
+| Purchase order import/export | Export Excel, export, export items, import form, import processing |
+| Purchase order reports and settings | Open/list/detail/by-vendor/by-product/unbilled/budget reports, PO settings read/save |
+| Procurement dashboard and pricing | Procurement dashboard, procurement stock settings, procurement products view, product margin update, stock margins view, stock margin update |
+| Procurement history | Procurement history index, timeline, export, data API, purchase-order detail, stock-transfer detail |
+| Cycle counting | Cycle-count CRUD, get products, start/complete/cancel count, counting interface, count item, reset count, bulk count, variance report, export, progress, mobile interface, search products, items by location, per-item count/reset, statistics dashboard/data, export summary/variance/performance |
+| Inventory analytics | Analytics dashboard, ABC analysis, stock aging, variance analysis, procurement performance, supplier performance, warehouse performance, export warehouse performance, export stock aging, generic export, real-time data API |
+| Product storage and locators | Select warehouse for visualization, warehouse visualization, product storage list/history, assign/remove/move storage, locator CRUD, barcode lookup for locator |
+| Stock lots and serial numbers | Lot/serial CRUD, list lots for product |
+| Stock scrap | Scrap list/create/store/show and scrap validation |
+| Stock valuation | Stock valuation dashboard and product-level valuation details |
+| Replenishment rules | Replenishment list/create/store/edit/update/delete, snooze reorder point, refresh reorder points, order-now action |
+| Traceability | Traceability index, product traceability, lot traceability, upstream movement chain, downstream movement chain |
+| Package management | Stock package CRUD, package type CRUD |
+| Storage categories | Storage category CRUD |
+| Field requisitions | Warehouse product lookup, field requisition CRUD, approval page, submit, approve, reject, release, complete, cancel, print |
+| Field returns | Field return CRUD, accept return, cancel return, print return |
+| Rentals and leasing | Rental CRUD, approve, cancel, invoice preview, store invoice from preview, generate invoice, return form, process return, deposit refund form/process refund, print agreement, signature page/save signature, print return, generate extra-charges invoice, rental dashboard |
+| Stock tracking | Stock-tracking dashboard, stock linked to pro-invoice, invoice, output sheet, and product-level summaries |
+| Stock calculations | Calculation CRUD, calculation items CRUD, vendor lookup, vendor department lookup |
+
+## 8. Invoices, Pro-Invoices, Sales, POS, Bills, Payments, and Fiscal Workflows
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Invoices | Invoice CRUD, invoice creation from customer, new edit view, find invoice, duplicate, short link, PDF, customer PDF, send/resend, deliver, payment form, payment create/delete, status history, reminder history, annual statistics, report page, items lookup, fiscal print, check invoice number, delete all, restore, force delete, force delete all, mark in-progress, complete invoice, upload invoice documents |
+| Invoice payments | All invoice payments list, create payment screen, store payment, restore payment, bulk restore, bulk force delete |
+| Invoice templates | Invoice preview by template/color and template setting save |
+| Invoice signatures | PDF sign view and signature save, e-signature audit/verify/stats |
+| Pro-invoices | Pro-invoice CRUD, create from customer, initiate, find all, duplicate, new edit view, convert to invoice, PDF, customer PDF, send/resend, deliver, payment form/create, status history, payment reminder, report, product add/remove, customer/customerDept lookup, item lookup, check number, fiscal print, restore, force delete, force delete all, delete all, mark in-progress, complete, handle expired pro-invoices |
+| Estimates / mobile pro-invoices | Tenant API estimate/pro-invoice list, next-number, show, update, delete, force delete, initiate, complete, check estimate number, convert estimate to invoice |
+| Credit notes | Credit-note index, invoice lookup, custom credit-note create/store, get invoice, create/edit/update credit note from invoice, delete, restore, force delete |
+| Debit notes | Debit-note index, bill lookup, custom debit-note create/store, get bill, create/edit/update debit note from bill, delete, restore, force delete |
+| Bills | Bill CRUD, create from vendor/customer id, duplicate, PDF, PDF by encrypted id, get encrypted bill id, shipping print, sent/resent, payment form, payment create/delete, product add/remove, vendor lookup, items lookup, restore, force delete, delete all, check order number, bill statistics, chart statistics, preview template, save bill template settings |
+| Import bills | Import bill CRUD, create, duplicate, product add/remove, vendor lookup, sent/resent, payment create/delete, items lookup, PDF |
+| General payments | Payment CRUD, payment delete from index/form routes |
+| Transfers and banking | Transfer CRUD, transfer balance view, transfer export, bank-account CRUD, bank accounts API |
+| Taxes | Tax CRUD, tax rate lookup, chart-of-account linked tax/category flows |
+| Expenses | Expense CRUD, expense PDF export, expense Excel export, expense categories CRUD, category restore, bulk restore, trash count API, bulk force delete |
+| Expense requests | Expense request list/count, approve, reject |
+| Revenues | Revenue CRUD and index |
+| Advances | Customer/vendor advances CRUD, delete all, advance return CRUD, advance-invoice payment create and lookup |
+| Sales orders | Sales CRUD, sale invoice PDF, invoice preview, print sale invoice, sales export, Excel export, sales item list, status change, delete selected, delete single, show sell invoice, edit sale invoice, copyable sale invoice link, sales report page, payment status update, sync sale, sales index/show/edit/data/detail routes |
+| POS register UI | POS route, create POS order, calculate total, get articles by category, search products by parameters, get POS element data, client-city relation lookup |
+| POS sales payments | Payment-sale CRUD, list payments for sale, print POS invoice, print sale invoice, get payment order number |
+| POS Admin | POS config/store CRUD, payment method CRUD, printer CRUD, category CRUD, restaurant floors CRUD, add/remove tables, course CRUD |
+| POS API and kitchen display | POS login/logout/me/cashiers, configs CRUD/load data, sessions open/show/summary/close/cash-in-out, POS products CRUD/barcode search, POS categories CRUD, product-category create/list, orders CRUD/receipt, pay/refund, offline sync, floors CRUD/save floor plan/add/delete/transfer tables, kitchen orders/active courses/fire course/bump/recall |
+
+## 9. Accounting, Financial Statements, Reporting, and Analytics
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Chart of accounts | Chart-of-account CRUD, subtype lookup, year list, chart-of-account API |
+| Journal entries | Journal entry CRUD, destroy journal account line, refresh accounts helper |
+| Transaction ledger | Transaction report, transaction Excel export, transaction PDF export, ATK sales book report, ATK purchase book report, ATK sales/purchase Excel exports, SPA ATK reports |
+| Financial reports | Income summary, custom income summary, custom income summary card, custom income summary PDF, custom income summary Excel, expense summary, custom expense summary, custom expense summary PDF, custom expense summary Excel, income-vs-expense summary, tax summary, profit-loss summary, invoice summary, bill summary, product/service summary |
+| Accounting statements | Account statement, balance sheet, ledger, journal window, trial balance, collections/payments report, equity statement, cash-flow statement |
+| Customer/vendor financial cards | Customer financial card report, vendor financial card report |
+| Report delivery | Email reports page, report management page, download selected reports |
+| Royalty reports | Royalties view, royalties store, export, export management, export by range, PDF export |
+| Business and activity analytics | Business health score, business health comparison, activity log stats and analysis, dashboard analytics suite |
+
+## 10. Projects, Tasks, Bugs, Timesheets, and Delivery Operations
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Projects | Project CRUD, status update, project invite, add/remove users, client permission management |
+| Milestones | Milestone list/create/edit/update/delete/show for projects |
+| Project files | Upload project files, download project files, delete project files |
+| Task board | Taskboard view, create task, update task, delete task, show task, reorder tasks, task comments, comment file upload/delete, checklist create/update/delete, download task files |
+| Timesheets | Timesheet list/create/edit/update/delete, project-task lookup, timesheet export |
+| Bugs | Bug list/create/edit/update/delete/show, bug Kanban board, Kanban ordering, bug comments, bug comment file upload/delete, bug export |
+| Project lookup | Project search JSON endpoint and tracker route |
+| Project setup data | Project stage CRUD, bug status CRUD, labels CRUD, project configuration classes |
+
+## 11. Service Operations, Calendars, Institutional Work, Assets, and Transport
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Service master data | Service-month CRUD, service SRVA CRUD, service SRVA API, team CRUD, property CRUD, machine CRUD, pest CRUD, tax-price CRUD, automatic renewal CRUD |
+| Service scheduling | Calendar-service appointment list/change status/export/delete all, calendar-service CRUD, service calendar CRUD, update appointment date, report route, export route, full calendar view, event feed, appointment details, destroy appointment |
+| Calendar SPA APIs | Form-data API, appointment list API, appointment show API, date-service lookup, create/update appointment API, export API |
+| Institutional workflow | Institutionale CRUD, archive, restore, restore all, force delete, delete all, download/show, API form-data/edit-data/store/update/convert-to-invoice |
+| Raports / presentations | Raports CRUD and generated report APIs |
+| Assets and company structure | Account assets CRUD, brand CRUD and status toggle, branch CRUD, branch-type CRUD, cash-register CRUD and lookup, city CRUD, company document CRUD/archive |
+| Output and stock documents | Output sheets CRUD and create-form-data |
+| Custom fields | Custom field CRUD |
+| Auto transport | Auto transport CRUD, tracker details/create tracker, customer services lookup, transport invoice index/create, transport settings read/update, create/store multiple transports, check transport, export, transport category CRUD, car CRUD |
+| Vehicle maintenance | Vehicle maintenance CRUD, maintenance signature save, PDF generation, photo delete, add vehicle from maintenance form |
+
+## 12. Motorpool, Vehicles, Fuel, Reservations, and Fleet Legal Compliance
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Motorpool dashboard | Motorpool index dashboard |
+| Motorpool vehicles | Vehicle CRUD, create-data API, delete-check validation, restore one vehicle, bulk restore |
+| Motorpool drivers | Driver CRUD, create-data API, delete-check validation, restore one driver, bulk restore |
+| Motorpool reservations | Reservation CRUD, create-data API, delete-check validation, restore one reservation, bulk restore, pickup signature capture, return signature capture |
+| Motorpool maintenance | Maintenance CRUD, create-data API, delete-check validation, serve maintenance storage file, approve maintenance, save maintenance signature, restore one, bulk restore |
+| Motorpool fuel logs | Fuel CRUD, create-data API, delete-check validation, PDF generation, restore one, bulk restore |
+| Motorpool legal documents | Legal document CRUD, create-data API, delete-check validation, serve legal document storage file, restore one, bulk restore |
+| Motorpool reports | Service report, fuel report, usage report, legal report, full vehicle report |
+| Vehicle master data | Vehicle CRUD, vehicle status lookup, vehicle insurance CRUD, vehicle registration CRUD |
+
+## 13. Specialized Business Modules
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Truly certificates | Pest-control / service certificate workflows, customer-specific certificate access, email send/resend, short links, merged PDFs, certificate PDFs, reports, restore/force-delete flows |
+| Dental module | Dental CRUD |
+| Calculations | Calculation and calculation-item management with vendor lookups |
+| Output sheets | Output-sheet document workflows and stock-tracking integration |
+| Brands | Brand CRUD and status toggling |
+| Machines and properties | Machine CRUD, multi-property CRUD, pest CRUD |
+| Automatic renewals | Automatic renewal CRUD and agreement-setting APIs |
+| Coupons | Coupon CRUD and apply-coupon endpoint |
+
+## 14. Mobile and Tenant API Surface
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Auth APIs | Central and tenant login/register/password/email verification APIs, mobile auth, Apple login, tenant-status lookup, tenant switch handle, authenticated user/profile/password/apple-account endpoints |
+| Customer/vendor/accounting APIs | Customers CRUD/restore/force delete/financial card APIs, vendors CRUD, taxes CRUD, bank accounts CRUD, expense categories CRUD, projects CRUD, product categories CRUD, product units, stock lookup |
+| HR APIs | Users CRUD, departments CRUD, job positions CRUD, time logs CRUD, employee leaves CRUD, leave types CRUD, leave CRUD, salaries CRUD/pay-all/pay-user, additions CRUD |
+| Attendance APIs | Attendance create/list/today/current/admin-check-ins, admin dashboard stats/chart series, schedules CRUD/restore/bulk, shifts CRUD/detail/restore, time intervals CRUD/detail/toggle/restore, check report, daily list, overtime report create/list |
+| Sales and document APIs | Bills APIs, invoices APIs, estimates/pro-invoices APIs, purchase-order APIs, global search, settings APIs, countries API, certificates/agreements/company docs/notes/announcements/raports/software-proposals APIs |
+| POS APIs | Auth, config, sessions, products, categories, product categories, orders, payments, refunds, sync, floors/tables, kitchen display |
+| Documentation API | API documentation controller and attendance API documentation route |
+
+## 15. Background Commands, Sync Jobs, and Maintenance Tooling
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Accounting and invoice automation | Automatic invoice command, reminder invoices, reminder invoice by status, handle expired pro-invoices, invoice progress cleanup, accounting recalculation, initialize accounts, link expense categories to accounts, regenerate rental accounting, regenerate stock transfer accounting |
+| Procurement and inventory automation | Send scheduled purchase orders, send purchase order reminders, generate recurring purchase orders, procurement management command, send inventory alerts, monitor inventory performance, backfill stock allocations, sync product stock |
+| Tenant and database maintenance | Update tenant template, run attachment-path migration, run service-calendar-id migration for tenant, run credit-note migrations, run invoice currency/document migrations, add/remove deleted_at to invoice payments, run objections soft-deletes migration, add deleted_at to decisions truly |
+| Sync utilities | Sync customers, products, product prices, cities, companies, tables, backfill invoices to Firestore |
+| HR utilities | Assign employee role, refresh procurement permissions, fix employee permissions, assign field requisition permissions, check employee field permissions, check note reminders |
+| Motorpool utilities | Check vehicle expirations, motorpool check storage, motorpool update statuses, motorpool check expiry command |
+| Performance tooling | Simple optimize performance, tenant performance optimization, performance service commands, test performance, performance dashboard docs, safe index migration guidance |
+| Jira and Telegram automation | Sync error bugs to Jira, Jira list bugs, request fix approval, check approval status, execute approved fixes, merge approved fixes, Telegram poll approvals |
+| Misc utilities | Cache values, status regulator, auto-read announcements, send annual financial cards, mass upload, Laravel request docs command |
+
+## 16. Customer and Vendor Portals
+
+| Feature | Implemented capabilities |
+| --- | --- |
+| Customer self-service | Customer dashboard, proposal view/show/accept, invoice list/show/send/send mail, Stripe payment, PayPal payment, payment status, payment list, transaction list, profile update, billing update, shipping update, password update, language change |
+| Vendor self-service | Vendor dashboard, bill list/show/send/send mail, payment list, transaction list, profile update, billing update, shipping update, password update, language change |
+
+## 17. Known Implementation Notes
+
+| Topic | Note |
+| --- | --- |
+| Duplicated route blocks | Several legacy and SPA routes coexist for the same domain areas, especially customers, invoices, proposals, announcements, and HR modules |
+| Route-list generation | `php artisan route:list` currently fails because `App\Http\Controllers\ConfigurationController` is referenced but not present in the expected file path, so this feature catalog was assembled by static route/controller review |
+| Broad ERP scope | The application is not only inventory; it includes CRM, HR, payroll, accounting, contracts, certificates, projects, POS, reports, vehicle/motorpool, and portal modules |
