@@ -257,7 +257,7 @@ export default function Dashboard() {
           50%      { transform: scale(1.2); opacity: 0.75; }
         }
       `}</style>
-      <div className="p-6 lg:p-8 space-y-7">
+      <div className="p-6 lg:p-8 space-y-7 min-h-screen" style={{ background: "linear-gradient(135deg, #f1f5f9 0%, #ede9fe 40%, #ddd6fe 100%)" }}>
 
         {/* ── Header ───────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">

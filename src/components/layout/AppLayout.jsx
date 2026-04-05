@@ -41,7 +41,7 @@ function TenantGate() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopNav />
         <main className="flex-1 overflow-y-auto">
-          <div className="animate-fade-in min-h-full" style={{ background: "linear-gradient(135deg, #f1f5f9 0%, #ede9fe 40%, #ddd6fe 100%)" }}>
+          <div className="animate-fade-in">
             <Outlet />
           </div>
         </main>
