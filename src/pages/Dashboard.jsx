@@ -339,7 +339,7 @@ export default function Dashboard() {
                 <RevenueChart />
               </div>
             </div>
-            <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col justify-between h-full">
               <QuickLink icon={Users2}       label="Burimet Njerezore" sub="HR & menaxhim punonjësish" onClick={() => navigate('/employees')} />
               <QuickLink icon={UserCheck}    label="Prezenca"          sub="Orari & prezenca ditore"    onClick={() => navigate('/attendance')} />
               <QuickLink icon={Car}          label="Motorpool"         sub="Flotë & automjete"          onClick={() => navigate('/vehicles')} />
