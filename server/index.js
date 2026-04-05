@@ -361,7 +361,12 @@ app.get('/api/tenant/me', requireAuth, async (req, res) => {
     const tenantId = req.session.user.tenant_id;
     if (!tenantId) return res.json(null);
     const result = await pool.query('SELECT * FROM tenants WHERE id = $1', [tenantId]);
-    res.json(result.rows[0] || null);
+    if (result.rows.length === 0) {
+      await pool.query('UPDATE users SET tenant_id = NULL, tenant_name = NULL, updated_at = NOW() WHERE id = $1', [req.session.user.id]);
+      req.session.user.tenant_id = null;
+      return res.json(null);
+    }
+    res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
