@@ -362,11 +362,31 @@ app.get('/api/tenant/me', requireAuth, async (req, res) => {
     if (!tenantId) return res.json(null);
     const result = await pool.query('SELECT * FROM tenants WHERE id = $1', [tenantId]);
     if (result.rows.length === 0) {
-      await pool.query('UPDATE users SET tenant_id = NULL, tenant_name = NULL, updated_at = NOW() WHERE id = $1', [req.session.user.id]);
-      req.session.user.tenant_id = null;
+      const userRole = req.session.user.role;
+      if (userRole === 'admin' || userRole === 'superadmin') {
+        await pool.query('UPDATE users SET tenant_id = NULL, tenant_name = NULL, updated_at = NOW() WHERE id = $1', [req.session.user.id]);
+        req.session.user.tenant_id = null;
+      }
       return res.json(null);
     }
     res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/tenant/admin-contact', requireAuth, async (req, res) => {
+  try {
+    const tenantId = req.session.user.tenant_id;
+    if (!tenantId) return res.json({ adminEmail: null });
+    const result = await pool.query(
+      "SELECT email, full_name FROM users WHERE tenant_id = $1 AND role IN ('superadmin', 'admin') LIMIT 1",
+      [tenantId]
+    );
+    if (result.rows.length > 0) {
+      return res.json({ adminEmail: result.rows[0].email, adminName: result.rows[0].full_name });
+    }
+    res.json({ adminEmail: null });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

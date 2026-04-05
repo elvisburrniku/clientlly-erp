@@ -11,10 +11,10 @@ function TenantGate() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!isLoadingTenant && needsOnboarding && user?.role !== "superadmin") {
+    if (!isLoadingTenant && needsOnboarding) {
       navigate("/onboarding");
     }
-  }, [needsOnboarding, isLoadingTenant, user]);
+  }, [needsOnboarding, isLoadingTenant, navigate]);
 
   if (isLoadingAuth || isLoadingTenant) {
     return (
