@@ -50,15 +50,15 @@ function SectionLabel({ children }) {
 
 /* ─── greeting data ─────────────────────────────────────────── */
 const WELCOME_PHRASES = [
-  { sub: "Pasqyra Financiare", main: "Çfarë po ndodh sot?" },
-  { sub: "Pasqyra Financiare", main: "Gjithçka nën kontroll?" },
-  { sub: "Pasqyra Financiare", main: "Si janë numrat?" },
-  { sub: "Pasqyra Financiare", main: "Financat tuaja sot" },
+  { sub: "Pasqyra Financiare", main: "Sot në fokus" },
+  { sub: "Pasqyra Financiare", main: "Si jemi?" },
+  { sub: "Pasqyra Financiare", main: "Shifrat e ditës" },
+  { sub: "Pasqyra Financiare", main: "Gjendja juaj" },
 ];
 const INSIGHT_PHRASES = [
-  { sub: "Situata aktuale", main: "Pasqyra e ditës" },
-  { sub: "Analiza financiare", main: "Kontrollo shifrat" },
-  { sub: "Gjendja e biznesit", main: "Financat në fokus" },
+  { sub: "Situata", main: "Pasqyra e ditës" },
+  { sub: "Analiza", main: "Nën kontroll" },
+  { sub: "Financat", main: "Në fokus" },
 ];
 
 export default function Dashboard() {
@@ -78,20 +78,30 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   /* ── dynamic greeting ── */
-  const [phraseIdx, setPhraseIdx]   = useState(0);
-  const [phase, setPhase]           = useState("welcome"); // "welcome" | "insight"
-  const [hoveredCard, setHoveredCard] = useState(null);    // { sub, main } | null
-  const [fadeIn, setFadeIn]         = useState(true);
+  const [phraseIdx, setPhraseIdx]     = useState(0);
+  const [phase, setPhase]             = useState("welcome");
+  const [contextCard, setContextCard] = useState(null); // { sub, main } shown on hover/click
+  const [fadeIn, setFadeIn]           = useState(true);
 
   const triggerTransition = (nextFn) => {
     setFadeIn(false);
-    setTimeout(() => { nextFn(); setFadeIn(true); }, 280);
+    setTimeout(() => { nextFn(); setFadeIn(true); }, 250);
   };
+
+  /* navigate with a title flash first */
+  const navWithFlash = (phrase, route) => {
+    triggerTransition(() => setContextCard(phrase));
+    if (route) setTimeout(() => navigate(route), 380);
+  };
+
+  /* hover in/out */
+  const onCardEnter = (phrase) => triggerTransition(() => setContextCard(phrase));
+  const onCardLeave = () => triggerTransition(() => setContextCard(null));
 
   /* cycle phrase every 7s */
   useEffect(() => {
     const id = setInterval(() => {
-      if (hoveredCard) return;
+      if (contextCard) return;
       triggerTransition(() => {
         setPhraseIdx(i => {
           const pool = phase === "welcome" ? WELCOME_PHRASES : INSIGHT_PHRASES;
@@ -100,7 +110,7 @@ export default function Dashboard() {
       });
     }, 7000);
     return () => clearInterval(id);
-  }, [phase, hoveredCard]);
+  }, [phase, contextCard]);
 
   /* switch to insight mode after 60s */
   useEffect(() => {
@@ -110,7 +120,7 @@ export default function Dashboard() {
     return () => clearTimeout(id);
   }, []);
 
-  const activePhrase = hoveredCard
+  const activePhrase = contextCard
     ?? (phase === "welcome" ? WELCOME_PHRASES[phraseIdx % WELCOME_PHRASES.length]
                             : INSIGHT_PHRASES[phraseIdx % INSIGHT_PHRASES.length]);
 
@@ -380,34 +390,48 @@ export default function Dashboard() {
 
         {/* ── Row 1: 4 main financial cards (full size) ─────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {cards.slice(0, 4).map((card, i) => (
-            <div
-              key={card.title}
-              className="animate-fade-in"
-              style={{ animationDelay: `${i * 55}ms`, animationFillMode: "both" }}
-              onMouseEnter={() => triggerTransition(() => setHoveredCard({ sub: "Duke parë", main: card.title }))}
-              onMouseLeave={() => triggerTransition(() => setHoveredCard(null))}
-            >
-              <button onClick={() => card.route && navigate(card.route)} className="w-full text-left">
-                <StatCard {...card} />
-              </button>
-            </div>
-          ))}
+          {cards.slice(0, 4).map((card, i) => {
+            const phrase = { sub: "Duke hapur", main: card.title };
+            return (
+              <div
+                key={card.title}
+                className="animate-fade-in"
+                style={{ animationDelay: `${i * 55}ms`, animationFillMode: "both" }}
+                onMouseEnter={() => onCardEnter(phrase)}
+                onMouseLeave={onCardLeave}
+              >
+                <button
+                  onClick={() => navWithFlash(phrase, card.route)}
+                  className="w-full text-left"
+                >
+                  <StatCard {...card} />
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {/* ── Row 2: 4 nav/count cards (compact — half height) ───────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {cards.slice(4).map((card, i) => (
-            <div
-              key={card.title}
-              className="animate-fade-in"
-              style={{ animationDelay: `${(i + 4) * 55}ms`, animationFillMode: "both" }}
-            >
-              <button onClick={() => card.route && navigate(card.route)} className="w-full text-left">
-                <StatCard {...card} compact />
-              </button>
-            </div>
-          ))}
+          {cards.slice(4).map((card, i) => {
+            const phrase = { sub: "Duke hapur", main: card.title };
+            return (
+              <div
+                key={card.title}
+                className="animate-fade-in"
+                style={{ animationDelay: `${(i + 4) * 55}ms`, animationFillMode: "both" }}
+                onMouseEnter={() => onCardEnter(phrase)}
+                onMouseLeave={onCardLeave}
+              >
+                <button
+                  onClick={() => navWithFlash(phrase, card.route)}
+                  className="w-full text-left"
+                >
+                  <StatCard {...card} compact />
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {/* ── Middle: Chart + Sidebar ─────────────────────────────── */}
@@ -433,12 +457,18 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex flex-col justify-between h-full">
-              <QuickLink icon={Users2}     label="Burimet Njerezore" sub="HR & menaxhim punonjësish" onClick={() => navigate('/employees')}   iconBg="bg-violet-100"  iconColor="text-violet-600"  iconAnim={{ animation: 'userPulse 3s ease-in-out infinite' }} />
-              <QuickLink icon={Clock}      label="Prezenca"          sub="Orari & prezenca ditore"    onClick={() => navigate('/attendance')}  iconBg="bg-blue-100"    iconColor="text-blue-600"    iconAnim={{ animation: 'spin 8s linear infinite' }} />
-              <QuickLink icon={Car}        label="Motorpool"         sub="Flotë & automjete"          onClick={() => navigate('/vehicles')}    iconBg="bg-amber-100"   iconColor="text-amber-600"   iconAnim={{ animation: 'carSlide 2s ease-in-out infinite' }} />
-              <QuickLink icon={Tag}        label="Ofertat"           sub="Oferta & kuotacione"        onClick={() => navigate('/quotes')}      iconBg="bg-emerald-100" iconColor="text-emerald-600" iconAnim={{ animation: 'tagSwing 2.5s ease-in-out infinite' }} />
-              <QuickLink icon={ScrollText} label="Kontratat"         sub="Kontratat e biznesit"       onClick={() => navigate('/employees')}   iconBg="bg-rose-100"    iconColor="text-rose-600"    iconAnim={{ animation: 'scrollUp 2.5s ease-in-out infinite' }} />
-              <QuickLink icon={ShieldCheck}label="Vërtetimet"        sub="Certifikata & dokumente"    onClick={() => navigate('/certificates')}iconBg="bg-teal-100"    iconColor="text-teal-600"    iconAnim={{ animation: 'shieldPulse 3s ease-in-out infinite' }} />
+              {[
+                { icon: Users2,     label: "Burimet Njerezore", sub: "HR & menaxhim punonjësish", route: '/employees',   iconBg: "bg-violet-100",  iconColor: "text-violet-600",  iconAnim: { animation: 'userPulse 3s ease-in-out infinite' } },
+                { icon: Clock,      label: "Prezenca",          sub: "Orari & prezenca ditore",   route: '/attendance',  iconBg: "bg-blue-100",    iconColor: "text-blue-600",    iconAnim: { animation: 'spin 8s linear infinite' } },
+                { icon: Car,        label: "Motorpool",         sub: "Flotë & automjete",         route: '/vehicles',    iconBg: "bg-amber-100",   iconColor: "text-amber-600",   iconAnim: { animation: 'carSlide 2s ease-in-out infinite' } },
+                { icon: Tag,        label: "Ofertat",           sub: "Oferta & kuotacione",       route: '/quotes',      iconBg: "bg-emerald-100", iconColor: "text-emerald-600", iconAnim: { animation: 'tagSwing 2.5s ease-in-out infinite' } },
+                { icon: ScrollText, label: "Kontratat",         sub: "Kontratat e biznesit",      route: '/employees',   iconBg: "bg-rose-100",    iconColor: "text-rose-600",    iconAnim: { animation: 'scrollUp 2.5s ease-in-out infinite' } },
+                { icon: ShieldCheck,label: "Vërtetimet",        sub: "Certifikata & dokumente",   route: '/certificates',iconBg: "bg-teal-100",    iconColor: "text-teal-600",    iconAnim: { animation: 'shieldPulse 3s ease-in-out infinite' } },
+              ].map(({ icon, label, sub, route, iconBg, iconColor, iconAnim }) => (
+                <div key={label} onMouseEnter={() => onCardEnter({ sub: "Duke hapur", main: label })} onMouseLeave={onCardLeave}>
+                  <QuickLink icon={icon} label={label} sub={sub} onClick={() => navWithFlash({ sub: "Duke hapur", main: label }, route)} iconBg={iconBg} iconColor={iconColor} iconAnim={iconAnim} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
