@@ -76,7 +76,7 @@ export function requirePermission(entityName) {
     const userRole = req.session?.user?.role;
     if (!userRole) return res.status(401).json({ error: 'Authentication required' });
 
-    if (userRole === 'admin' || userRole === 'superadmin') return next();
+    if (userRole === 'admin' || userRole === 'owner' || userRole === 'superadmin') return next();
 
     const module = entityToModule[entityName];
     if (!module) return next();
@@ -144,7 +144,7 @@ export function getPermissionsApi(pool) {
     async getUserPermissions(req, res) {
       const userRole = req.session?.user?.role;
       if (!userRole) return res.status(401).json({ error: 'Authentication required' });
-      if (userRole === 'admin' || userRole === 'superadmin') {
+      if (userRole === 'admin' || userRole === 'owner' || userRole === 'superadmin') {
         return res.json({ role: userRole, fullAccess: true, permissions: {} });
       }
       const perms = await getPermissionsForRole(userRole);

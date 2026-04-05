@@ -89,7 +89,7 @@ export default function Onboarding() {
     );
   }
 
-  if (user.role !== 'superadmin' && user.role !== 'admin') {
+  if (user.role !== 'superadmin' && user.role !== 'admin' && user.role !== 'owner') {
     return <ContactAdminView />;
   }
 

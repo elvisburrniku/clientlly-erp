@@ -40,7 +40,7 @@ export default function CashHandover() {
     setLoading(false);
   };
 
-  const isManager = currentUser?.role === "admin" || currentUser?.role === "manager";
+  const isManager = currentUser?.role === "admin" || currentUser?.role === "owner" || currentUser?.role === "manager";
 
   const handleApproveWithInvoices = async (handover) => {
     try {

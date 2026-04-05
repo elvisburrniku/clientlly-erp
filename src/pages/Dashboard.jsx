@@ -231,7 +231,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-    if (user?.role === 'admin' || user?.role === 'superadmin') {
+    if (user?.role === 'admin' || user?.role === 'owner' || user?.role === 'superadmin') {
       base44.entities.CashHandover.filter({ status: 'pending' }).then(setPendingHandovers).catch(() => {});
     }
   }, [user]);

@@ -56,7 +56,7 @@ const requireAuth = (req, res, next) => {
 };
 
 const requireAdmin = (req, res, next) => {
-  if (req.session?.user?.role === 'admin' || req.session?.user?.role === 'superadmin') {
+  if (req.session?.user?.role === 'admin' || req.session?.user?.role === 'owner' || req.session?.user?.role === 'superadmin') {
     return next();
   }
   res.status(403).json({ error: 'Admin access required' });
@@ -149,7 +149,7 @@ app.post('/api/auth/register', async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
       'INSERT INTO users (email, password_hash, full_name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, full_name, role, tenant_id',
-      [email.toLowerCase(), hash, full_name || '', 'admin']
+      [email.toLowerCase(), hash, full_name || '', 'owner']
     );
     const user = result.rows[0];
     req.session.user = { id: user.id, email: user.email, role: user.role, tenant_id: user.tenant_id };
@@ -186,7 +186,7 @@ const permissionsApi = getPermissionsApi(pool);
 
 const requireSuperAdminOrAdmin = (req, res, next) => {
   const role = req.session?.user?.role;
-  if (role === 'admin' || role === 'superadmin') return next();
+  if (role === 'admin' || role === 'owner' || role === 'superadmin') return next();
   res.status(403).json({ error: 'Admin access required' });
 };
 
@@ -258,7 +258,7 @@ app.post('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
     if (!full_name) return res.status(400).json({ error: 'Full name is required' });
 
-    const allowedRoles = ['user', 'admin'];
+    const allowedRoles = ['user', 'admin', 'owner'];
     if (req.session.user.role === 'superadmin') allowedRoles.push('superadmin');
     if (role && !allowedRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
 
@@ -338,12 +338,12 @@ app.post('/api/onboarding/create-tenant', requireAuth, async (req, res) => {
 
       await client.query(
         'UPDATE users SET tenant_id = $1, tenant_name = $2, role = $3, updated_at = NOW() WHERE id = $4',
-        [tenant.id, tenant.name, 'superadmin', req.session.user.id]
+        [tenant.id, tenant.name, 'owner', req.session.user.id]
       );
       await client.query('COMMIT');
 
       req.session.user.tenant_id = tenant.id;
-      req.session.user.role = 'superadmin';
+      req.session.user.role = 'owner';
       res.status(201).json(tenant);
     } catch (err) {
       await client.query('ROLLBACK');
@@ -363,7 +363,7 @@ app.get('/api/tenant/me', requireAuth, async (req, res) => {
     const result = await pool.query('SELECT * FROM tenants WHERE id = $1', [tenantId]);
     if (result.rows.length === 0) {
       const userRole = req.session.user.role;
-      if (userRole === 'admin' || userRole === 'superadmin') {
+      if (userRole === 'admin' || userRole === 'owner' || userRole === 'superadmin') {
         await pool.query('UPDATE users SET tenant_id = NULL, tenant_name = NULL, updated_at = NOW() WHERE id = $1', [req.session.user.id]);
         req.session.user.tenant_id = null;
       }
@@ -380,7 +380,7 @@ app.get('/api/tenant/admin-contact', requireAuth, async (req, res) => {
     const tenantId = req.session.user.tenant_id;
     if (!tenantId) return res.json({ adminEmail: null });
     const result = await pool.query(
-      "SELECT email, full_name FROM users WHERE tenant_id = $1 AND role IN ('superadmin', 'admin') LIMIT 1",
+      "SELECT email, full_name FROM users WHERE tenant_id = $1 AND role IN ('superadmin', 'admin', 'owner') LIMIT 1",
       [tenantId]
     );
     if (result.rows.length > 0) {
@@ -520,7 +520,7 @@ app.get('/api/search', requireAuth, async (req, res) => {
     const tPool = await getPoolForReq(req);
     const results = [];
 
-    const isFullAccess = userRole === 'admin' || userRole === 'superadmin';
+    const isFullAccess = userRole === 'admin' || userRole === 'owner' || userRole === 'superadmin';
     let userPerms = {};
     if (!isFullAccess) {
       const permResult = await pool.query(`
@@ -969,7 +969,7 @@ app.post('/api/proposals/public/:token/respond', async (req, res) => {
 
 const requireAccountingView = (req, res, next) => {
   const role = req.session?.user?.role;
-  if (role === 'admin' || role === 'superadmin') return next();
+  if (role === 'admin' || role === 'owner' || role === 'superadmin') return next();
   pool.query(
     `SELECT p.can_view FROM permissions p JOIN roles r ON r.id = p.role_id WHERE r.name = $1 AND p.module = 'accounting'`,
     [role]
@@ -981,7 +981,7 @@ const requireAccountingView = (req, res, next) => {
 
 const requireAccountingCreate = (req, res, next) => {
   const role = req.session?.user?.role;
-  if (role === 'admin' || role === 'superadmin') return next();
+  if (role === 'admin' || role === 'owner' || role === 'superadmin') return next();
   pool.query(
     `SELECT p.can_create FROM permissions p JOIN roles r ON r.id = p.role_id WHERE r.name = $1 AND p.module = 'accounting'`,
     [role]

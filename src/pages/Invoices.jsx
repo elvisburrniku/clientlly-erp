@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import moment from "moment";
 import { jsPDF } from "jspdf";
 import InvoiceLineItems from "../components/invoices/InvoiceLineItems";
+import ClientSelector from "../components/quotes/ClientSelector";
 import SendInvoiceDialog from "../components/invoices/SendInvoiceDialog";
 import InvoicePDFButton from "../components/invoices/InvoicePDFButton";
 import MergePDFDialog from "../components/invoices/MergePDFDialog";
@@ -56,7 +57,6 @@ export default function Invoices() {
   const [mergePDFOpen, setMergePDFOpen] = useState(false);
   const [editInvoice, setEditInvoice] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [clients, setClients] = useState([]);
   const [filterSearchType, setFilterSearchType] = useState("client");
   const [filterClient, setFilterClient] = useState("");
   const [filterMonth, setFilterMonth] = useState("");
@@ -67,31 +67,12 @@ export default function Invoices() {
   const [paymentDialog, setPaymentDialog] = useState(null);
   const [statusFilter, setStatusFilter] = useState("");
 
-  useEffect(() => { loadData(); loadSettings(); loadClients(); }, []);
-
-  const loadClients = async () => {
-    const data = await base44.entities.Client.list("-created_date", 100);
-    setClients(data);
-  };
-
-  const fillClientData = (clientId) => {
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-      setForm(prev => ({
-        ...prev,
-        client_name: client.name,
-        client_email: client.email,
-        client_phone: client.phone || "",
-        client_nipt: client.nipt || "",
-        client_address: client.address || "",
-      }));
-    }
-  };
+  useEffect(() => { loadData(); loadSettings(); }, []);
 
   const loadData = async () => {
     const [user, data] = await Promise.all([
       base44.auth.me(),
-      base44.entities.Invoice.list("-created_date", 100),
+      base44.entities.Invoice.all("-created_date", 10000),
     ]);
     setCurrentUser(user);
     const today = new Date();
@@ -276,11 +257,6 @@ export default function Invoices() {
       body: `<p>Pershendetje ${inv.client_name},</p><p>Ju kujtojmë se fatura <b>${inv.invoice_number}</b> me vlerë <b>€${parseFloat(inv.amount||0).toFixed(2)}</b>${inv.due_date ? ` me afat ${inv.due_date}` : ""} është ende e papaguar.</p><p>Ju lutem kryeni pagesën sa më parë.</p><p>Faleminderit!</p>`,
     });
     toast.success("Kujtesa u dërgua");
-  };
-
-  const getTotalPaid = (inv) => {
-    if (!inv) return 0;
-    return (inv.payment_records || []).reduce((s, p) => s + p.amount, 0);
   };
 
   const handleUpdate = async () => {
@@ -798,12 +774,10 @@ export default function Invoices() {
                 <h3 className="font-semibold text-sm">Të dhënat e Klientit</h3>
               </div>
               <div className="space-y-3 pl-8">
-                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
-                  <SelectTrigger><SelectValue placeholder="Zgjedh klientin ekzistues" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <ClientSelector
+                  selectedClient={form.client_name ? { name: form.client_name } : null}
+                  onClientSelect={(client) => setForm(prev => ({ ...prev, ...client }))}
+                />
                 <Input placeholder="Emri i klientit *" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} />
                 <div className="grid grid-cols-2 gap-3">
                   <Input placeholder="NIPT" value={form.client_nipt} onChange={(e) => setForm({ ...form, client_nipt: e.target.value })} />
@@ -903,12 +877,10 @@ export default function Invoices() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <Label>Klienti *</Label>
-                <Select value="" onValueChange={(clientId) => fillClientData(clientId)}>
-                  <SelectTrigger className="mt-1.5"><SelectValue placeholder="Zgjedh klientin" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <ClientSelector
+                  selectedClient={form.client_name ? { name: form.client_name } : null}
+                  onClientSelect={(client) => setForm(prev => ({ ...prev, ...client }))}
+                />
                 <Input placeholder="Emri i klientit" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="mt-1.5" />
               </div>
               <div><Label>Email Klientit</Label><Input type="email" placeholder="email@domain.com" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="mt-1.5" /></div>

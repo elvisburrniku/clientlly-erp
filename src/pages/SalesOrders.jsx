@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, MoreHorizontal, Pencil, Trash2, FileText, Truck, CheckCircle, Package, ArrowRight, Download } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Trash2, FileText, Truck, CheckCircle, Package, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import moment from "moment";
 import { jsPDF } from "jspdf";
+import CreatableEntitySelect from "@/components/shared/CreatableEntitySelect";
 
 const STATUS_CONFIG = {
   draft: { label: "Draft", color: "bg-slate-100 text-slate-600" },
@@ -27,7 +28,7 @@ const emptyForm = () => ({
   client_email: "",
   client_phone: "",
   client_address: "",
-  items: [{ name: "", quantity: 1, price: 0, tax_rate: 20, unit: "cope" }],
+  items: [{ product_id: "", name: "", quantity: 1, price: 0, tax_rate: 20, unit: "cope" }],
   payment_method: "cash",
   notes: "",
   expected_delivery: "",
@@ -85,20 +86,34 @@ export default function SalesOrders() {
     setForm({ ...form, items: form.items.filter((_, i) => i !== idx) });
   };
 
-  const selectProduct = (idx, productId) => {
-    const prod = products.find(p => p.id === productId);
+  const selectProduct = (idx, productOrId) => {
+    const prod = typeof productOrId === "object"
+      ? productOrId
+      : products.find(p => p.id === productOrId);
     if (!prod) return;
     updateItem(idx, "name", prod.name);
-    updateItem(idx, "price", parseFloat(prod.price) || 0);
-    updateItem(idx, "tax_rate", parseFloat(prod.tax_rate) || 20);
+    updateItem(idx, "price", parseFloat(prod.price_ex_vat || prod.price) || 0);
+    updateItem(idx, "tax_rate", parseFloat(prod.vat_rate || prod.tax_rate) || 20);
     updateItem(idx, "unit", prod.unit || "cope");
     setForm(prev => ({
       ...prev,
       items: prev.items.map((it, i) => i === idx ? {
-        ...it, name: prod.name, price: parseFloat(prod.price) || 0,
-        tax_rate: parseFloat(prod.tax_rate) || 20, unit: prod.unit || "cope", product_id: prod.id
+        ...it, name: prod.name, price: parseFloat(prod.price_ex_vat || prod.price) || 0,
+        tax_rate: parseFloat(prod.vat_rate || prod.tax_rate) || 20, unit: prod.unit || "cope", product_id: prod.id
       } : it)
     }));
+  };
+
+  const handleProductCreate = async (draft) => {
+    return base44.entities.Product.create({
+      name: draft.name,
+      type: draft.type || "product",
+      description: draft.description || "",
+      price_ex_vat: parseFloat(draft.price_ex_vat) || 0,
+      vat_rate: parseFloat(draft.vat_rate) || 20,
+      unit: draft.unit || "cope",
+      is_active: true,
+    });
   };
 
   const fillClient = (clientId) => {
@@ -148,7 +163,7 @@ export default function SalesOrders() {
       setEditOrder(null);
       setForm(emptyForm());
       loadData();
-    } catch (err) {
+    } catch {
       toast.error("Gabim në ruajtje");
     }
     setSubmitting(false);
@@ -204,13 +219,21 @@ export default function SalesOrders() {
   };
 
   const openEdit = (order) => {
+    const items = (order.items || [{ name: "", quantity: 1, price: 0, tax_rate: 20, unit: "cope" }]).map(item => {
+      const prod = products.find(p => p.id === item.product_id || p.name === item.name);
+      return {
+        ...item,
+        product_id: item.product_id || prod?.id || "",
+        name: item.name || prod?.name || "",
+      };
+    });
     setEditOrder(order);
     setForm({
       client_name: order.client_name || "",
       client_email: order.client_email || "",
       client_phone: order.client_phone || "",
       client_address: order.client_address || "",
-      items: order.items || [{ name: "", quantity: 1, price: 0, tax_rate: 20, unit: "cope" }],
+      items,
       payment_method: order.payment_method || "cash",
       notes: order.notes || "",
       expected_delivery: order.expected_delivery || "",
@@ -428,12 +451,90 @@ export default function SalesOrders() {
                   <div key={idx} className="flex gap-2 items-end bg-muted/30 rounded-xl p-3">
                     <div className="flex-1">
                       <label className="text-[10px] font-medium text-muted-foreground">Artikulli</label>
-                      <Select onValueChange={val => selectProduct(idx, val)}>
-                        <SelectTrigger className="mt-0.5 h-8 text-xs"><SelectValue placeholder={item.name || "Zgjedh..."} /></SelectTrigger>
-                        <SelectContent>
-                          {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <CreatableEntitySelect
+                        value={item.product_id || ""}
+                        items={products.filter(p => p.is_active !== false)}
+                        placeholder={item.name || "Zgjedh..."}
+                        searchPlaceholder="Kërko produktin..."
+                        emptyMessage="Nuk u gjet asnjë produkt"
+                        addLabel="Shto produkt të ri"
+                        createTitle="Shto produkt të ri"
+                        createButtonLabel="Shto"
+                        initialDraft={{ name: "", type: "product", description: "", price_ex_vat: 0, vat_rate: 20, unit: "cope" }}
+                        onSelect={(prod) => selectProduct(idx, prod)}
+                        onCreate={handleProductCreate}
+                        onItemsChange={(next) => setProducts(prev => {
+                          const map = new Map(prev.map(p => [p.id, p]));
+                          next.forEach(p => map.set(p.id, p));
+                          return Array.from(map.values());
+                        })}
+                        findSelectedItem={(list, currentValue) => list.find(p => p.id === currentValue) || null}
+                        renderSelected={(prod) => (
+                          <>
+                            <span className="truncate text-foreground">{prod.name}</span>
+                            <span className="text-xs text-muted-foreground shrink-0">€{(prod.price_ex_vat || prod.price || 0).toFixed(2)}</span>
+                          </>
+                        )}
+                        renderOptions={({ items, selectedItem, selectItem, emptyMessage }) => (
+                          <div className="p-1.5 space-y-0.5 max-h-64 overflow-y-auto">
+                            {items.length === 0 ? (
+                              <div className="text-xs text-muted-foreground text-center py-3">{emptyMessage}</div>
+                            ) : (
+                              items.map((prod) => (
+                                <button
+                                  key={prod.id}
+                                  type="button"
+                                  onClick={() => selectItem(prod)}
+                                  className={cn(
+                                    "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-muted/60 transition-colors text-left",
+                                    selectedItem?.id === prod.id && "bg-primary/10 text-primary font-medium"
+                                  )}
+                                >
+                                  <span className="font-medium">{prod.name}</span>
+                                  <span className="text-xs text-muted-foreground">€{(prod.price_ex_vat || prod.price || 0).toFixed(2)}</span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
+                        renderCreateFields={({ draft, setDraft }) => (
+                          <div className="space-y-2">
+                            <Input
+                              className="text-xs h-8"
+                              placeholder="Emri i produktit *"
+                              value={draft.name}
+                              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="text-xs h-8"
+                                placeholder="Çmim pa TVSH"
+                                value={draft.price_ex_vat}
+                                onChange={(e) => setDraft({ ...draft, price_ex_vat: e.target.value })}
+                              />
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="text-xs h-8"
+                                placeholder="TVSH %"
+                                value={draft.vat_rate}
+                                onChange={(e) => setDraft({ ...draft, vat_rate: e.target.value })}
+                              />
+                            </div>
+                            <Input
+                              className="text-xs h-8"
+                              placeholder="Njësia"
+                              value={draft.unit}
+                              onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
+                            />
+                          </div>
+                        )}
+                        canCreate={(draft) => Boolean(draft.name?.trim())}
+                      />
                     </div>
                     <div className="w-16">
                       <label className="text-[10px] font-medium text-muted-foreground">Sasia</label>

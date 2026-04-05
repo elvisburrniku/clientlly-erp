@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, Download, Send, ToggleLeft, ToggleRight, Building2, Calendar, CreditCard, Package } from "lucide-react";
+import { ArrowLeft, Send, ToggleLeft, ToggleRight, Building2, Calendar, CreditCard, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -26,6 +26,71 @@ const statusConfig = {
   partially_paid: { label: "Pjesërisht Paguar", cls: "bg-amber-100 text-amber-700 border-amber-300" }
 };
 
+const toNumber = (value) => {
+  const parsed = typeof value === "number" ? value : parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const firstNumber = (...values) => {
+  for (const value of values) {
+    const parsed = typeof value === "number" ? value : parseFloat(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return 0;
+};
+
+const firstText = (...values) => {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+};
+
+const normalizeInvoiceItem = (item) => {
+  const quantity = firstNumber(item.quantity, 1);
+  const priceExVat = firstNumber(item.price_ex_vat, item.unit_price, item.price);
+  const vatRate = firstNumber(item.vat_rate, item.tax_rate, item.tax);
+  const priceIncVat = firstNumber(
+    item.price_inc_vat,
+    item.price_with_tax,
+    quantity > 0 && item.total !== undefined ? toNumber(item.total) / quantity : undefined,
+    priceExVat * (1 + vatRate / 100),
+  );
+  const lineTotal = firstNumber(
+    item.line_total,
+    item.total,
+    priceIncVat * quantity,
+    priceExVat * quantity * (1 + vatRate / 100),
+  );
+
+  return {
+    ...item,
+    name: firstText(item.name, item.product_name, item.description, "Shërbim"),
+    type: item.type || (item.product_id || item.source_product_id ? "product" : "service"),
+    quantity,
+    unit: firstText(item.unit, "Shërbim"),
+    price_ex_vat: priceExVat,
+    price_inc_vat: priceIncVat,
+    vat_rate: vatRate,
+    line_total: lineTotal,
+  };
+};
+
+const normalizeInvoice = (rawInvoice) => {
+  if (!rawInvoice) return null;
+
+  return {
+    ...rawInvoice,
+    subtotal: toNumber(rawInvoice.subtotal),
+    vat_amount: toNumber(rawInvoice.vat_amount),
+    amount: toNumber(rawInvoice.amount),
+    paid_amount: toNumber(rawInvoice.paid_amount),
+    items: Array.isArray(rawInvoice.items)
+      ? rawInvoice.items.map(normalizeInvoiceItem)
+      : [],
+  };
+};
+
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -38,7 +103,7 @@ export default function InvoiceDetail() {
 
   const loadInvoice = async () => {
     const data = await base44.entities.Invoice.filter({ id });
-    setInvoice(data[0] || null);
+    setInvoice(normalizeInvoice(data[0] || null));
     setLoading(false);
   };
 

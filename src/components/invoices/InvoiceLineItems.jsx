@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import CreatableEntitySelect from "@/components/shared/CreatableEntitySelect";
 import UnitSelector from "./UnitSelector";
 import TaxRateSelector from "./TaxRateSelector";
 import ServiceSelector from "./ServiceSelector";
@@ -30,10 +31,10 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
 
   useEffect(() => {
     Promise.all([
-      base44.entities.Product.list('-created_date', 100).catch(() => []),
-      base44.entities.Unit.list('-created_date', 100).catch(() => []),
-      base44.entities.TaxRate.list('-created_date', 100).catch(() => []),
-      base44.entities.ServiceCategory.list('-created_date', 200).catch(() => []),
+      base44.entities.Product.list("-created_date", 100).catch(() => []),
+      base44.entities.Unit.list("-created_date", 100).catch(() => []),
+      base44.entities.TaxRate.list("-created_date", 100).catch(() => []),
+      base44.entities.ServiceCategory.list("-created_date", 200).catch(() => []),
     ]).then(([prods, unts, trs, svcs]) => {
       setProducts(prods);
       setUnits(unts);
@@ -41,8 +42,6 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
       setServices(svcs);
     });
   }, []);
-
-
 
   const update = (index, field, value) => {
     const updated = items.map((item, i) => {
@@ -71,21 +70,33 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
   const addItem = () => onChange([...items, emptyItem()]);
   const removeItem = (index) => onChange(items.filter((_, i) => i !== index));
 
-  const handleProductSelect = (itemIndex, productId) => {
-    const product = products.find(p => p.id === productId);
+  const handleProductSelect = (itemIndex, product) => {
     if (!product) return;
     const updated = [...items];
     updated[itemIndex] = {
       ...updated[itemIndex],
+      product_id: product.id,
       name: product.name,
       type: product.type,
-      price_ex_vat: product.price_ex_vat,
-      vat_rate: product.vat_rate,
-      unit: product.unit,
-      price_inc_vat: product.price_ex_vat * (1 + (product.vat_rate || 20) / 100),
-      line_total: (updated[itemIndex].quantity || 1) * product.price_ex_vat * (1 + (product.vat_rate || 20) / 100),
+      price_ex_vat: parseFloat(product.price_ex_vat) || 0,
+      vat_rate: parseFloat(product.vat_rate) || 20,
+      unit: product.unit || "cope",
+      price_inc_vat: (parseFloat(product.price_ex_vat) || 0) * (1 + (parseFloat(product.vat_rate) || 20) / 100),
+      line_total: (updated[itemIndex].quantity || 1) * (parseFloat(product.price_ex_vat) || 0) * (1 + (parseFloat(product.vat_rate) || 20) / 100),
     };
     onChange(updated);
+  };
+
+  const handleProductCreate = async (draft) => {
+    return base44.entities.Product.create({
+      name: draft.name,
+      type: draft.type || "product",
+      description: draft.description || "",
+      price_ex_vat: parseFloat(draft.price_ex_vat) || 0,
+      vat_rate: parseFloat(draft.vat_rate) || 20,
+      unit: draft.unit || "cope",
+      is_active: true,
+    });
   };
 
   const calcSubtotal = () => items.reduce((s, it) => s + (it.line_total || 0), 0);
@@ -114,7 +125,6 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
       <div className="space-y-4">
         {items.map((item, i) => (
           <div key={i} className="bg-white border border-border rounded-xl p-4 hover:border-primary/30 transition">
-            {/* Row 1: Type & Name */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Lloji</label>
@@ -132,7 +142,7 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
                   <div className="space-y-1.5">
                     <ServiceSelector
                       value={item.service_id || ""}
-                      onChange={(id, name, svc) => {
+                      onChange={(id, name) => {
                         const updated = [...items];
                         updated[i] = { ...updated[i], service_id: id, name };
                         onChange(updated);
@@ -144,14 +154,94 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
                   </div>
                 ) : products.length > 0 && item.type === "product" ? (
                   <div className="space-y-1.5">
-                    <Select value={item.product_id || ""} onValueChange={(v) => handleProductSelect(i, v)}>
-                      <SelectTrigger className="text-sm"><SelectValue placeholder="Zgjedh produktin..." /></SelectTrigger>
-                      <SelectContent>
-                        {products.filter(p => p.type === item.type).map(p => (
-                          <SelectItem key={p.id} value={p.id}>{p.name} (€{(p.price_ex_vat || 0).toFixed(2)})</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <CreatableEntitySelect
+                      value={item.product_id || ""}
+                      items={products.filter(p => p.type === item.type)}
+                      placeholder="Zgjedh produktin..."
+                      searchPlaceholder="Kërko produktin..."
+                      emptyMessage="Nuk u gjet asnjë produkt"
+                      addLabel="Shto produkt të ri"
+                      createTitle="Shto produkt të ri"
+                      createButtonLabel="Shto"
+                      initialDraft={{ name: "", type: "product", description: "", price_ex_vat: 0, vat_rate: 20, unit: "cope" }}
+                      onSelect={(product) => handleProductSelect(i, product)}
+                      onCreate={handleProductCreate}
+                      onItemsChange={setProducts}
+                      findSelectedItem={(list, currentValue) => list.find(p => p.id === currentValue) || null}
+                      renderSelected={(product) => (
+                        <>
+                          <span className="truncate text-foreground">{product.name}</span>
+                          <span className="text-xs text-muted-foreground shrink-0">€{(product.price_ex_vat || 0).toFixed(2)}</span>
+                        </>
+                      )}
+                      renderOptions={({ items, selectedItem, selectItem, emptyMessage }) => (
+                        <div className="p-1.5 space-y-0.5 max-h-64 overflow-y-auto">
+                          {items.length === 0 ? (
+                            <div className="text-xs text-muted-foreground text-center py-3">{emptyMessage}</div>
+                          ) : (
+                            items.map((product) => (
+                              <button
+                                key={product.id}
+                                type="button"
+                                onClick={() => selectItem(product)}
+                                className={cn(
+                                  "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-muted/60 transition-colors text-left",
+                                  selectedItem?.id === product.id && "bg-primary/10 text-primary font-medium"
+                                )}
+                              >
+                                <span className="font-medium">{product.name}</span>
+                                <span className="text-xs text-muted-foreground">€{(product.price_ex_vat || 0).toFixed(2)}</span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
+                      renderCreateFields={({ draft, setDraft }) => (
+                        <div className="space-y-2">
+                          <Input
+                            className="text-sm"
+                            placeholder="Emri i produktit *"
+                            value={draft.name}
+                            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className="text-sm"
+                              placeholder="Çmim pa TVSH"
+                              value={draft.price_ex_vat}
+                              onChange={(e) => setDraft({ ...draft, price_ex_vat: e.target.value })}
+                            />
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className="text-sm"
+                              placeholder="TVSH %"
+                              value={draft.vat_rate}
+                              onChange={(e) => setDraft({ ...draft, vat_rate: e.target.value })}
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              className="text-sm"
+                              placeholder="Njësia"
+                              value={draft.unit}
+                              onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
+                            />
+                            <Input
+                              className="text-sm"
+                              placeholder="Përshkrim"
+                              value={draft.description}
+                              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      canCreate={(draft) => Boolean(draft.name?.trim())}
+                    />
                     <Input className="text-sm" placeholder="Ose shkruaj emrin..." value={item.name} onChange={(e) => update(i, "name", e.target.value)} />
                   </div>
                 ) : (
@@ -160,7 +250,6 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
             </div>
 
-            {/* Row 2: Quantity & Unit & VAT */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Sasia</label>
@@ -186,7 +275,6 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
             </div>
 
-            {/* Row 3: Prices */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Çmim pa TVSH</label>
@@ -207,7 +295,6 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
             </div>
 
-            {/* Row 4: Discount */}
             <div className="bg-muted/30 rounded-lg p-3 border border-border">
               <label className="text-xs font-semibold text-muted-foreground block mb-2">Zbritje (Opsionale)</label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

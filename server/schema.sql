@@ -154,10 +154,19 @@ CREATE TABLE IF NOT EXISTS invoice_settings (
   tenant_id UUID,
   next_invoice_number INTEGER DEFAULT 1,
   invoice_prefix VARCHAR(50) DEFAULT 'INV',
+  invoice_number_format VARCHAR(100) DEFAULT 'INV-{###}',
+  invoice_number_counter INTEGER DEFAULT 1,
+  default_due_days INTEGER DEFAULT 10,
+  default_template VARCHAR(50) DEFAULT 'classic',
   default_payment_terms TEXT,
   default_notes TEXT,
   default_currency VARCHAR(10) DEFAULT 'ALL',
   default_tax_rate DECIMAL(5,2) DEFAULT 20,
+  payment_reminder_days_before INTEGER DEFAULT 3,
+  payment_reminder_days_after INTEGER DEFAULT 5,
+  auto_send_reminders BOOLEAN DEFAULT false,
+  default_payment_notes TEXT,
+  royalty_percentage DECIMAL(5,2) DEFAULT 6,
   logo_url TEXT,
   settings JSONB DEFAULT '{}',
   created_at TIMESTAMP DEFAULT NOW(),
@@ -468,6 +477,7 @@ CREATE TABLE IF NOT EXISTS job_positions (
 CREATE TABLE IF NOT EXISTS employees (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID,
+  user_id UUID UNIQUE REFERENCES users(id) ON DELETE SET NULL,
   first_name VARCHAR(255) NOT NULL,
   last_name VARCHAR(255) NOT NULL,
   email VARCHAR(255),
@@ -495,6 +505,9 @@ CREATE TABLE IF NOT EXISTS employees (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_employees_tenant ON employees(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_employees_user ON employees(user_id);
 
 -- Attendance
 CREATE TABLE IF NOT EXISTS attendance (

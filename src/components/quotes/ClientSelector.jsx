@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Search, Plus, X } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 
+const searchable = (value) => String(value ?? '').toLowerCase();
+
 export default function ClientSelector({ selectedClient, onClientSelect }) {
   const [clients, setClients] = useState([]);
   const [search, setSearch] = useState('');
@@ -34,12 +36,17 @@ export default function ClientSelector({ selectedClient, onClientSelect }) {
 
   const loadClients = async () => {
     const data = await base44.entities.Client.list('-created_date', 100);
-    setClients(data);
+    setClients(Array.isArray(data) ? data.filter(Boolean) : []);
   };
 
-  const filteredClients = clients.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.email.toLowerCase().includes(search.toLowerCase())
+  const query = searchable(search);
+  const filteredClients = clients.filter((client) =>
+    [
+      client?.name,
+      client?.email,
+      client?.phone,
+      client?.business_name,
+    ].some((value) => searchable(value).includes(query))
   );
 
   const handleAddNewClient = async () => {

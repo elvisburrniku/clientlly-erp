@@ -21,6 +21,7 @@ const emptyEmployee = () => ({
   position_id: "", position_title: "", hire_date: new Date().toISOString().split("T")[0],
   contract_type: "full_time", contract_end_date: "", base_salary: 0,
   bank_account: "", emergency_contact: "", emergency_phone: "", notes: "", status: "active",
+  user_id: "",
 });
 
 const emptyDept = () => ({ name: "", description: "", manager_name: "" });
@@ -33,6 +34,7 @@ export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [positions, setPositions] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
@@ -58,17 +60,21 @@ export default function Employees() {
   const loadAll = async () => {
     setLoading(true);
     try {
-      const [emps, depts, poss] = await Promise.all([
+      const [emps, depts, poss, usrs] = await Promise.all([
         base44.entities.Employee.filter({ tenant_id: tenantId }, "-created_at"),
         base44.entities.Department.filter({ tenant_id: tenantId }, "-created_at"),
         base44.entities.JobPosition.filter({ tenant_id: tenantId }, "-created_at"),
+        base44.entities.User.filter({ tenant_id: tenantId }, "-created_at"),
       ]);
       setEmployees(emps);
       setDepartments(depts);
       setPositions(poss);
+      setUsers(usrs);
     } catch (e) { toast.error("Gabim në ngarkim"); }
     setLoading(false);
   };
+
+  const availableUsers = users.filter(u => !employees.some(emp => emp.user_id === u.id && emp.id !== editingEmpId));
 
   const filteredEmployees = employees.filter(e => {
     const matchSearch = !search || `${e.first_name} ${e.last_name} ${e.email}`.toLowerCase().includes(search.toLowerCase());
@@ -206,6 +212,7 @@ export default function Employees() {
                   <th className="text-left px-4 py-3 font-medium text-slate-600">Punonjësi</th>
                   <th className="text-left px-4 py-3 font-medium text-slate-600">Departamenti</th>
                   <th className="text-left px-4 py-3 font-medium text-slate-600">Pozicioni</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Llogaria</th>
                   <th className="text-left px-4 py-3 font-medium text-slate-600">Kontrata</th>
                   <th className="text-left px-4 py-3 font-medium text-slate-600">Statusi</th>
                   <th className="text-right px-4 py-3 font-medium text-slate-600">Paga Bazë</th>
@@ -228,6 +235,9 @@ export default function Employees() {
                     </td>
                     <td className="px-4 py-3 text-slate-600">{emp.department_name || "—"}</td>
                     <td className="px-4 py-3 text-slate-600">{emp.position_title || "—"}</td>
+                    <td className="px-4 py-3 text-slate-600">
+                      {users.find(u => u.id === emp.user_id)?.full_name || users.find(u => u.id === emp.user_id)?.email || "—"}
+                    </td>
                     <td className="px-4 py-3 text-slate-600">
                       {{full_time: "Kohë e plotë", part_time: "Kohë e pjesshme", contract: "Kontratë"}[emp.contract_type] || emp.contract_type}
                     </td>
@@ -254,7 +264,7 @@ export default function Employees() {
                   </tr>
                 ))}
                 {filteredEmployees.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-12 text-center text-slate-400">Nuk ka punonjës</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-12 text-center text-slate-400">Nuk ka punonjës</td></tr>
                 )}
               </tbody>
             </table>
@@ -381,6 +391,21 @@ export default function Employees() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="col-span-2">
+              <Label>Llogaria e Sistemit</Label>
+              <Select value={empForm.user_id || "none"} onValueChange={v => setEmpForm({...empForm, user_id: v === "none" ? "" : v})}>
+                <SelectTrigger><SelectValue placeholder="Pa llogari" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Pa llogari</SelectItem>
+                  {availableUsers.map(u => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.full_name || u.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">Vetëm punonjësit me llogari mund të hyjnë në sistem.</p>
+            </div>
             <div><Label>Data e Punësimit</Label><Input type="date" value={empForm.hire_date} onChange={e => setEmpForm({...empForm, hire_date: e.target.value})} /></div>
             <div><Label>Lloji i Kontratës</Label>
               <Select value={empForm.contract_type} onValueChange={v => setEmpForm({...empForm, contract_type: v})}>
@@ -484,6 +509,7 @@ export default function Employees() {
                 <div><span className="text-slate-500">Email:</span> <span className="font-medium">{selectedEmployee.email || "—"}</span></div>
                 <div><span className="text-slate-500">Telefoni:</span> <span className="font-medium">{selectedEmployee.phone || "—"}</span></div>
                 <div><span className="text-slate-500">Departamenti:</span> <span className="font-medium">{selectedEmployee.department_name || "—"}</span></div>
+                <div><span className="text-slate-500">Llogaria:</span> <span className="font-medium">{users.find(u => u.id === selectedEmployee.user_id)?.full_name || users.find(u => u.id === selectedEmployee.user_id)?.email || "—"}</span></div>
                 <div><span className="text-slate-500">Kontrata:</span> <span className="font-medium">{{full_time:"Kohë e plotë",part_time:"Kohë e pjesshme",contract:"Kontratë"}[selectedEmployee.contract_type]}</span></div>
                 <div><span className="text-slate-500">Data Punësimit:</span> <span className="font-medium">{selectedEmployee.hire_date ? moment(selectedEmployee.hire_date).format("DD/MM/YYYY") : "—"}</span></div>
                 <div><span className="text-slate-500">Paga Bazë:</span> <span className="font-medium">{Number(selectedEmployee.base_salary || 0).toLocaleString()} ALL</span></div>

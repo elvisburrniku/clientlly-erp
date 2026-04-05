@@ -574,9 +574,19 @@ export default function Settings() {
 
   const handleSaveInvoiceSettings = async () => {
     setSaving(true);
-    const settingsData = { ...invoiceSettings, default_template: defaultInvoiceTemplate };
+    const settingsData = {
+      invoice_number_format: invoiceSettings?.invoice_number_format || 'INV-{###}',
+      invoice_number_counter: invoiceSettings?.invoice_number_counter ?? 1,
+      default_due_days: invoiceSettings?.default_due_days ?? 10,
+      default_template: defaultInvoiceTemplate || invoiceSettings?.default_template || 'classic',
+      payment_reminder_days_before: invoiceSettings?.payment_reminder_days_before ?? 3,
+      payment_reminder_days_after: invoiceSettings?.payment_reminder_days_after ?? 5,
+      auto_send_reminders: invoiceSettings?.auto_send_reminders ?? false,
+      default_payment_notes: invoiceSettings?.default_payment_notes || '',
+      royalty_percentage: invoiceSettings?.royalty_percentage ?? 6,
+    };
     if (invoiceSettings?.id) { await base44.entities.InvoiceSettings.update(invoiceSettings.id, settingsData); toast.success('Cilësimet e faturave u përditësuan'); }
-    else { await base44.entities.InvoiceSettings.create(settingsData || { invoice_number_format: 'INV-{###}', default_template: 'classic' }); toast.success('Cilësimet e faturave u krijuan'); }
+    else { await base44.entities.InvoiceSettings.create(settingsData); toast.success('Cilësimet e faturave u krijuan'); }
     setSaving(false);
   };
 

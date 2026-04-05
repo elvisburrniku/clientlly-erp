@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import moment from "moment";
+import CreatableEntitySelect from "@/components/shared/CreatableEntitySelect";
 
 const statusLabels = {
   draft: "Draft", submitted: "Dërguar", approved: "Aprovuar", ordered: "Porositur", received: "Marrë", closed: "Mbyllur", cancelled: "Anulluar"
@@ -26,7 +27,7 @@ const statusFlow = {
   ordered: ["received", "cancelled"], received: ["closed"], closed: [], cancelled: []
 };
 
-const emptyItem = () => ({ product_name: "", quantity: 1, unit_price: 0, tax_rate: 20 });
+const emptyItem = () => ({ product_id: "", product_name: "", quantity: 1, unit_price: 0, tax_rate: 20 });
 
 export default function PurchaseOrders() {
   const { user } = useAuth();
@@ -61,6 +62,18 @@ export default function PurchaseOrders() {
     setWarehouses(wh);
     setProducts(prod);
     setLoading(false);
+  };
+
+  const handleProductCreate = async (draft) => {
+    return base44.entities.Product.create({
+      name: draft.name,
+      type: draft.type || "product",
+      description: draft.description || "",
+      price_ex_vat: parseFloat(draft.price_ex_vat) || 0,
+      vat_rate: parseFloat(draft.vat_rate) || 20,
+      unit: draft.unit || "cope",
+      is_active: true,
+    });
   };
 
   const calcTotals = (items) => {
@@ -138,6 +151,14 @@ export default function PurchaseOrders() {
   };
 
   const openEdit = (order) => {
+    const items = (order.items && order.items.length > 0) ? order.items.map(item => {
+      const prod = products.find(p => p.id === item.product_id || p.name === item.product_name);
+      return {
+        ...item,
+        product_id: item.product_id || prod?.id || "",
+        product_name: item.product_name || prod?.name || "",
+      };
+    }) : [emptyItem()];
     setEditOrder(order);
     setForm({
       supplier_id: order.supplier_id || "",
@@ -145,7 +166,7 @@ export default function PurchaseOrders() {
       order_date: order.order_date || moment().format("YYYY-MM-DD"),
       expected_date: order.expected_date || "",
       notes: order.notes || "",
-      items: (order.items && order.items.length > 0) ? order.items : [emptyItem()],
+      items,
     });
     setDialogOpen(true);
   };
@@ -392,17 +413,107 @@ export default function PurchaseOrders() {
                   <div key={idx} className="grid grid-cols-12 gap-2 items-end p-3 bg-muted/30 rounded-xl">
                     <div className="col-span-4">
                       {idx === 0 && <Label className="text-xs">Produkti</Label>}
-                      <Select value={item.product_name} onValueChange={v => {
-                        const prod = products.find(p => p.name === v);
-                        const newItems = [...form.items];
-                        newItems[idx] = { ...newItems[idx], product_name: v, ...(prod ? { unit_price: prod.cost_price || prod.price || 0 } : {}) };
-                        setForm({ ...form, items: newItems });
-                      }}>
-                        <SelectTrigger className="mt-1" data-testid={`select-po-product-${idx}`}><SelectValue placeholder="Produkti" /></SelectTrigger>
-                        <SelectContent>
-                          {products.filter(p => p.is_active !== false).map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <CreatableEntitySelect
+                        value={item.product_id || ""}
+                        items={products.filter(p => p.is_active !== false)}
+                        placeholder="Produkti"
+                        searchPlaceholder="Kërko produktin..."
+                        emptyMessage="Nuk u gjet asnjë produkt"
+                        addLabel="Shto produkt të ri"
+                        createTitle="Shto produkt të ri"
+                        createButtonLabel="Shto"
+                        initialDraft={{ name: "", type: "product", description: "", price_ex_vat: 0, vat_rate: 20, unit: "cope" }}
+                        onSelect={(prod) => {
+                          const newItems = [...form.items];
+                          newItems[idx] = {
+                            ...newItems[idx],
+                            product_id: prod.id,
+                            product_name: prod.name,
+                            unit_price: parseFloat(prod.price_ex_vat || prod.price || 0) || 0,
+                          };
+                          setForm({ ...form, items: newItems });
+                        }}
+                        onCreate={handleProductCreate}
+                        onItemsChange={(next) => setProducts(prev => {
+                          const map = new Map(prev.map(p => [p.id, p]));
+                          next.forEach(p => map.set(p.id, p));
+                          return Array.from(map.values());
+                        })}
+                        findSelectedItem={(list, currentValue) => list.find(p => p.id === currentValue) || null}
+                        renderSelected={(prod) => (
+                          <>
+                            <span className="truncate text-foreground">{prod.name}</span>
+                            <span className="text-xs text-muted-foreground shrink-0">€{(prod.price_ex_vat || prod.price || 0).toFixed(2)}</span>
+                          </>
+                        )}
+                        renderOptions={({ items, selectedItem, selectItem, emptyMessage }) => (
+                          <div className="p-1.5 space-y-0.5 max-h-64 overflow-y-auto">
+                            {items.length === 0 ? (
+                              <div className="text-xs text-muted-foreground text-center py-3">{emptyMessage}</div>
+                            ) : (
+                              items.map((prod) => (
+                                <button
+                                  key={prod.id}
+                                  type="button"
+                                  onClick={() => selectItem(prod)}
+                                  className={cn(
+                                    "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-muted/60 transition-colors text-left",
+                                    selectedItem?.id === prod.id && "bg-primary/10 text-primary font-medium"
+                                  )}
+                                >
+                                  <span className="font-medium">{prod.name}</span>
+                                  <span className="text-xs text-muted-foreground">€{(prod.price_ex_vat || prod.price || 0).toFixed(2)}</span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
+                        renderCreateFields={({ draft, setDraft }) => (
+                          <div className="space-y-2">
+                            <Input
+                              className="text-sm"
+                              placeholder="Emri i produktit *"
+                              value={draft.name}
+                              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="text-sm"
+                                placeholder="Çmim pa TVSH"
+                                value={draft.price_ex_vat}
+                                onChange={(e) => setDraft({ ...draft, price_ex_vat: e.target.value })}
+                              />
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="text-sm"
+                                placeholder="TVSH %"
+                                value={draft.vat_rate}
+                                onChange={(e) => setDraft({ ...draft, vat_rate: e.target.value })}
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                className="text-sm"
+                                placeholder="Njësia"
+                                value={draft.unit}
+                                onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
+                              />
+                              <Input
+                                className="text-sm"
+                                placeholder="Përshkrim"
+                                value={draft.description}
+                                onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        canCreate={(draft) => Boolean(draft.name?.trim())}
+                      />
                     </div>
                     <div className="col-span-2">
                       {idx === 0 && <Label className="text-xs">Sasia</Label>}

@@ -1,9 +1,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import pg from 'pg';
-
-const { Pool } = pg;
+import { createPgPool } from './db.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const DNS_RETRY_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'EAI_AGAIN', 'ETIMEDOUT']);
@@ -135,9 +133,7 @@ const BATCH_SIZE = 200;
 
 export async function runSchemaOnPersonalDb(databaseUrl) {
   await withDnsRetry('runSchemaOnPersonalDb', async () => {
-    const personalPool = new Pool({
-      connectionString: databaseUrl,
-      ssl: { rejectUnauthorized: false },
+    const personalPool = createPgPool(databaseUrl, {
       max: 3,
       connectionTimeoutMillis: 15000,
     });
@@ -161,9 +157,7 @@ export async function runSchemaOnPersonalDb(databaseUrl) {
 }
 
 export async function migrateTenantData(tenantId, sharedPool, databaseUrl, onProgress) {
-  const personalPool = new Pool({
-    connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false },
+  const personalPool = createPgPool(databaseUrl, {
     max: 5,
     connectionTimeoutMillis: 15000,
   });

@@ -1,0 +1,23 @@
+{
+  "name": "Legacy Source Name",
+  "adapter": "clientlly-legacy-mysql",
+  "targetTenantName": "Legacy Tenant",
+  "targetTenantCode": "legacy-tenant",
+  "ssh": {
+    "host": "5.189.182.104",
+    "port": 22,
+    "username": "root",
+    "password": "replace-me"
+  },
+  "database": {
+    "host": "127.0.0.1",
+    "port": 3306,
+    "name": "truly_nolen",
+    "user": "clientlly",
+    "password": "replace-me"
+  },
+  "options": {
+    "sourceSchema": "truly_nolen",
+    "currency": "EUR"
+  }
+}

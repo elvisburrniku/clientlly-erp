@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import moment from "moment";
+import CreatableEntitySelect from "@/components/shared/CreatableEntitySelect";
 
 const statusLabels = { draft: "Draft", pending: "Në Pritje", approved: "Aprovuar", completed: "Përfunduar", cancelled: "Anulluar" };
 const statusColors = { draft: "bg-slate-100 text-slate-700", pending: "bg-amber-100 text-amber-700", approved: "bg-emerald-100 text-emerald-700", completed: "bg-blue-100 text-blue-700", cancelled: "bg-red-100 text-red-700" };
@@ -44,6 +45,18 @@ export default function StockTransfers() {
     setWarehouses(wh);
     setProducts(prod);
     setLoading(false);
+  };
+
+  const handleProductCreate = async (draft) => {
+    return base44.entities.Product.create({
+      name: draft.name,
+      type: draft.type || "product",
+      description: draft.description || "",
+      price_ex_vat: parseFloat(draft.price_ex_vat) || 0,
+      vat_rate: parseFloat(draft.vat_rate) || 20,
+      unit: draft.unit || "cope",
+      is_active: true,
+    });
   };
 
   const generateTransferNumber = () => `TR-${String(transfers.length + 1).padStart(4, "0")}`;
@@ -253,17 +266,92 @@ export default function StockTransfers() {
                   <div key={idx} className="grid grid-cols-12 gap-2 items-end p-3 bg-muted/30 rounded-xl">
                     <div className="col-span-8">
                       {idx === 0 && <Label className="text-xs">Produkti</Label>}
-                      <Select value={item.product_name} onValueChange={v => {
-                        const prod = products.find(p => p.name === v);
-                        const newItems = [...form.items];
-                        newItems[idx] = { ...newItems[idx], product_name: v, ...(prod ? { product_id: prod.id } : {}) };
-                        setForm({ ...form, items: newItems });
-                      }}>
-                        <SelectTrigger className="mt-1" data-testid={`select-transfer-product-${idx}`}><SelectValue placeholder="Produkti" /></SelectTrigger>
-                        <SelectContent>
-                          {products.filter(p => p.is_active !== false).map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
+                      <CreatableEntitySelect
+                        value={item.product_id || ""}
+                        items={products.filter(p => p.is_active !== false)}
+                        placeholder="Produkti"
+                        searchPlaceholder="Kërko produktin..."
+                        emptyMessage="Nuk u gjet asnjë produkt"
+                        addLabel="Shto produkt të ri"
+                        createTitle="Shto produkt të ri"
+                        createButtonLabel="Shto"
+                        initialDraft={{ name: "", type: "product", description: "", price_ex_vat: 0, vat_rate: 20, unit: "cope" }}
+                        onSelect={(prod) => {
+                          const newItems = [...form.items];
+                          newItems[idx] = { ...newItems[idx], product_id: prod.id, product_name: prod.name };
+                          setForm({ ...form, items: newItems });
+                        }}
+                        onCreate={handleProductCreate}
+                        onItemsChange={(next) => setProducts(prev => {
+                          const map = new Map(prev.map(p => [p.id, p]));
+                          next.forEach(p => map.set(p.id, p));
+                          return Array.from(map.values());
+                        })}
+                        findSelectedItem={(list, currentValue) => list.find(p => p.id === currentValue) || null}
+                        renderSelected={(prod) => (
+                          <>
+                            <span className="truncate text-foreground">{prod.name}</span>
+                          </>
+                        )}
+                        renderOptions={({ items, selectedItem, selectItem, emptyMessage }) => (
+                          <div className="p-1.5 space-y-0.5 max-h-64 overflow-y-auto">
+                            {items.length === 0 ? (
+                              <div className="text-xs text-muted-foreground text-center py-3">{emptyMessage}</div>
+                            ) : (
+                              items.map((prod) => (
+                                <button
+                                  key={prod.id}
+                                  type="button"
+                                  onClick={() => selectItem(prod)}
+                                  className={cn(
+                                    "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-muted/60 transition-colors text-left",
+                                    selectedItem?.id === prod.id && "bg-primary/10 text-primary font-medium"
+                                  )}
+                                >
+                                  <span className="font-medium">{prod.name}</span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
+                        renderCreateFields={({ draft, setDraft }) => (
+                          <div className="space-y-2">
+                            <Input
+                              className="text-sm"
+                              placeholder="Emri i produktit *"
+                              value={draft.name}
+                              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="text-sm"
+                                placeholder="Çmim pa TVSH"
+                                value={draft.price_ex_vat}
+                                onChange={(e) => setDraft({ ...draft, price_ex_vat: e.target.value })}
+                              />
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                className="text-sm"
+                                placeholder="TVSH %"
+                                value={draft.vat_rate}
+                                onChange={(e) => setDraft({ ...draft, vat_rate: e.target.value })}
+                              />
+                            </div>
+                            <Input
+                              className="text-sm"
+                              placeholder="Njësia"
+                              value={draft.unit}
+                              onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
+                            />
+                          </div>
+                        )}
+                        canCreate={(draft) => Boolean(draft.name?.trim())}
+                      />
                     </div>
                     <div className="col-span-3">
                       {idx === 0 && <Label className="text-xs">Sasia</Label>}

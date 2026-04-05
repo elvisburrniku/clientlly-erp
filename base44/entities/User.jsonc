@@ -7,6 +7,7 @@
       "enum": [
         "superadmin",
         "admin",
+        "owner",
         "user"
       ],
       "default": "user",

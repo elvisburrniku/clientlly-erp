@@ -15,7 +15,7 @@ export function PermissionsProvider({ children }) {
       return;
     }
 
-    const isAdminRole = user.role === 'admin' || user.role === 'superadmin';
+    const isAdminRole = user.role === 'admin' || user.role === 'owner' || user.role === 'superadmin';
 
     async function fetchPermissions() {
       try {

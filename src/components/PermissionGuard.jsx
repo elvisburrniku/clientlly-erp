@@ -11,7 +11,7 @@ export default function PermissionGuard({ module, action = 'can_view', adminOnly
   if (loading) return null;
 
   if (adminOnly) {
-    if (user?.role !== 'admin' && user?.role !== 'superadmin') {
+    if (user?.role !== 'admin' && user?.role !== 'owner' && user?.role !== 'superadmin') {
       return (
         <div className="flex flex-col items-center justify-center py-20 px-6" data-testid="text-access-denied">
           <Shield className="w-12 h-12 text-muted-foreground mb-4" />

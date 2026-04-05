@@ -32,6 +32,21 @@ const SENSITIVE_FIELDS_BY_TABLE = {
   users: new Set(['role', 'password_hash', 'password', 'tenant_id', 'tenant_name']),
 };
 
+function normalizeEntityValue(value) {
+  if (value === '') return null;
+  if (Array.isArray(value)) {
+    return JSON.stringify(value.map(normalizeEntityValue));
+  }
+  if (value && typeof value === 'object') {
+    const normalized = {};
+    for (const [key, nestedValue] of Object.entries(value)) {
+      normalized[key] = normalizeEntityValue(nestedValue);
+    }
+    return JSON.stringify(normalized);
+  }
+  return value;
+}
+
 export function createEntityRouter(poolOrResolver, tableName, entityName, options = {}) {
   const router = express.Router();
   const { logActivity, notifyTenantAdmins, hasTenantColumn = true, afterCreate, afterUpdate } = options;
@@ -194,11 +209,7 @@ export function createEntityRouter(poolOrResolver, tableName, entityName, option
         if (!isSA && sensitiveFields.has(k)) return false;
         return true;
       });
-      const values = fields.map(k => {
-        const v = data[k];
-        if (typeof v === 'object' && v !== null) return JSON.stringify(v);
-        return v;
-      });
+      const values = fields.map(k => normalizeEntityValue(data[k]));
       const dbFields = fields.map(sanitizeFieldName);
       const placeholders = dbFields.map((_, i) => `$${i + 1}`);
       const query = `INSERT INTO ${tableName} ("${dbFields.join('", "')}") VALUES (${placeholders.join(', ')}) RETURNING ${selectColumns}`;
@@ -267,11 +278,7 @@ export function createEntityRouter(poolOrResolver, tableName, entityName, option
         if (!isSA && sensitiveFields.has(k)) return false;
         return true;
       });
-      const values = fields.map(k => {
-        const v = data[k];
-        if (typeof v === 'object' && v !== null) return JSON.stringify(v);
-        return v;
-      });
+      const values = fields.map(k => normalizeEntityValue(data[k]));
       const dbFields = fields.map(sanitizeFieldName);
       const setClause = dbFields.map((f, i) => `"${f}" = $${i + 1}`).join(', ');
       values.push(req.params.id);

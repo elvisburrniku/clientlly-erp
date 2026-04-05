@@ -1,15 +1,11 @@
-import pg from 'pg';
-
-const { Pool } = pg;
+import { createPgPool } from './db.js';
 
 const tenantPools = new Map();
 
 export function getTenantPool(databaseUrl) {
   if (!databaseUrl) return null;
   if (tenantPools.has(databaseUrl)) return tenantPools.get(databaseUrl);
-  const tenantPool = new Pool({
-    connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false },
+  const tenantPool = createPgPool(databaseUrl, {
     max: 5,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,

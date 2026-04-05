@@ -50,7 +50,7 @@ export default function RoleManagement() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'superadmin';
-  const isAdmin = user?.role === 'admin' || isSuperAdmin;
+  const isAdmin = user?.role === 'admin' || user?.role === 'owner' || isSuperAdmin;
 
   const addUserForm = useForm({
     defaultValues: {
@@ -512,6 +512,7 @@ export default function RoleManagement() {
                       <SelectContent>
                         <SelectItem value="user" data-testid="option-add-role-user">{t('roleUser') || 'User'}</SelectItem>
                         <SelectItem value="admin" data-testid="option-add-role-admin">{t('roleAdmin') || 'Admin'}</SelectItem>
+                        <SelectItem value="owner" data-testid="option-add-role-owner">{t('roleOwner') || 'Owner'}</SelectItem>
                         {isSuperAdmin && (
                           <SelectItem value="superadmin" data-testid="option-add-role-superadmin">{t('roleSuperAdmin') || 'Super Admin'}</SelectItem>
                         )}

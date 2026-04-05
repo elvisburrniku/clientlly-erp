@@ -27,7 +27,7 @@ export async function createNotification(pool, { userId, tenantId, title, messag
 export async function notifyTenantAdmins(pool, { tenantId, title, message, type = 'info', entityType, entityId, excludeUserId }) {
   try {
     const admins = await pool.query(
-      `SELECT id FROM users WHERE tenant_id = $1 AND role IN ('admin', 'manager')`,
+      `SELECT id FROM users WHERE tenant_id = $1 AND role IN ('admin', 'owner', 'manager')`,
       [tenantId]
     );
     for (const admin of admins.rows) {

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import moment from "moment";
+import CreatableEntitySelect from "@/components/shared/CreatableEntitySelect";
 
 const typeLabels = { in: "Hyrje", out: "Dalje", adjustment: "Rregullim", transfer: "Transfertë" };
 const typeIcons = { in: ArrowDownToLine, out: ArrowUpFromLine, adjustment: Wrench, transfer: ArrowLeftRight };
@@ -43,6 +44,18 @@ export default function StockMovements() {
     setProducts(prod);
     setWarehouses(wh);
     setLoading(false);
+  };
+
+  const handleProductCreate = async (draft) => {
+    return base44.entities.Product.create({
+      name: draft.name,
+      type: draft.type || "product",
+      description: draft.description || "",
+      price_ex_vat: parseFloat(draft.price_ex_vat) || 0,
+      vat_rate: parseFloat(draft.vat_rate) || 20,
+      unit: draft.unit || "cope",
+      is_active: true,
+    });
   };
 
   const handleCreate = async () => {
@@ -239,12 +252,88 @@ export default function StockMovements() {
             </div>
             <div>
               <Label>Produkti *</Label>
-              <Select value={form.product_id} onValueChange={v => setForm({...form, product_id: v})}>
-                <SelectTrigger className="mt-1.5" data-testid="select-movement-product"><SelectValue placeholder="Zgjedh produktin" /></SelectTrigger>
-                <SelectContent>
-                  {products.filter(p => p.is_active !== false).map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <CreatableEntitySelect
+                value={form.product_id}
+                items={products.filter(p => p.is_active !== false)}
+                placeholder="Zgjedh produktin"
+                searchPlaceholder="Kërko produktin..."
+                emptyMessage="Nuk u gjet asnjë produkt"
+                addLabel="Shto produkt të ri"
+                createTitle="Shto produkt të ri"
+                createButtonLabel="Shto"
+                initialDraft={{ name: "", type: "product", description: "", price_ex_vat: 0, vat_rate: 20, unit: "cope" }}
+                onSelect={(prod) => setForm({ ...form, product_id: prod.id })}
+                onCreate={handleProductCreate}
+                onItemsChange={(next) => setProducts(prev => {
+                  const map = new Map(prev.map(p => [p.id, p]));
+                  next.forEach(p => map.set(p.id, p));
+                  return Array.from(map.values());
+                })}
+                findSelectedItem={(list, currentValue) => list.find(p => p.id === currentValue) || null}
+                renderSelected={(prod) => (
+                  <>
+                    <span className="truncate text-foreground">{prod.name}</span>
+                  </>
+                )}
+                renderOptions={({ items, selectedItem, selectItem, emptyMessage }) => (
+                  <div className="p-1.5 space-y-0.5 max-h-64 overflow-y-auto">
+                    {items.length === 0 ? (
+                      <div className="text-xs text-muted-foreground text-center py-3">{emptyMessage}</div>
+                    ) : (
+                      items.map((prod) => (
+                        <button
+                          key={prod.id}
+                          type="button"
+                          onClick={() => selectItem(prod)}
+                          className={cn(
+                            "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm hover:bg-muted/60 transition-colors text-left",
+                            selectedItem?.id === prod.id && "bg-primary/10 text-primary font-medium"
+                          )}
+                        >
+                          <span className="font-medium">{prod.name}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+                renderCreateFields={({ draft, setDraft }) => (
+                  <div className="space-y-2">
+                    <Input
+                      className="text-sm"
+                      placeholder="Emri i produktit *"
+                      value={draft.name}
+                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="text-sm"
+                        placeholder="Çmim pa TVSH"
+                        value={draft.price_ex_vat}
+                        onChange={(e) => setDraft({ ...draft, price_ex_vat: e.target.value })}
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="text-sm"
+                        placeholder="TVSH %"
+                        value={draft.vat_rate}
+                        onChange={(e) => setDraft({ ...draft, vat_rate: e.target.value })}
+                      />
+                    </div>
+                    <Input
+                      className="text-sm"
+                      placeholder="Njësia"
+                      value={draft.unit}
+                      onChange={(e) => setDraft({ ...draft, unit: e.target.value })}
+                    />
+                  </div>
+                )}
+                canCreate={(draft) => Boolean(draft.name?.trim())}
+              />
             </div>
             <div>
               <Label>Magazina *</Label>

@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS permissions (
 -- Insert default roles
 INSERT INTO roles (name, display_name, description, is_system) VALUES
   ('admin', 'Administrator', 'Full access to all modules', TRUE),
+  ('owner', 'Owner', 'Company owner with admin access', TRUE),
   ('manager', 'Manager', 'Can manage most modules', TRUE),
   ('accountant', 'Accountant', 'Access to financial modules', TRUE),
   ('user', 'User', 'Basic access', TRUE)
@@ -51,6 +52,19 @@ CROSS JOIN (VALUES
   ('report_templates'), ('reminders'), ('activity_log'), ('users')
 ) AS m(module)
 WHERE r.name = 'admin'
+ON CONFLICT (role_id, module) DO NOTHING;
+
+-- Insert default permissions for owner (same access as admin)
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, m.module, TRUE, TRUE, TRUE, TRUE
+FROM roles r
+CROSS JOIN (VALUES
+  ('dashboard'), ('invoices'), ('quotes'), ('expenses'), ('products'),
+  ('clients'), ('suppliers'), ('cashbox'), ('transfers'), ('debtors'),
+  ('cash_handover'), ('reports'), ('royalties'), ('inventory'), ('settings'),
+  ('report_templates'), ('reminders'), ('activity_log'), ('users')
+) AS m(module)
+WHERE r.name = 'owner'
 ON CONFLICT (role_id, module) DO NOTHING;
 
 -- Insert default permissions for manager
@@ -261,6 +275,55 @@ CREATE TABLE IF NOT EXISTS agreements (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Invoice settings schema compatibility
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'invoice_settings'
+  ) THEN
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS invoice_number_format VARCHAR(100) DEFAULT 'INV-{###}';
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS invoice_number_counter INTEGER DEFAULT 1;
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS default_due_days INTEGER DEFAULT 10;
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS default_template VARCHAR(50) DEFAULT 'classic';
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS payment_reminder_days_before INTEGER DEFAULT 3;
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS payment_reminder_days_after INTEGER DEFAULT 5;
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS auto_send_reminders BOOLEAN DEFAULT false;
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS default_payment_notes TEXT;
+    ALTER TABLE invoice_settings ADD COLUMN IF NOT EXISTS royalty_percentage DECIMAL(5,2) DEFAULT 6;
+  END IF;
+EXCEPTION WHEN others THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'invoice_settings'
+  ) THEN
+    UPDATE invoice_settings
+    SET
+      invoice_number_format = COALESCE(invoice_number_format, invoice_prefix || '-{###}', 'INV-{###}'),
+      invoice_number_counter = COALESCE(invoice_number_counter, next_invoice_number, 1),
+      default_due_days = COALESCE(default_due_days, 10),
+      default_template = COALESCE(default_template, 'classic'),
+      payment_reminder_days_before = COALESCE(payment_reminder_days_before, 3),
+      payment_reminder_days_after = COALESCE(payment_reminder_days_after, 5),
+      auto_send_reminders = COALESCE(auto_send_reminders, false),
+      royalty_percentage = COALESCE(royalty_percentage, 6)
+    WHERE
+      invoice_number_format IS NULL
+      OR invoice_number_counter IS NULL
+      OR default_due_days IS NULL
+      OR default_template IS NULL
+      OR payment_reminder_days_before IS NULL
+      OR payment_reminder_days_after IS NULL
+      OR auto_send_reminders IS NULL
+      OR royalty_percentage IS NULL;
+  END IF;
+EXCEPTION WHEN others THEN NULL;
+END $$;
+
 CREATE TABLE IF NOT EXISTS agreement_annexes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID,
@@ -320,6 +383,16 @@ CROSS JOIN (VALUES
 WHERE r.name = 'admin'
 ON CONFLICT (role_id, module) DO NOTHING;
 
+-- Mirror proposals module permissions to owner
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, m.module, TRUE, TRUE, TRUE, TRUE
+FROM roles r
+CROSS JOIN (VALUES
+  ('proposals'), ('agreements'), ('company_documents'), ('certificates')
+) AS m(module)
+WHERE r.name = 'owner'
+ON CONFLICT (role_id, module) DO NOTHING;
+
 -- Add proposals module permissions for manager role
 INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
 SELECT r.id, m.module, TRUE, TRUE, TRUE, FALSE
@@ -358,6 +431,13 @@ WHERE r.name = 'admin'
 ON CONFLICT (role_id, module) DO NOTHING;
 
 INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, m.module, TRUE, TRUE, TRUE, TRUE
+FROM roles r
+CROSS JOIN (VALUES ('accounting')) AS m(module)
+WHERE r.name = 'owner'
+ON CONFLICT (role_id, module) DO NOTHING;
+
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
 SELECT r.id, m.module, TRUE, TRUE, TRUE, FALSE
 FROM roles r
 CROSS JOIN (VALUES ('accounting')) AS m(module)
@@ -379,11 +459,39 @@ CROSS JOIN (VALUES ('accounting')) AS m(module)
 WHERE r.name = 'user'
 ON CONFLICT (role_id, module) DO NOTHING;
 
--- Upgrade existing tenant creators from admin to superadmin
--- Users whose email matches their tenant's owner_email should be superadmin
+-- Link existing employees to users when the email matches
+DO $$ BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'employees'
+  ) AND EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'users'
+  ) THEN
+    EXECUTE 'ALTER TABLE employees ADD COLUMN IF NOT EXISTS user_id UUID';
+    BEGIN
+      EXECUTE 'ALTER TABLE employees ADD CONSTRAINT employees_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL';
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END;
+    EXECUTE 'CREATE UNIQUE INDEX IF NOT EXISTS idx_employees_user ON employees(user_id)';
+    EXECUTE 'CREATE INDEX IF NOT EXISTS idx_employees_tenant ON employees(tenant_id)';
+    EXECUTE 'UPDATE employees e
+             SET user_id = u.id
+             FROM users u
+             WHERE e.user_id IS NULL
+               AND e.tenant_id = u.tenant_id
+               AND e.email IS NOT NULL
+               AND u.email IS NOT NULL
+               AND LOWER(e.email) = LOWER(u.email)';
+  END IF;
+EXCEPTION WHEN others THEN NULL;
+END $$;
+
+-- Upgrade existing tenant creators from admin to owner
+-- Users whose email matches their tenant's owner_email should be owner
 -- Uses case-insensitive match to handle any legacy casing inconsistencies
 UPDATE users u
-SET role = 'superadmin', updated_at = NOW()
+SET role = 'owner', updated_at = NOW()
 FROM tenants t
 WHERE u.tenant_id = t.id
   AND LOWER(u.email) = LOWER(t.owner_email)
@@ -478,6 +586,12 @@ CREATE TABLE IF NOT EXISTS sales_orders (
 INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
 SELECT r.id, 'pos', TRUE, TRUE, TRUE, TRUE
 FROM roles r WHERE r.name = 'admin'
+ON CONFLICT (role_id, module) DO NOTHING;
+
+-- Add POS permissions for owner role
+INSERT INTO permissions (role_id, module, can_view, can_create, can_edit, can_delete)
+SELECT r.id, 'pos', TRUE, TRUE, TRUE, TRUE
+FROM roles r WHERE r.name = 'owner'
 ON CONFLICT (role_id, module) DO NOTHING;
 
 -- Add POS permissions for manager role
