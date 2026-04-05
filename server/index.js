@@ -492,6 +492,7 @@ const entityTableMap = {
   Supplier: 'suppliers',
   Product: 'products',
   Unit: 'units',
+  TaxRate: 'tax_rates',
   ServiceCategory: 'service_categories',
   Invoice: 'invoices',
   InvoiceSettings: 'invoice_settings',

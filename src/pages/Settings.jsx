@@ -308,18 +308,24 @@ export default function Settings() {
   const [cashboxSettings, setCashboxSettings] = useState(null);
   const [cashboxForm, setCashboxForm] = useState({ min_balance: 50, alert_email: '', notifications_enabled: true });
   const [savingCashbox, setSavingCashbox] = useState(false);
+  const [taxRates, setTaxRates] = useState([]);
+  const [showNewTaxRate, setShowNewTaxRate] = useState(false);
+  const [editingTaxRate, setEditingTaxRate] = useState(null);
+  const [newTaxRate, setNewTaxRate] = useState({ name: "", rate: "", is_inclusive: false });
 
   useEffect(() => {
     const loadData = async () => {
-      const [temps, invSets, unts, cats, cbSets, svcs] = await Promise.all([
+      const [temps, invSets, unts, cats, cbSets, svcs, trs] = await Promise.all([
         base44.entities.InvoiceTemplate.list('-created_date', 1),
         base44.entities.InvoiceSettings.list('-created_date', 1),
         base44.entities.Unit.list('-created_date', 100).catch(() => []),
         base44.entities.ExpenseCategory.list('-created_date', 100).catch(() => []),
         base44.entities.CashboxSettings.list('-created_date', 1).catch(() => []),
         base44.entities.ServiceCategory.list('-created_date', 200).catch(() => []),
+        base44.entities.TaxRate.list('-created_date', 100).catch(() => []),
       ]);
       setUnits(unts);
+      setTaxRates(trs || []);
       if (temps.length > 0) { setTemplate(temps[0]); setForm(temps[0]); }
       else setForm({ company_name: '', company_email: '', company_phone: '', company_address: '', logo_url: '', primary_color: '#4338CA', footer_text: '' });
       if (invSets.length > 0) { setInvoiceSettings(invSets[0]); setDefaultInvoiceTemplate(invSets[0].default_template || "classic"); }
@@ -373,6 +379,52 @@ export default function Settings() {
     await base44.entities.Unit.delete(id);
     setUnits(units.filter(u => u.id !== id));
     toast.success("Njësia u fshi");
+  };
+
+  const addTaxRate = async () => {
+    if (!newTaxRate.name.trim() || newTaxRate.rate === "") return;
+    const created = await base44.entities.TaxRate.create({
+      name: newTaxRate.name,
+      rate: parseFloat(newTaxRate.rate),
+      is_inclusive: newTaxRate.is_inclusive,
+    });
+    setTaxRates([...taxRates, created]);
+    setNewTaxRate({ name: "", rate: "", is_inclusive: false });
+    setShowNewTaxRate(false);
+    toast.success("Norma TVSH u shtua");
+  };
+
+  const updateTaxRate = async () => {
+    if (!editingTaxRate || !editingTaxRate.name.trim() || editingTaxRate.rate === "") return;
+    const updated = await base44.entities.TaxRate.update(editingTaxRate.id, {
+      name: editingTaxRate.name,
+      rate: parseFloat(editingTaxRate.rate),
+      is_inclusive: editingTaxRate.is_inclusive,
+    });
+    setTaxRates(taxRates.map(t => t.id === editingTaxRate.id ? { ...t, ...updated } : t));
+    setEditingTaxRate(null);
+    toast.success("Norma TVSH u përditësua");
+  };
+
+  const deleteTaxRate = async (id) => {
+    if (!window.confirm("Fshi këtë normë TVSH?")) return;
+    await base44.entities.TaxRate.delete(id);
+    setTaxRates(taxRates.filter(t => t.id !== id));
+    toast.success("Norma TVSH u fshi");
+  };
+
+  const seedDefaultTaxRates = async () => {
+    const defaults = [
+      { name: "Pa TVSH", rate: 0, is_inclusive: false },
+      { name: "TVSH e Reduktuar 10%", rate: 10, is_inclusive: false },
+      { name: "TVSH Standarde 20%", rate: 20, is_inclusive: false },
+    ];
+    const existing = new Set(taxRates.map(t => parseFloat(t.rate)));
+    const toAdd = defaults.filter(d => !existing.has(d.rate));
+    if (toAdd.length === 0) { toast.info("Të gjitha normat standarde ekzistojnë tashmë"); return; }
+    const created = await Promise.all(toAdd.map(d => base44.entities.TaxRate.create(d)));
+    setTaxRates([...taxRates, ...created]);
+    toast.success(`U shtuan ${created.length} norma standarde TVSH`);
   };
 
   const addCategory = async () => {
@@ -611,6 +663,103 @@ export default function Settings() {
           {savingCashbox && <Loader2 className="w-4 h-4 animate-spin" />}
           {savingCashbox ? 'Duke ruajtur...' : 'Ruaj Cilësimet e Njoftimeve'}
         </Button>
+      </div>
+
+      {/* Normat e TVSH-së */}
+      <div className="bg-card rounded-xl border border-border p-6 space-y-5">
+        <h3 className="text-base font-semibold">Normat e TVSH-së</h3>
+        <div className="space-y-3 max-h-80 overflow-y-auto">
+          {taxRates.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">Nuk ka norma TVSH. Shto njërën ose përdor ato standarde.</p>
+          )}
+          {taxRates.map(t => (
+            <div key={t.id}>
+              {editingTaxRate?.id === t.id ? (
+                <div className="space-y-2 p-3 bg-muted/30 rounded-lg border border-primary/30">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Emri (p.sh. TVSH 20%)"
+                      value={editingTaxRate.name}
+                      onChange={(e) => setEditingTaxRate({ ...editingTaxRate, name: e.target.value })}
+                      className="text-sm"
+                    />
+                    <Input
+                      type="number" min="0" max="100" step="0.01"
+                      placeholder="Norma %"
+                      value={editingTaxRate.rate}
+                      onChange={(e) => setEditingTaxRate({ ...editingTaxRate, rate: e.target.value })}
+                      className="text-sm"
+                    />
+                  </div>
+                  <select
+                    value={editingTaxRate.is_inclusive ? "inclusive" : "exclusive"}
+                    onChange={(e) => setEditingTaxRate({ ...editingTaxRate, is_inclusive: e.target.value === "inclusive" })}
+                    className="w-full h-9 px-2 text-sm border border-input rounded-md bg-transparent"
+                  >
+                    <option value="exclusive">Exclusive – TVSH shtohet sipër çmimit</option>
+                    <option value="inclusive">Inclusive – TVSH e përfshirë në çmim</option>
+                  </select>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={updateTaxRate} className="px-3">✓ Ruaj</Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingTaxRate(null)} className="px-2">✕ Anulo</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg border border-border">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 shrink-0">{t.rate}%</span>
+                    <span className="text-sm font-medium truncate">{t.name}</span>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${t.is_inclusive ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}`}>
+                      {t.is_inclusive ? "Inclusive" : "Exclusive"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2 shrink-0">
+                    <button onClick={() => setEditingTaxRate({ ...t })} className="text-muted-foreground/60 hover:text-primary">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button onClick={() => deleteTaxRate(t.id)} className="text-destructive/60 hover:text-destructive"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {!showNewTaxRate ? (
+          <div className="flex gap-2">
+            <Button onClick={() => setShowNewTaxRate(true)} variant="outline" className="flex-1 gap-2"><Plus className="w-4 h-4" /> Normë e Re TVSH</Button>
+            <Button onClick={seedDefaultTaxRates} variant="outline" className="flex-1 gap-2 text-primary border-primary/30 hover:bg-primary/5">Shto Normat Standarde</Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                placeholder="Emri (p.sh. TVSH 20%)"
+                value={newTaxRate.name}
+                onChange={(e) => setNewTaxRate({ ...newTaxRate, name: e.target.value })}
+                className="text-sm"
+              />
+              <Input
+                type="number" min="0" max="100" step="0.01"
+                placeholder="Norma % (p.sh. 20)"
+                value={newTaxRate.rate}
+                onChange={(e) => setNewTaxRate({ ...newTaxRate, rate: e.target.value })}
+                className="text-sm"
+              />
+            </div>
+            <select
+              value={newTaxRate.is_inclusive ? "inclusive" : "exclusive"}
+              onChange={(e) => setNewTaxRate({ ...newTaxRate, is_inclusive: e.target.value === "inclusive" })}
+              className="w-full h-9 px-2 text-sm border border-input rounded-md bg-transparent"
+            >
+              <option value="exclusive">Exclusive – TVSH shtohet sipër çmimit (p.sh. çmim 100€ + 20% = 120€)</option>
+              <option value="inclusive">Inclusive – TVSH e përfshirë në çmim (p.sh. çmim 120€ përfshin 20% TVSH)</option>
+            </select>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={addTaxRate} className="px-3">✓ Shto</Button>
+              <Button size="sm" variant="outline" onClick={() => { setShowNewTaxRate(false); setNewTaxRate({ name: "", rate: "", is_inclusive: false }); }} className="px-2">✕</Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Njësitë e Matjes */}

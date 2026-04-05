@@ -1510,3 +1510,16 @@ CREATE INDEX IF NOT EXISTS idx_journal_entries_journal ON journal_entries(journa
 
 -- Unique constraint: account codes are unique per tenant (prevents duplicate codes even under concurrent writes)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_coa_tenant_code ON chart_of_accounts(tenant_id, code) WHERE is_active = true;
+
+-- Tax Rates (TVSh)
+CREATE TABLE IF NOT EXISTS tax_rates (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID,
+  name VARCHAR(255) NOT NULL,
+  rate DECIMAL(5,2) NOT NULL,
+  is_inclusive BOOLEAN DEFAULT false,
+  is_default BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);

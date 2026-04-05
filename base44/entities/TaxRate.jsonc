@@ -1,0 +1,30 @@
+{
+  "name": "TaxRate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Emri i normës (p.sh. TVSH Standarde 20%)"
+    },
+    "rate": {
+      "type": "number",
+      "description": "Norma e TVSH-së në përqindje (p.sh. 20)"
+    },
+    "is_inclusive": {
+      "type": "boolean",
+      "description": "TVSH e përfshirë në çmim (inclusive) ose e shtuar sipër çmimit (exclusive)",
+      "default": false
+    },
+    "is_default": {
+      "type": "boolean",
+      "description": "A është norma e paracaktuar",
+      "default": false
+    },
+    "is_active": {
+      "type": "boolean",
+      "description": "A është norma aktive",
+      "default": true
+    }
+  },
+  "required": ["name", "rate"]
+}

@@ -2,6 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import UnitSelector from "./UnitSelector";
+import TaxRateSelector from "./TaxRateSelector";
 import ServiceSelector from "./ServiceSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,17 +25,19 @@ const emptyItem = () => ({
 export default function InvoiceLineItems({ items, onChange, onDiscountChange, discountInfo = { type: "none", value: 0, amount: 0 } }) {
   const [products, setProducts] = useState([]);
   const [units, setUnits] = useState([]);
-
+  const [taxRates, setTaxRates] = useState([]);
   const [services, setServices] = useState([]);
 
   useEffect(() => {
     Promise.all([
       base44.entities.Product.list('-created_date', 100).catch(() => []),
       base44.entities.Unit.list('-created_date', 100).catch(() => []),
+      base44.entities.TaxRate.list('-created_date', 100).catch(() => []),
       base44.entities.ServiceCategory.list('-created_date', 200).catch(() => []),
-    ]).then(([prods, unts, svcs]) => {
+    ]).then(([prods, unts, trs, svcs]) => {
       setProducts(prods);
       setUnits(unts);
+      setTaxRates(trs);
       setServices(svcs);
     });
   }, []);
@@ -174,14 +177,23 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">TVSH %</label>
-                <Select value={String(item.vat_rate)} onValueChange={(v) => update(i, "vat_rate", parseFloat(v))}>
-                  <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">0%</SelectItem>
-                    <SelectItem value="10">10%</SelectItem>
-                    <SelectItem value="20">20%</SelectItem>
-                  </SelectContent>
-                </Select>
+                {taxRates.length > 0 ? (
+                  <TaxRateSelector
+                    value={item.vat_rate}
+                    onChange={(v) => update(i, "vat_rate", v)}
+                    taxRates={taxRates}
+                    onTaxRatesChange={setTaxRates}
+                  />
+                ) : (
+                  <Select value={String(item.vat_rate)} onValueChange={(v) => update(i, "vat_rate", parseFloat(v))}>
+                    <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="0">0%</SelectItem>
+                      <SelectItem value="10">10%</SelectItem>
+                      <SelectItem value="20">20%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
 
