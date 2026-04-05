@@ -41,7 +41,7 @@ function TenantGate() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopNav />
         <main className="flex-1 overflow-y-auto">
-          <div className="animate-fade-in">
+          <div className="animate-fade-in h-full">
             <Outlet />
           </div>
         </main>

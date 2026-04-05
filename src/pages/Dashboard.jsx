@@ -20,24 +20,24 @@ function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", ic
   return (
     <button
       onClick={onClick}
-      className="group flex flex-col w-full rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-1 transition-all duration-200 text-left shadow-sm overflow-hidden"
+      className="group flex flex-col w-full rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left shadow-sm overflow-hidden"
     >
       <div className={`h-[3px] w-full ${accentBar}`} />
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-center gap-3 px-3 py-2.5">
         <div
-          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}
+          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}
           style={{ isolation: "isolate", willChange: iconAnim ? "transform" : "auto" }}
         >
           <Icon
-            className={`w-3.5 h-3.5 ${iconColor}`}
+            className={`w-3 h-3 ${iconColor}`}
             style={{ ...iconAnim, backfaceVisibility: "hidden" }}
           />
         </div>
         <div className="flex-1 min-w-0" style={{ transform: "translateZ(0)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-800 truncate">{label}</p>
-          {sub && <p className="text-[11px] font-semibold text-slate-500 truncate leading-tight">{sub}</p>}
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-800 truncate leading-none">{label}</p>
+          {sub && <p className="text-[10px] font-semibold text-slate-400 truncate leading-tight mt-0.5">{sub}</p>}
         </div>
-        <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+        <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all shrink-0" />
       </div>
     </button>
   );
@@ -46,8 +46,8 @@ function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", ic
 /* ─── Section divider ────────────────────────────────────────── */
 function SectionLabel({ children }) {
   return (
-    <div className="flex items-center gap-3 py-0.5">
-      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 whitespace-nowrap">{children}</span>
+    <div className="flex items-center gap-2 mb-1.5">
+      <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 whitespace-nowrap">{children}</span>
       <div className="flex-1 h-px bg-slate-200" />
     </div>
   );
@@ -57,12 +57,10 @@ function SectionLabel({ children }) {
 const SQ_MONTHS = ["Janar","Shkurt","Mars","Prill","Maj","Qershor","Korrik","Gusht","Shtator","Tetor","Nëntor","Dhjetor"];
 const SQ_DAYS   = ["E Diel","E Hënë","E Martë","E Mërkurë","E Enjte","E Premte","E Shtunë"];
 
-/* ─── Kosovo date format: 5.Prill.2026 ───────────────────────── */
 function kosovareDate(d) {
   return `${d.getDate()}.${SQ_MONTHS[d.getMonth()]}.${d.getFullYear()}`;
 }
 
-/* ─── weather code → label ───────────────────────────────────── */
 function weatherLabel(code) {
   if (code === 0)  return "☀️ Kthjellët";
   if (code <= 3)   return "⛅ Vranët";
@@ -74,7 +72,6 @@ function weatherLabel(code) {
   return "🌤️ E panjohur";
 }
 
-/* ─── European AQI → Albanian label ──────────────────────────── */
 function aqiLabel(aqi) {
   if (aqi == null) return null;
   if (aqi <= 20)  return "🟢 Ajri shumë i pastër";
@@ -106,12 +103,11 @@ export default function Dashboard() {
   const [phraseIdx, setPhraseIdx]     = useState(0);
   const [contextCard, setContextCard] = useState(null);
   const [fadeIn, setFadeIn]           = useState(true);
-  const [kosoDate, setKosoDate]       = useState("");   // "5.Prill.2026"
-  const [dayName, setDayName]         = useState("");   // "E Diel"
-  const [weatherTemp, setWeatherTemp] = useState(null); // "5°C"
-  const [airQuality, setAirQuality]   = useState(null); // "🟢 Ajri i mirë"
+  const [kosoDate, setKosoDate]       = useState("");
+  const [dayName, setDayName]         = useState("");
+  const [weatherTemp, setWeatherTemp] = useState(null);
+  const [airQuality, setAirQuality]   = useState(null);
 
-  /* live date/day — update every minute */
   useEffect(() => {
     const tick = () => {
       const now = new Date();
@@ -123,13 +119,10 @@ export default function Dashboard() {
     return () => clearInterval(id);
   }, []);
 
-  /* fetch weather + air quality via geolocation + open-meteo (no key needed) */
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       const { latitude: lat, longitude: lon } = coords;
-
-      /* weather */
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
         .then(r => r.json())
         .then(d => {
@@ -137,8 +130,6 @@ export default function Dashboard() {
           setWeatherTemp(`${weatherLabel(weathercode)}  ${Math.round(temperature)}°C`);
         })
         .catch(() => {});
-
-      /* air quality (European AQI) */
       fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
         .then(r => r.json())
         .then(d => {
@@ -150,21 +141,14 @@ export default function Dashboard() {
     }, () => {});
   }, []);
 
-  /* ── 5-phase sequence ─────────────────────────────────────────
-     1. Mirë se vjen [emri]
-     2. Data sot:  5.Prill.2026
-     3. Dita:      E Diel
-     4. Moti sot:  ☀️ Kthjellët  22°C
-     5. Ajri sot:  🟢 Ajri i mirë
-  ──────────────────────────────────────────────────────────────── */
   const firstName = (user?.full_name || user?.name || user?.email?.split("@")[0] || "").split(" ")[0];
 
   const PHRASES = [
     { sub: "Pasqyra Financiare",   main: `Mirë se vjen ${firstName}`,  duration: 7000 },
-    ...(kosoDate   ? [{ sub: "Data sot",        main: kosoDate,    duration: 7000 }] : []),
-    ...(dayName    ? [{ sub: "Dita e javës",     main: dayName,     duration: 7000 }] : []),
-    ...(weatherTemp? [{ sub: "Moti sot",         main: weatherTemp, duration: 7000 }] : []),
-    ...(airQuality ? [{ sub: "Cilësia e ajrit",  main: airQuality,  duration: 7000 }] : []),
+    ...(kosoDate   ? [{ sub: "Data sot",       main: kosoDate,    duration: 7000 }] : []),
+    ...(dayName    ? [{ sub: "Dita e javës",    main: dayName,     duration: 7000 }] : []),
+    ...(weatherTemp? [{ sub: "Moti sot",        main: weatherTemp, duration: 7000 }] : []),
+    ...(airQuality ? [{ sub: "Cilësia e ajrit", main: airQuality,  duration: 7000 }] : []),
   ];
 
   const triggerTransition = (nextFn) => {
@@ -180,7 +164,6 @@ export default function Dashboard() {
   const onCardEnter = (phrase) => triggerTransition(() => setContextCard(phrase));
   const onCardLeave = () => triggerTransition(() => setContextCard(null));
 
-  /* step through with per-phrase durations */
   useEffect(() => {
     if (contextCard || !PHRASES.length) return;
     const current = PHRASES[phraseIdx % PHRASES.length];
@@ -252,33 +235,7 @@ export default function Dashboard() {
 
   const periodLabels = { today: t("today"), month: t("month"), year: t("year") };
 
-  /* ── loading skeleton ── */
-  if (loading) {
-    return (
-      <div className="min-h-screen p-6 lg:p-8 space-y-7" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%)" }}>
-        <div className="flex items-end justify-between">
-          <div className="space-y-2">
-            <div className="h-4 w-36 bg-slate-200 rounded animate-pulse" />
-            <div className="h-9 w-52 bg-slate-200 rounded-xl animate-pulse" />
-          </div>
-          <div className="h-9 w-72 bg-slate-200 rounded-xl animate-pulse" />
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-36 bg-white rounded-2xl border border-slate-200 animate-pulse shadow-sm" />
-          ))}
-        </div>
-        <div className="grid grid-cols-3 gap-5">
-          <div className="col-span-2 h-80 bg-white rounded-2xl border border-slate-200 animate-pulse shadow-sm" />
-          <div className="space-y-3">
-            {[0,1,2,3].map(i => <div key={i} className="h-16 bg-white rounded-2xl border border-slate-200 animate-pulse shadow-sm" />)}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  /* ── 8 stat cards (in requested order) ── */
+  /* ── 8 stat cards ── */
   const cards = [
     {
       icon: FileText,
@@ -358,8 +315,54 @@ export default function Dashboard() {
     },
   ];
 
+  const quickLinks = [
+    { icon: Users2,     label: "Burimet Njerezore", sub: "HR & menaxhim punonjësish", route: '/employees',    iconBg: "bg-violet-100",  iconColor: "text-violet-600",  iconAnim: { animation: 'userPulse 3s ease-in-out infinite' },   accentBar: "bg-violet-500" },
+    { icon: Clock,      label: "Prezenca",          sub: "Orari & prezenca ditore",   route: '/attendance',   iconBg: "bg-blue-100",    iconColor: "text-blue-600",    iconAnim: { animation: 'spin 8s linear infinite' },             accentBar: "bg-blue-500" },
+    { icon: Car,        label: "Motorpool",         sub: "Flotë & automjete",         route: '/vehicles',     iconBg: "bg-amber-100",   iconColor: "text-amber-600",   iconAnim: { animation: 'carSlide 2s ease-in-out infinite' },    accentBar: "bg-amber-500" },
+    { icon: Tag,        label: "Ofertat",           sub: "Oferta & kuotacione",       route: '/quotes',       iconBg: "bg-emerald-100", iconColor: "text-emerald-600", iconAnim: { animation: 'tagSwing 2.5s ease-in-out infinite' },  accentBar: "bg-emerald-500" },
+    { icon: ScrollText, label: "Kontratat",         sub: "Kontratat e biznesit",      route: '/employees',    iconBg: "bg-rose-100",    iconColor: "text-rose-600",    iconAnim: { animation: 'scrollUp 2.5s ease-in-out infinite' },  accentBar: "bg-rose-500" },
+    { icon: ShieldCheck,label: "Vërtetimet",        sub: "Certifikata & dokumente",   route: '/certificates', iconBg: "bg-teal-100",    iconColor: "text-teal-600",    iconAnim: { animation: 'shieldPulse 3s ease-in-out infinite' }, accentBar: "bg-teal-500" },
+  ];
+
+  /* ── loading skeleton ── */
+  if (loading) {
+    return (
+      <div
+        className="h-full flex flex-col p-4 xl:p-5 gap-3"
+        style={{ background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%)" }}
+      >
+        <div className="flex items-end justify-between flex-none">
+          <div className="space-y-2">
+            <div className="h-3 w-28 bg-slate-200 rounded animate-pulse" />
+            <div className="h-7 w-44 bg-slate-200 rounded-xl animate-pulse" />
+          </div>
+          <div className="h-8 w-64 bg-slate-200 rounded-xl animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-24 bg-white rounded-2xl border border-slate-200 animate-pulse shadow-sm" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-14 bg-white rounded-xl border border-slate-200 animate-pulse shadow-sm" />
+          ))}
+        </div>
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-3 min-h-0">
+          <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 animate-pulse shadow-sm" />
+          <div className="flex flex-col gap-2">
+            {[0,1,2,3,4,5].map(i => <div key={i} className="flex-1 bg-white rounded-xl border border-slate-200 animate-pulse shadow-sm" />)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 antialiased">
+    <div
+      className="h-full flex flex-col antialiased"
+      style={{ background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%)" }}
+    >
       <style>{`
         @keyframes carSlide {
           0%,100% { transform: translateX(0px); }
@@ -384,29 +387,20 @@ export default function Dashboard() {
           0%,100% { transform: scale(1);    opacity: 1; }
           50%      { transform: scale(1.2); opacity: 0.75; }
         }
-        @keyframes glowPulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
-          50%      { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
-        }
-        @keyframes coffeeWobble {
-          0%,100% { transform: rotate(0deg); }
-          25%      { transform: rotate(-10deg); }
-          75%      { transform: rotate(10deg); }
-        }
-        @keyframes slideIn {
-          from { opacity:0; transform: translateY(-4px); }
-          to   { opacity:1; transform: translateY(0); }
-        }
       `}</style>
-      <div className="p-6 lg:p-8 space-y-7 min-h-screen" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%)" }}>
 
-        {/* ── Header — same grid as cards so filters align to col-4 ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          {/* title: spans first 3 cols — dynamic greeting */}
+      {/* ── Main scrollable/fixed area ─────────────────────────────
+          Mobile:  overflow-y-auto  → scroll is fine
+          Desktop: overflow-hidden  → everything must fit          */}
+      <div className="flex-1 flex flex-col gap-2.5 xl:gap-3 p-3.5 xl:p-5 overflow-y-auto lg:overflow-hidden min-h-0">
+
+        {/* ── Row 1: Header — greeting + filters ───────────────── */}
+        <div className="flex-none grid grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+          {/* greeting: 3 cols */}
           <div className="col-span-2 lg:col-span-3 min-w-0 overflow-hidden">
             <p
-              className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1 transition-all duration-300 truncate"
-              style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(-6px)" }}
+              className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-0.5 transition-all duration-300 truncate"
+              style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(-5px)" }}
             >
               {activePhrase.sub}
             </p>
@@ -414,21 +408,21 @@ export default function Dashboard() {
               className="font-bold tracking-tight text-black transition-all duration-300 truncate"
               style={{
                 opacity: fadeIn ? 1 : 0,
-                transform: fadeIn ? "translateY(0)" : "translateY(8px)",
-                fontSize: "clamp(1.2rem, 2.5vw, 2rem)",
+                transform: fadeIn ? "translateY(0)" : "translateY(6px)",
+                fontSize: "clamp(1rem, 2vw, 1.75rem)",
               }}
             >
               {activePhrase.main}
             </h1>
           </div>
 
-          {/* filters: exactly col-4 width, one row */}
+          {/* filters: col-4 */}
           <div className="col-span-2 lg:col-span-1 flex items-center gap-2">
             <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm flex-1">
               {["today","month","year"].map(p => (
                 <button key={p} onClick={() => setPeriod(p)}
                   className={cn(
-                    "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
+                    "flex-1 py-1 text-[10px] font-semibold rounded-lg transition-all duration-150 text-center",
                     period === p ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   )}>
                   {periodLabels[p]}
@@ -439,7 +433,7 @@ export default function Dashboard() {
               {[["inc", t("withVat")], ["exc", t("withoutVat")]].map(([v, l]) => (
                 <button key={v} onClick={() => setVatMode(v)}
                   className={cn(
-                    "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
+                    "flex-1 py-1 text-[10px] font-semibold rounded-lg transition-all duration-150 text-center",
                     vatMode === v ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   )}>
                   {l}
@@ -449,32 +443,32 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ── Pending handover banner ─────────────────────────────── */}
+        {/* ── Pending handover banner (conditional) ────────────── */}
         {pendingHandovers.length > 0 && (
           <button
             onClick={() => navigate('/cash-handover')}
-            className="w-full flex items-center gap-4 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 hover:bg-amber-100/60 transition-all duration-200 group text-left shadow-sm"
+            className="flex-none w-full flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 hover:bg-amber-100/60 transition-all duration-200 group text-left shadow-sm"
           >
-            <div className="w-9 h-9 rounded-xl bg-amber-400 flex items-center justify-center shrink-0">
-              <BanknoteIcon className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 rounded-lg bg-amber-400 flex items-center justify-center shrink-0">
+              <BanknoteIcon className="w-3.5 h-3.5 text-white" />
             </div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-amber-900">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-amber-900 truncate">
                 {pendingHandovers.length === 1
                   ? "1 kërkesë dorëzimi kesh pret aprovimin"
                   : `${pendingHandovers.length} kërkesa dorëzimi kesh presin aprovimin`}
               </p>
-              <p className="text-xs text-amber-600 mt-0.5">
+              <p className="text-[10px] text-amber-600 truncate">
                 {pendingHandovers.map(h => h.user_name || h.user_email?.split('@')[0]).filter(Boolean).join(', ')}
               </p>
             </div>
-            <span className="text-[9px] font-bold uppercase tracking-widest bg-amber-200 text-amber-800 px-2.5 py-1 rounded-full">Vepro</span>
-            <ChevronRight className="w-4 h-4 text-amber-400 group-hover:translate-x-0.5 transition-transform" />
+            <span className="text-[9px] font-bold uppercase tracking-widest bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full shrink-0">Vepro</span>
+            <ChevronRight className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
           </button>
         )}
 
-        {/* ── Row 1: 4 main financial cards (full size) ─────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ── Row 2: 4 main financial stat cards ───────────────── */}
+        <div className="flex-none grid grid-cols-2 lg:grid-cols-4 gap-2.5 xl:gap-3">
           {cards.slice(0, 4).map((card, i) => {
             const phrase = { sub: "Duke hapur", main: card.title };
             return (
@@ -485,10 +479,7 @@ export default function Dashboard() {
                 onMouseEnter={() => onCardEnter(phrase)}
                 onMouseLeave={onCardLeave}
               >
-                <button
-                  onClick={() => navWithFlash(phrase, card.route)}
-                  className="w-full text-left"
-                >
+                <button onClick={() => navWithFlash(phrase, card.route)} className="w-full text-left">
                   <StatCard {...card} />
                 </button>
               </div>
@@ -496,8 +487,8 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* ── Row 2: 4 nav/count cards (compact — half height) ───────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* ── Row 3: 4 compact stat cards ──────────────────────── */}
+        <div className="flex-none grid grid-cols-2 lg:grid-cols-4 gap-2.5 xl:gap-3">
           {cards.slice(4).map((card, i) => {
             const phrase = { sub: "Duke hapur", main: card.title };
             return (
@@ -508,10 +499,7 @@ export default function Dashboard() {
                 onMouseEnter={() => onCardEnter(phrase)}
                 onMouseLeave={onCardLeave}
               >
-                <button
-                  onClick={() => navWithFlash(phrase, card.route)}
-                  className="w-full text-left"
-                >
+                <button onClick={() => navWithFlash(phrase, card.route)} className="w-full text-left">
                   <StatCard {...card} compact />
                 </button>
               </div>
@@ -519,46 +507,48 @@ export default function Dashboard() {
           })}
         </div>
 
-        {/* ── Middle: Chart + Sidebar ─────────────────────────────── */}
-        <div
-          className="animate-fade-in"
-          style={{ animationDelay: "0.5s", animationFillMode: "both" }}
-        >
-          {/* shared header row: left title + right title */}
-          <div className="grid grid-cols-4 gap-5 mb-5">
-            <div className="col-span-3">
-              <SectionLabel>Grafiku i të Ardhurave</SectionLabel>
-            </div>
-            <div>
-              <SectionLabel>Sinjalizimet & Navigim</SectionLabel>
-            </div>
-          </div>
+        {/* ── Row 4: Chart (3 cols) + QuickLinks (1 col) ───────── 
+            Desktop: flex-1 min-h-0  → fills remaining screen
+            Mobile:  min-h-[300px]   → scrollable fixed height     */}
+        <div className="min-h-[300px] lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-2.5 xl:gap-3 animate-fade-in" style={{ animationDelay: "0.5s", animationFillMode: "both" }}>
 
-          {/* content row */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-            <div className="lg:col-span-3">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-                <div className="h-[3px] w-full bg-indigo-500" />
+          {/* Chart area */}
+          <div className="lg:col-span-3 flex flex-col min-h-0">
+            <SectionLabel>Grafiku i të Ardhurave</SectionLabel>
+            <div className="flex-1 min-h-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col">
+              <div className="h-[3px] w-full bg-indigo-500 shrink-0" />
+              <div className="flex-1 min-h-0">
                 <RevenueChart />
               </div>
             </div>
-            <div className="flex flex-col justify-between h-full">
-              {[
-                { icon: Users2,     label: "Burimet Njerezore", sub: "HR & menaxhim punonjësish", route: '/employees',   iconBg: "bg-violet-100",  iconColor: "text-violet-600",  iconAnim: { animation: 'userPulse 3s ease-in-out infinite' },  accentBar: "bg-violet-500" },
-                { icon: Clock,      label: "Prezenca",          sub: "Orari & prezenca ditore",   route: '/attendance',  iconBg: "bg-blue-100",    iconColor: "text-blue-600",    iconAnim: { animation: 'spin 8s linear infinite' },            accentBar: "bg-blue-500" },
-                { icon: Car,        label: "Motorpool",         sub: "Flotë & automjete",         route: '/vehicles',    iconBg: "bg-amber-100",   iconColor: "text-amber-600",   iconAnim: { animation: 'carSlide 2s ease-in-out infinite' },   accentBar: "bg-amber-500" },
-                { icon: Tag,        label: "Ofertat",           sub: "Oferta & kuotacione",       route: '/quotes',      iconBg: "bg-emerald-100", iconColor: "text-emerald-600", iconAnim: { animation: 'tagSwing 2.5s ease-in-out infinite' }, accentBar: "bg-emerald-500" },
-                { icon: ScrollText, label: "Kontratat",         sub: "Kontratat e biznesit",      route: '/employees',   iconBg: "bg-rose-100",    iconColor: "text-rose-600",    iconAnim: { animation: 'scrollUp 2.5s ease-in-out infinite' }, accentBar: "bg-rose-500" },
-                { icon: ShieldCheck,label: "Vërtetimet",        sub: "Certifikata & dokumente",   route: '/certificates',iconBg: "bg-teal-100",    iconColor: "text-teal-600",    iconAnim: { animation: 'shieldPulse 3s ease-in-out infinite' },accentBar: "bg-teal-500" },
-              ].map(({ icon, label, sub, route, iconBg, iconColor, iconAnim, accentBar }) => (
-                <div key={label} onMouseEnter={() => onCardEnter({ sub: "Duke hapur", main: label })} onMouseLeave={onCardLeave}>
-                  <QuickLink icon={icon} label={label} sub={sub} onClick={() => navWithFlash({ sub: "Duke hapur", main: label }, route)} iconBg={iconBg} iconColor={iconColor} iconAnim={iconAnim} accentBar={accentBar} />
+          </div>
+
+          {/* Quick links */}
+          <div className="flex flex-col min-h-0">
+            <SectionLabel>Sinjalizimet &amp; Navigim</SectionLabel>
+            <div className="flex-1 flex flex-col justify-between gap-1.5">
+              {quickLinks.map(({ icon, label, sub, route, iconBg, iconColor, iconAnim, accentBar }) => (
+                <div
+                  key={label}
+                  onMouseEnter={() => onCardEnter({ sub: "Duke hapur", main: label })}
+                  onMouseLeave={onCardLeave}
+                >
+                  <QuickLink
+                    icon={icon}
+                    label={label}
+                    sub={sub}
+                    onClick={() => navWithFlash({ sub: "Duke hapur", main: label }, route)}
+                    iconBg={iconBg}
+                    iconColor={iconColor}
+                    iconAnim={iconAnim}
+                    accentBar={accentBar}
+                  />
                 </div>
               ))}
             </div>
           </div>
-        </div>
 
+        </div>
 
       </div>
     </div>

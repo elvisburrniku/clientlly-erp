@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Legend
+  ResponsiveContainer,
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { TrendingUp } from "lucide-react";
@@ -45,7 +45,7 @@ const yearsData = {
     { name: "Jul", revenue: 23500, expenses: 13200, debt: 10300 },
     { name: "Aug", revenue: 21200, expenses: 12100, debt: 9100 },
     { name: "Sep", revenue: 22800, expenses: 12900, debt: 9900 },
-    { name: "Oct", revenue: 24200, expenses: 13600, debt: 10600 },
+    { name: "Oct", revenue: 24200, expenses: 13600, depth: 10600 },
     { name: "Nov", revenue: 25500, expenses: 14400, debt: 11100 },
     { name: "Dec", revenue: 26800, expenses: 15100, debt: 11700 },
   ],
@@ -90,15 +90,15 @@ const yearsData = {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-border rounded-xl shadow-xl p-4 text-sm min-w-[160px]">
-      <p className="font-semibold text-foreground mb-3">{label}</p>
+    <div className="bg-white border border-border rounded-xl shadow-xl p-3 text-sm min-w-[150px]">
+      <p className="font-semibold text-foreground mb-2 text-xs">{label}</p>
       {payload.map((p, i) => (
-        <div key={i} className="flex items-center justify-between gap-4 mb-1.5">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: p.color }} />
-            <span className="text-muted-foreground">{p.name}</span>
+        <div key={i} className="flex items-center justify-between gap-3 mb-1">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+            <span className="text-muted-foreground text-[11px]">{p.name}</span>
           </div>
-          <span className="font-semibold text-foreground">€{p.value.toLocaleString()}</span>
+          <span className="font-semibold text-foreground text-[11px]">€{p.value?.toLocaleString()}</span>
         </div>
       ))}
     </div>
@@ -106,17 +106,17 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function RevenueChart() {
-  const [periodFilter, setPeriodFilter] = useState("vjetore"); // sot, muaji, viti, vjetore
-  const [tvshFilter, setTvshFilter] = useState("me"); // me or pa
+  const [periodFilter, setPeriodFilter] = useState("vjetore");
+  const [tvshFilter, setTvshFilter] = useState("me");
   const years = Object.keys(yearsData).map(Number).sort((a, b) => a - b);
-  
+
   let data = [];
   if (periodFilter === "vjetore") {
     data = years.map(year => {
       const yearData = yearsData[year];
-      const revenue = yearData.reduce((s, m) => s + m.revenue, 0);
+      const revenue  = yearData.reduce((s, m) => s + m.revenue, 0);
       const expenses = yearData.reduce((s, m) => s + m.expenses, 0);
-      const debt = yearData.reduce((s, m) => s + m.debt, 0);
+      const debt     = yearData.reduce((s, m) => s + (m.debt || 0), 0);
       return { name: year.toString(), revenue, expenses, debt };
     });
   } else if (periodFilter === "viti") {
@@ -126,85 +126,115 @@ export default function RevenueChart() {
   } else if (periodFilter === "sot") {
     data = yearsData[2025].slice(0, 1);
   }
-  
+
   if (tvshFilter === "pa") {
     data = data.map(d => ({
       ...d,
-      revenue: d.revenue * 0.83,
+      revenue:  d.revenue  * 0.83,
       expenses: d.expenses * 0.83,
-      debt: d.debt * 0.83
+      debt:     (d.debt || 0) * 0.83,
     }));
   }
 
+  const FILTERS = [
+    { id: "sot",     label: "Sot" },
+    { id: "muaji",   label: "Muaji" },
+    { id: "viti",    label: "Viti" },
+    { id: "vjetore", label: "Vjetore" },
+  ];
+
   return (
-    <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-white" />
-            </div>
-            <h3 className="text-base font-semibold text-foreground">Pasqyra Financiare</h3>
+    <div className="flex flex-col h-full p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3 flex-none">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center shrink-0">
+            <TrendingUp className="w-3.5 h-3.5 text-white" />
           </div>
-          <p className="text-sm text-muted-foreground ml-10">Të ardhurat, shpenzimet & borxhi</p>
+          <div>
+            <h3 className="text-sm font-bold text-slate-800 leading-none">Pasqyra Financiare</h3>
+            <p className="text-[10px] text-slate-400 mt-0.5">Të ardhurat, shpenzimet &amp; borxhi</p>
+          </div>
+        </div>
+
+        {/* Period filter */}
+        <div className="flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+          {FILTERS.map(f => (
+            <button
+              key={f.id}
+              onClick={() => setPeriodFilter(f.id)}
+              className={cn(
+                "px-2.5 py-1 text-[10px] font-semibold rounded-md transition-all",
+                periodFilter === f.id ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Summary pills */}
-      <div className="flex gap-3 mb-6">
+      <div className="flex gap-2 mb-3 flex-none flex-wrap">
         {[
           { label: "Të ardhurat", color: "#6366f1", key: "revenue" },
-          { label: "Shpenzimet", color: "#f43f5e", key: "expenses" },
-          { label: "Borxhi", color: "#f59e0b", key: "debt" },
+          { label: "Shpenzimet",  color: "#f43f5e", key: "expenses" },
+          { label: "Borxhi",      color: "#f59e0b", key: "debt" },
         ].map(({ label, color, key }) => {
-          const total = data.reduce((s, d) => s + d[key], 0);
+          const total = data.reduce((s, d) => s + (d[key] || 0), 0);
           return (
-            <div key={key} className="flex items-center gap-2 bg-muted/50 rounded-xl px-3 py-2">
-              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
+            <div key={key} className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 rounded-lg px-2.5 py-1.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
               <div>
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
-                <p className="text-xs font-bold text-foreground">€{total.toLocaleString()}</p>
+                <p className="text-[9px] text-slate-400 uppercase tracking-wide leading-none">{label}</p>
+                <p className="text-[11px] font-bold text-slate-800 leading-none mt-0.5">€{Math.round(total).toLocaleString()}</p>
               </div>
             </div>
           );
         })}
+
+        {/* VAT toggle — pushed right */}
+        <div className="ml-auto flex bg-slate-100 rounded-lg p-0.5 gap-0.5">
+          {[["me", "Me TVSH"], ["pa", "Pa TVSH"]].map(([v, l]) => (
+            <button
+              key={v}
+              onClick={() => setTvshFilter(v)}
+              className={cn(
+                "px-2.5 py-1 text-[10px] font-semibold rounded-md transition-all",
+                tvshFilter === v ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="h-[240px]">
+      {/* Chart — fills remaining height */}
+      <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="gradRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.15} />
+                <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.15} />
                 <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="gradExpenses" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.12} />
+                <stop offset="5%"  stopColor="#f43f5e" stopOpacity={0.12} />
                 <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="gradDebt" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15} />
+                <stop offset="5%"  stopColor="#f59e0b" stopOpacity={0.15} />
                 <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(230,25%,92%)" vertical={false} />
-            <XAxis
-              dataKey="name"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: 'hsl(230,15%,55%)', fontSize: 12 }}
-            />
-            <YAxis
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: 'hsl(230,15%,55%)', fontSize: 12 }}
-              tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`}
-              width={50}
-            />
+            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "hsl(230,15%,55%)", fontSize: 11 }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: "hsl(230,15%,55%)", fontSize: 11 }} tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} width={46} />
             <Tooltip content={<CustomTooltip />} />
-            <Area type="monotone" dataKey="revenue" name="Të ardhurat" stroke="#6366f1" strokeWidth={2.5} fill="url(#gradRevenue)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            <Area type="monotone" dataKey="expenses" name="Shpenzimet" stroke="#f43f5e" strokeWidth={2.5} fill="url(#gradExpenses)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
-            <Area type="monotone" dataKey="debt" name="Borxhi" stroke="#f59e0b" strokeWidth={2.5} fill="url(#gradDebt)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Area type="monotone" dataKey="revenue"  name="Të ardhurat" stroke="#6366f1" strokeWidth={2.5} fill="url(#gradRevenue)"  dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Area type="monotone" dataKey="expenses" name="Shpenzimet"  stroke="#f43f5e" strokeWidth={2.5} fill="url(#gradExpenses)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
+            <Area type="monotone" dataKey="debt"     name="Borxhi"      stroke="#f59e0b" strokeWidth={2.5} fill="url(#gradDebt)"     dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>

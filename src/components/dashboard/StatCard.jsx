@@ -32,7 +32,6 @@ export default function StatCard({ icon: Icon, title, value, description, color 
         "hover:shadow-md hover:-translate-y-1 transition-all duration-300 shadow-sm overflow-hidden",
         "flex flex-col antialiased"
       )}>
-        {/* colored top accent bar */}
         <div className={cn("h-[3px] w-full shrink-0", p.bar)} />
         <div className="flex items-center gap-3 px-4 py-3">
           {Icon && (
@@ -66,18 +65,16 @@ export default function StatCard({ icon: Icon, title, value, description, color 
       "bg-white rounded-2xl border border-slate-200 overflow-hidden",
       "hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-sm antialiased"
     )}>
-      {/* colored top accent bar */}
       <div className={cn("h-[3px] w-full", p.bar)} />
 
-      <div className="p-5">
-        {/* icon row + badge */}
-        <div className="flex items-start justify-between mb-4">
+      <div className="p-3.5 xl:p-4">
+        <div className="flex items-start justify-between mb-2">
           {Icon && (
             <div className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ring-4",
+              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ring-2",
               p.icon, p.iconRing
             )} style={{ isolation: "isolate" }}>
-              <Icon className="text-white" style={{ width: 18, height: 18, backfaceVisibility: "hidden" }} />
+              <Icon className="text-white" style={{ width: 14, height: 14, backfaceVisibility: "hidden" }} />
             </div>
           )}
           {badge && (
@@ -91,15 +88,13 @@ export default function StatCard({ icon: Icon, title, value, description, color 
           )}
         </div>
 
-        {/* number + title stacked closely */}
-        <p className="text-[2.5rem] font-black tracking-tight text-black leading-none">
+        <p className="text-2xl xl:text-3xl font-black tracking-tight text-black leading-none">
           {value}
         </p>
-        <p className="text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400 mt-1.5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-slate-400 mt-1">
           {title}
         </p>
 
-        {/* description if no badge */}
         {!badge && description && (
           <p className="text-[11px] text-slate-400 mt-1">{description}</p>
         )}
