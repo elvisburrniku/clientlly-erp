@@ -20,16 +20,16 @@ function QuickLink({ icon: Icon, label, sub, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="group flex items-center gap-3 w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-sm transition-all duration-200 text-left"
+      className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left shadow-sm"
     >
-      <div className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-slate-100 transition-colors">
+      <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 group-hover:bg-slate-100 transition-colors">
         <Icon className="w-3.5 h-3.5 text-slate-500" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-slate-800 truncate">{label}</p>
-        {sub && <p className="text-[9px] text-slate-400 truncate">{sub}</p>}
+        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-900 truncate">{label}</p>
+        {sub && <p className="text-[11px] font-black text-slate-900 truncate leading-tight">{sub}</p>}
       </div>
-      <ArrowRight className="w-3 h-3 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all shrink-0" />
+      <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all shrink-0" />
     </button>
   );
 }
