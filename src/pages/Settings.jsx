@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { useLanguage } from "@/lib/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -284,8 +285,61 @@ function ProjectSettings({ tenantId }) {
   );
 }
 
+const COUNTRY_TAX_RATES = {
+  sq: {
+    country: "Shqipëri",
+    rates: [
+      { name: "Pa TVSH (0%)", rate: 0, is_inclusive: false },
+      { name: "TVSH e Reduktuar 6%", rate: 6, is_inclusive: false },
+      { name: "TVSH Standarde 20%", rate: 20, is_inclusive: false },
+    ],
+  },
+  en: {
+    country: "United Kingdom",
+    rates: [
+      { name: "Zero Rate (0%)", rate: 0, is_inclusive: false },
+      { name: "Reduced Rate (5%)", rate: 5, is_inclusive: false },
+      { name: "Standard Rate (20%)", rate: 20, is_inclusive: false },
+    ],
+  },
+  de: {
+    country: "Deutschland",
+    rates: [
+      { name: "Steuerfrei (0%)", rate: 0, is_inclusive: false },
+      { name: "Ermäßigter Steuersatz (7%)", rate: 7, is_inclusive: false },
+      { name: "Regelsteuersatz (19%)", rate: 19, is_inclusive: false },
+    ],
+  },
+  es: {
+    country: "España",
+    rates: [
+      { name: "Exento (0%)", rate: 0, is_inclusive: false },
+      { name: "Tipo Superreducido (4%)", rate: 4, is_inclusive: false },
+      { name: "Tipo Reducido (10%)", rate: 10, is_inclusive: false },
+      { name: "Tipo General (21%)", rate: 21, is_inclusive: false },
+    ],
+  },
+  mk: {
+    country: "Северна Македонија",
+    rates: [
+      { name: "Без ДДВ (0%)", rate: 0, is_inclusive: false },
+      { name: "Намален ДДВ (5%)", rate: 5, is_inclusive: false },
+      { name: "Стандарден ДДВ (18%)", rate: 18, is_inclusive: false },
+    ],
+  },
+  default: {
+    country: "Standard",
+    rates: [
+      { name: "Tax Exempt (0%)", rate: 0, is_inclusive: false },
+      { name: "Reduced Rate (10%)", rate: 10, is_inclusive: false },
+      { name: "Standard Rate (20%)", rate: 20, is_inclusive: false },
+    ],
+  },
+};
+
 export default function Settings() {
   const { user } = useAuth();
+  const { language } = useLanguage();
   const tenantId = user?.tenant_id;
   const [loading, setLoading] = useState(true);
   const [template, setTemplate] = useState(null);
@@ -414,17 +468,14 @@ export default function Settings() {
   };
 
   const seedDefaultTaxRates = async () => {
-    const defaults = [
-      { name: "Pa TVSH", rate: 0, is_inclusive: false },
-      { name: "TVSH e Reduktuar 10%", rate: 10, is_inclusive: false },
-      { name: "TVSH Standarde 20%", rate: 20, is_inclusive: false },
-    ];
+    const countryData = COUNTRY_TAX_RATES[language] || COUNTRY_TAX_RATES.default;
+    const defaults = countryData.rates;
     const existing = new Set(taxRates.map(t => parseFloat(t.rate)));
     const toAdd = defaults.filter(d => !existing.has(d.rate));
     if (toAdd.length === 0) { toast.info("Të gjitha normat standarde ekzistojnë tashmë"); return; }
     const created = await Promise.all(toAdd.map(d => base44.entities.TaxRate.create(d)));
     setTaxRates([...taxRates, ...created]);
-    toast.success(`U shtuan ${created.length} norma standarde TVSH`);
+    toast.success(`U shtuan ${created.length} norma standarde TVSH për ${countryData.country}`);
   };
 
   const addCategory = async () => {
@@ -727,7 +778,9 @@ export default function Settings() {
         {!showNewTaxRate ? (
           <div className="flex gap-2">
             <Button onClick={() => setShowNewTaxRate(true)} variant="outline" className="flex-1 gap-2"><Plus className="w-4 h-4" /> Normë e Re TVSH</Button>
-            <Button onClick={seedDefaultTaxRates} variant="outline" className="flex-1 gap-2 text-primary border-primary/30 hover:bg-primary/5">Shto Normat Standarde</Button>
+            <Button onClick={seedDefaultTaxRates} variant="outline" className="flex-1 gap-2 text-primary border-primary/30 hover:bg-primary/5">
+              Shto Normat Standarde {(COUNTRY_TAX_RATES[language] || COUNTRY_TAX_RATES.default).country !== "Standard" ? `(${(COUNTRY_TAX_RATES[language] || COUNTRY_TAX_RATES.default).country})` : ""}
+            </Button>
           </div>
         ) : (
           <div className="space-y-2">
