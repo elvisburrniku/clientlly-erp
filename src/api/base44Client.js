@@ -92,6 +92,7 @@ export const base44 = {
     Supplier: createEntityClient('Supplier'),
     Product: createEntityClient('Product'),
     Unit: createEntityClient('Unit'),
+    TaxRate: createEntityClient('TaxRate'),
     ServiceCategory: createEntityClient('ServiceCategory'),
     Invoice: createEntityClient('Invoice'),
     InvoiceSettings: createEntityClient('InvoiceSettings'),
