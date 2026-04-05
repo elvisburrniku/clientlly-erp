@@ -66,15 +66,10 @@ export default function TopNav() {
                 </AvatarFallback>
               </Avatar>
               <div className="text-left hidden sm:block">
-                <p className="text-[13px] font-semibold leading-tight text-slate-800" data-testid="text-user-name">
+                <p className="text-[13px] font-semibold text-slate-800" data-testid="text-user-name">
                   {user?.full_name || "User"}
                 </p>
-                <span
-                  data-testid="text-user-role"
-                  className="inline-block text-[10px] font-semibold capitalize px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 leading-tight mt-0.5"
-                >
-                  {user?.role || "staff"}
-                </span>
+                <span data-testid="text-user-role" className="hidden">{user?.role || "staff"}</span>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-violet-500 transition-colors ml-0.5" />
             </button>
