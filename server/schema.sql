@@ -1511,6 +1511,59 @@ CREATE INDEX IF NOT EXISTS idx_journal_entries_journal ON journal_entries(journa
 -- Unique constraint: account codes are unique per tenant (prevents duplicate codes even under concurrent writes)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_coa_tenant_code ON chart_of_accounts(tenant_id, code) WHERE is_active = true;
 
+-- ============ SCHEMA EVOLUTION: ADD MISSING COLUMNS ============
+
+-- Clients: additional columns
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS nipt VARCHAR(100);
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS classification VARCHAR(100);
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS total_spent DECIMAL(15,2) DEFAULT 0;
+
+-- Suppliers: additional columns
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS nipt VARCHAR(100);
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS payment_terms VARCHAR(255);
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS category VARCHAR(255);
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+ALTER TABLE suppliers ADD COLUMN IF NOT EXISTS total_spent DECIMAL(15,2) DEFAULT 0;
+
+-- Products: additional columns
+ALTER TABLE products ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'product';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS price_ex_vat DECIMAL(15,2) DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS vat_rate DECIMAL(5,2) DEFAULT 20;
+
+-- Invoices: additional columns
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS company_phone1 VARCHAR(100);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS company_phone2 VARCHAR(100);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS company_website VARCHAR(255);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS client_nipt VARCHAR(100);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS discount_type VARCHAR(50);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS discount_value DECIMAL(15,2) DEFAULT 0;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS vat_amount DECIMAL(15,2) DEFAULT 0;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS amount DECIMAL(15,2) DEFAULT 0;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS is_open BOOLEAN DEFAULT true;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS hand_delivered BOOLEAN DEFAULT false;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_method VARCHAR(100);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_records JSONB DEFAULT '[]';
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS payment_notes TEXT;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS internal_notes TEXT;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS issued_by VARCHAR(255);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS is_recurring BOOLEAN DEFAULT false;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS recurring_interval VARCHAR(50);
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS parent_invoice_id UUID;
+ALTER TABLE invoices ADD COLUMN IF NOT EXISTS converted_from_proforma UUID;
+
+-- Expenses: additional columns
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS category VARCHAR(255);
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS supplier VARCHAR(255);
+ALTER TABLE expenses ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT false;
+
+-- Units: additional columns
+ALTER TABLE units ADD COLUMN IF NOT EXISTS code VARCHAR(50);
+ALTER TABLE units ADD COLUMN IF NOT EXISTS category VARCHAR(100);
+ALTER TABLE units ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT false;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN DEFAULT false;
+ALTER TABLE units ADD COLUMN IF NOT EXISTS description TEXT;
+
 -- Tax Rates (TVSh)
 CREATE TABLE IF NOT EXISTS tax_rates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
