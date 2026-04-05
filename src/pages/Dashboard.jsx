@@ -50,16 +50,36 @@ function SectionLabel({ children }) {
   );
 }
 
+/* ─── Albanian month & day names ─────────────────────────────── */
+const SQ_MONTHS = ["Janar","Shkurt","Mars","Prill","Maj","Qershor","Korrik","Gusht","Shtator","Tetor","Nëntor","Dhjetor"];
+const SQ_DAYS   = ["E Diel","E Hënë","E Martë","E Mërkurë","E Enjte","E Premte","E Shtunë"];
+
+/* ─── Kosovo date format: 5.Prill.2026 ───────────────────────── */
+function kosovareDate(d) {
+  return `${d.getDate()}.${SQ_MONTHS[d.getMonth()]}.${d.getFullYear()}`;
+}
+
 /* ─── weather code → label ───────────────────────────────────── */
 function weatherLabel(code) {
-  if (code === 0)                        return "☀ Kthjellët";
-  if (code <= 3)                         return "⛅ Vranët";
-  if (code <= 48)                        return "🌫 Mjegull";
-  if (code <= 67)                        return "🌧 Shi";
-  if (code <= 77)                        return "❄ Borë";
-  if (code <= 82)                        return "🌦 Shi i lehtë";
-  if (code <= 99)                        return "⛈ Stuhi";
-  return "🌤 E panjohur";
+  if (code === 0)  return "☀️ Kthjellët";
+  if (code <= 3)   return "⛅ Vranët";
+  if (code <= 48)  return "🌫️ Mjegull";
+  if (code <= 67)  return "🌧️ Shi";
+  if (code <= 77)  return "❄️ Borë";
+  if (code <= 82)  return "🌦️ Shi i lehtë";
+  if (code <= 99)  return "⛈️ Stuhi";
+  return "🌤️ E panjohur";
+}
+
+/* ─── European AQI → Albanian label ──────────────────────────── */
+function aqiLabel(aqi) {
+  if (aqi == null) return null;
+  if (aqi <= 20)  return "🟢 Ajri shumë i pastër";
+  if (aqi <= 40)  return "🟡 Ajri i mirë";
+  if (aqi <= 60)  return "🟠 Ajri mesatar";
+  if (aqi <= 80)  return "🔴 Ajri i ndotur";
+  if (aqi <= 100) return "🟣 Ajri shumë i ndotur";
+  return "⚫ Ajri kritik";
 }
 
 export default function Dashboard() {
@@ -83,48 +103,65 @@ export default function Dashboard() {
   const [phraseIdx, setPhraseIdx]     = useState(0);
   const [contextCard, setContextCard] = useState(null);
   const [fadeIn, setFadeIn]           = useState(true);
-  const [localDate, setLocalDate]     = useState("");  // "E Hënë, 5 Prill"
-  const [localTime, setLocalTime]     = useState("");  // "14:32"
-  const [weatherTemp, setWeatherTemp] = useState(null); // "5°"
-  const [weatherDesc, setWeatherDesc] = useState(null); // "⛅ Vranët"
+  const [kosoDate, setKosoDate]       = useState("");   // "5.Prill.2026"
+  const [dayName, setDayName]         = useState("");   // "E Diel"
+  const [weatherTemp, setWeatherTemp] = useState(null); // "5°C"
+  const [airQuality, setAirQuality]   = useState(null); // "🟢 Ajri i mirë"
 
-  /* live clock + date — update every minute */
+  /* live date/day — update every minute */
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      setLocalTime(now.toLocaleTimeString("sq-AL", { hour: "2-digit", minute: "2-digit" }));
-      setLocalDate(now.toLocaleDateString("sq-AL", { weekday: "long", day: "numeric", month: "long" }));
+      setKosoDate(kosovareDate(now));
+      setDayName(SQ_DAYS[now.getDay()]);
     };
     tick();
     const id = setInterval(tick, 60000);
     return () => clearInterval(id);
   }, []);
 
-  /* fetch weather via geolocation + open-meteo (no key needed) */
+  /* fetch weather + air quality via geolocation + open-meteo (no key needed) */
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       const { latitude: lat, longitude: lon } = coords;
+
+      /* weather */
       fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
         .then(r => r.json())
         .then(d => {
           const { temperature, weathercode } = d.current_weather;
-          setWeatherTemp(`${Math.round(temperature)}°`);
-          setWeatherDesc(weatherLabel(weathercode));
+          setWeatherTemp(`${weatherLabel(weathercode)}  ${Math.round(temperature)}°C`);
+        })
+        .catch(() => {});
+
+      /* air quality (European AQI) */
+      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=european_aqi`)
+        .then(r => r.json())
+        .then(d => {
+          const aqi = d?.current?.european_aqi;
+          const label = aqiLabel(aqi);
+          if (label) setAirQuality(label);
         })
         .catch(() => {});
     }, () => {});
   }, []);
 
-  /* build sequence: greeting → date → time → weather → air condition */
-  const userName = user?.full_name || user?.name || user?.email?.split("@")[0] || "";
+  /* ── 5-phase sequence ─────────────────────────────────────────
+     1. Mirë se vjen [emri]
+     2. Data sot:  5.Prill.2026
+     3. Dita:      E Diel
+     4. Moti sot:  ☀️ Kthjellët  22°C
+     5. Ajri sot:  🟢 Ajri i mirë
+  ──────────────────────────────────────────────────────────────── */
+  const firstName = (user?.full_name || user?.name || user?.email?.split("@")[0] || "").split(" ")[0];
 
   const PHRASES = [
-    { sub: "Pasqyra Financiare", main: `Mirë se vjen, ${userName}`, duration: 7000 },
-    ...(localDate ? [{ sub: "Data sot",      main: localDate,  duration: 7000 }] : []),
-    ...(localTime ? [{ sub: "Ora lokale",    main: localTime,  duration: 7000 }] : []),
-    ...(weatherTemp ? [{ sub: "Moti sot",    main: weatherTemp, duration: 7000 }] : []),
-    ...(weatherDesc ? [{ sub: "Gjendja e ajrit", main: weatherDesc, duration: 7000 }] : []),
+    { sub: "Pasqyra Financiare",   main: `Mirë se vjen ${firstName}`,  duration: 7000 },
+    ...(kosoDate   ? [{ sub: "Data sot",        main: kosoDate,    duration: 7000 }] : []),
+    ...(dayName    ? [{ sub: "Dita e javës",     main: dayName,     duration: 7000 }] : []),
+    ...(weatherTemp? [{ sub: "Moti sot",         main: weatherTemp, duration: 7000 }] : []),
+    ...(airQuality ? [{ sub: "Cilësia e ajrit",  main: airQuality,  duration: 7000 }] : []),
   ];
 
   const triggerTransition = (nextFn) => {
@@ -148,7 +185,7 @@ export default function Dashboard() {
       triggerTransition(() => setPhraseIdx(i => (i + 1) % PHRASES.length));
     }, current?.duration ?? 7000);
     return () => clearTimeout(id);
-  }, [phraseIdx, contextCard, PHRASES.length, weatherTemp, localTime]);
+  }, [phraseIdx, contextCard, PHRASES.length, kosoDate, dayName, weatherTemp, airQuality]);
 
   const activePhrase = contextCard ?? (PHRASES[phraseIdx % Math.max(PHRASES.length, 1)] || PHRASES[0]);
 
