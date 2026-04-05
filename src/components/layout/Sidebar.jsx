@@ -21,7 +21,7 @@ export default function Sidebar() {
   const location = useLocation();
   const { user } = useAuth();
   const { canView, fullAccess } = usePermissions();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const { t } = useLanguage();
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
@@ -184,15 +184,23 @@ export default function Sidebar() {
       <Link
         key={item.path}
         to={item.path}
+        title={collapsed ? item.label : undefined}
         data-testid={`nav-link-${item.path.replace('/', '') || 'dashboard'}`}
         className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+          "flex items-center transition-all duration-200 font-medium text-sm",
+          collapsed
+            ? "justify-center w-9 h-9 mx-auto rounded-xl"
+            : "gap-3 px-3 py-2.5 rounded-xl",
           isActive
-            ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
-            : "text-white/55 hover:bg-white/8 hover:text-white/90"
+            ? "bg-white/15 text-white shadow-lg"
+            : "text-white/55 hover:bg-white/10 hover:text-white/90"
         )}
       >
-        <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-white/50")} />
+        <item.icon className={cn(
+          "shrink-0 transition-all duration-200",
+          collapsed ? "w-[18px] h-[18px]" : "w-5 h-5",
+          isActive ? "text-white" : "text-white/55"
+        )} />
         {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
         {isActive && !collapsed && (
           <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
@@ -247,11 +255,14 @@ export default function Sidebar() {
       className={cn(
         "h-screen sticky top-0 flex flex-col text-[hsl(230,40%,90%)] transition-all duration-300 ease-in-out z-30",
         "bg-gradient-to-b from-slate-900 to-slate-800",
-        collapsed ? "w-[68px]" : "w-[250px]"
+        collapsed ? "w-[56px]" : "w-[250px]"
       )}
     >
-      <div className="flex items-center gap-3 px-5 h-16 border-b border-white/10">
-        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+      <div className={cn(
+        "flex items-center h-16 border-b border-white/10 transition-all duration-300",
+        collapsed ? "justify-center px-2" : "gap-3 px-5"
+      )}>
+        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
           <span className="text-white font-bold text-sm">E</span>
         </div>
         {!collapsed && (
@@ -261,7 +272,10 @@ export default function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 py-5 px-3 overflow-y-auto space-y-0.5">
+      <nav className={cn(
+        "flex-1 py-4 overflow-y-auto space-y-0.5 transition-all duration-300",
+        collapsed ? "px-1.5" : "px-3"
+      )}>
         {(fullAccess || canView("dashboard")) && renderLink(dashboardItem)}
 
         {renderSection("sales", "Shitjet", visibleSales)}
@@ -304,15 +318,19 @@ export default function Sidebar() {
             >
               <Link
                 to="/super-admin"
+                title={collapsed ? "Tenantët" : undefined}
                 data-testid="nav-link-super-admin"
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                  "flex items-center transition-all duration-200 text-sm font-medium",
+                  collapsed
+                    ? "justify-center w-9 h-9 mx-auto rounded-xl"
+                    : "gap-3 px-3 py-2.5 rounded-xl",
                   location.pathname === '/super-admin'
                     ? "bg-amber-500/20 text-amber-300 shadow-lg"
                     : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300"
                 )}
               >
-                <ShieldCheck className="w-5 h-5 shrink-0" />
+                <ShieldCheck className={cn("shrink-0", collapsed ? "w-[18px] h-[18px]" : "w-5 h-5")} />
                 {!collapsed && <span className="whitespace-nowrap">Tenantët</span>}
               </Link>
             </div>
