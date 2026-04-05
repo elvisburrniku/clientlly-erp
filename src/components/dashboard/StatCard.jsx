@@ -42,7 +42,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
         )}
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 truncate">{title}</p>
-          <p className="text-lg font-black tracking-tight text-slate-900 leading-tight truncate">{value}</p>
+          <p className="text-lg font-black tracking-tight text-black leading-tight truncate">{value}</p>
         </div>
         {badge && (
           <span className={cn(
@@ -88,7 +88,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
         </div>
 
         {/* number + title stacked closely */}
-        <p className="text-[2.5rem] font-black tracking-tight text-slate-900 leading-none">
+        <p className="text-[2.5rem] font-black tracking-tight text-black leading-none">
           {value}
         </p>
         <p className="text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400 mt-1.5">

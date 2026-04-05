@@ -158,7 +158,7 @@ export default function TopNav() {
     <header className="h-16 border-b border-border bg-white/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-20">
 
       {/* ═══════════ ATTENDANCE WIDGET ═══════════ */}
-      <div className="relative" style={{ width: 380 }}>
+      <div className="relative" style={{ width: 440 }}>
 
         {/* ── CHECKOUT SUMMARY overlay ── */}
         {summary && (
