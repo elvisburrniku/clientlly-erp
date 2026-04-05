@@ -28,31 +28,35 @@ export default function StatCard({ icon: Icon, title, value, description, color 
   if (compact) {
     return (
       <div className={cn(
-        "bg-white rounded-xl border border-slate-200 px-4 py-3",
+        "bg-white rounded-xl border border-slate-200",
         "hover:shadow-md hover:-translate-y-1 transition-all duration-300 shadow-sm overflow-hidden",
-        "flex items-center gap-3 antialiased"
+        "flex flex-col antialiased"
       )}>
-        {Icon && (
-          <div className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ring-2",
-            p.icon, p.iconRing
-          )} style={{ isolation: "isolate" }}>
-            <Icon className="text-white" style={{ width: 14, height: 14, backfaceVisibility: "hidden" }} />
+        {/* colored top accent bar */}
+        <div className={cn("h-[3px] w-full shrink-0", p.bar)} />
+        <div className="flex items-center gap-3 px-4 py-3">
+          {Icon && (
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ring-2",
+              p.icon, p.iconRing
+            )} style={{ isolation: "isolate" }}>
+              <Icon className="text-white" style={{ width: 14, height: 14, backfaceVisibility: "hidden" }} />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 truncate">{title}</p>
+            <p className="text-lg font-black tracking-tight text-black leading-tight truncate">{value}</p>
           </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 truncate">{title}</p>
-          <p className="text-lg font-black tracking-tight text-black leading-tight truncate">{value}</p>
+          {badge && (
+            <span className={cn(
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest shrink-0",
+              badgeClasses[badge.color] || badgeClasses.muted
+            )}>
+              {badge.dot && <span className="w-1 h-1 rounded-full bg-current opacity-80" />}
+              {badge.label}
+            </span>
+          )}
         </div>
-        {badge && (
-          <span className={cn(
-            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest shrink-0",
-            badgeClasses[badge.color] || badgeClasses.muted
-          )}>
-            {badge.dot && <span className="w-1 h-1 rounded-full bg-current opacity-80" />}
-            {badge.label}
-          </span>
-        )}
       </div>
     );
   }

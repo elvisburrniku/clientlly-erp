@@ -535,6 +535,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
             <div className="lg:col-span-3">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+                <div className="h-[3px] w-full bg-indigo-500" />
                 <RevenueChart />
               </div>
             </div>
