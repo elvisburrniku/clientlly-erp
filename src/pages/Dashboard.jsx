@@ -269,9 +269,9 @@ export default function Dashboard() {
             <h1 className="text-5xl font-bold tracking-tight text-black">{t("welcome")}</h1>
           </div>
 
-          {/* filters: exactly col-4 width, stack two toggle rows */}
-          <div className="col-span-2 lg:col-span-1 flex flex-col gap-2">
-            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm w-full">
+          {/* filters: exactly col-4 width, one row */}
+          <div className="col-span-2 lg:col-span-1 flex items-center gap-2">
+            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm flex-1">
               {["today","month","year"].map(p => (
                 <button key={p} onClick={() => setPeriod(p)}
                   className={cn(
@@ -282,7 +282,7 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
-            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm w-full">
+            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm flex-1">
               {[["inc", t("withVat")], ["exc", t("withoutVat")]].map(([v, l]) => (
                 <button key={v} onClick={() => setVatMode(v)}
                   className={cn(
