@@ -40,7 +40,7 @@ function TenantGate() {
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <TopNav />
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-slate-50 via-violet-50/40 to-slate-100">
           <div className="animate-fade-in">
             <Outlet />
           </div>
