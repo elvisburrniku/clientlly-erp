@@ -209,7 +209,7 @@ export default function TopNav() {
                 "flex-1 flex items-center justify-center gap-1.5 rounded-lg text-[11px] font-semibold transition-all duration-150 select-none",
                 "h-7",
                 isIdle
-                  ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm"
+                  ? "bg-emerald-500 text-gray-900 hover:bg-emerald-600 shadow-sm"
                   : isActive
                   ? "bg-emerald-50 text-emerald-300 cursor-default"
                   : "text-slate-300 cursor-not-allowed"
@@ -273,7 +273,7 @@ export default function TopNav() {
             <Timer className="w-3 h-3 shrink-0" style={{ color: isActive ? "#10b981" : isBreak ? "#f59e0b" : "#cbd5e1" }} />
             <span
               className="font-mono text-[12px] font-bold tabular-nums"
-              style={{ color: isActive ? "#047857" : isBreak ? "#b45309" : "#cbd5e1", letterSpacing: "0.05em" }}
+              style={{ color: isActive ? "#111827" : isBreak ? "#111827" : "#cbd5e1", letterSpacing: "0.05em" }}
             >
               {isActive ? fmt(workMs) : isBreak ? fmt(breakMs) : "00:00:00"}
             </span>
