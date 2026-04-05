@@ -41,7 +41,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 truncate">{title}</p>
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-900 truncate">{title}</p>
           <p className="text-lg font-black tracking-tight text-slate-900 leading-tight truncate">{value}</p>
         </div>
         {badge && (
@@ -64,7 +64,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
     )}>
       {/* header: label + icon */}
       <div className="flex items-start justify-between mb-4 gap-2">
-        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 leading-tight pt-0.5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-900 leading-tight pt-0.5">
           {title}
         </p>
         {Icon && (
