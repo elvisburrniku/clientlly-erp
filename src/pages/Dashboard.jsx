@@ -349,18 +349,11 @@ export default function Dashboard() {
               {activePhrase.sub}
             </p>
             <h1
-              className={cn(
-                "tracking-tight transition-all duration-300 truncate",
-                activePhrase.sub === "Moti sot"
-                  ? "font-normal text-slate-500"
-                  : "font-bold text-black"
-              )}
+              className="font-bold tracking-tight text-black transition-all duration-300 truncate"
               style={{
                 opacity: fadeIn ? 1 : 0,
                 transform: fadeIn ? "translateY(0)" : "translateY(8px)",
-                fontSize: activePhrase.sub === "Moti sot"
-                  ? "clamp(1.2rem, 3vw, 2rem)"
-                  : "clamp(1.6rem, 4vw, 3rem)",
+                fontSize: "clamp(1.6rem, 4vw, 3rem)",
               }}
             >
               {activePhrase.main}
