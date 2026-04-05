@@ -339,7 +339,7 @@ export default function Dashboard() {
       <div className="p-6 lg:p-8 space-y-7 min-h-screen" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%)" }}>
 
         {/* ── Header — same grid as cards so filters align to col-4 ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           {/* title: spans first 3 cols — dynamic greeting */}
           <div className="col-span-2 lg:col-span-3 min-w-0 overflow-hidden">
             <p
