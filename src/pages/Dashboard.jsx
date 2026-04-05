@@ -7,7 +7,6 @@ import {
   BanknoteIcon, ChevronRight, Package, Calendar,
   Truck, ArrowRight, Car,
   Users2, Clock, Tag, ScrollText, ShieldCheck,
-  LogIn, Coffee, CirclePower
 } from "lucide-react";
 
 import StatCard from "../components/dashboard/StatCard";
@@ -15,7 +14,6 @@ import RevenueChart from "../components/dashboard/RevenueChart";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/useLanguage.jsx";
 
-const ATTEND_KEY = "attendance_status";
 
 /* ─── Quick link button ──────────────────────────────────────── */
 function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", iconColor = "text-slate-500", iconAnim }) {
@@ -72,9 +70,6 @@ export default function Dashboard() {
   const [period, setPeriod]   = useState("today");
   const [vatMode, setVatMode] = useState("inc");
 
-  /* ── attendance ── */
-  const [attendance, setAttendance] = useState(() => localStorage.getItem(ATTEND_KEY) || "idle");
-  const setStatus = (s) => { setAttendance(s); localStorage.setItem(ATTEND_KEY, s); };
   const [stats, setStats] = useState({
     totalInvoices: 0, totalExpenses: 0, totalDebt: 0,
     clientCount: 0, cashBalance: 0, supplierCount: 0, netProfit: 0,
@@ -387,114 +382,30 @@ export default function Dashboard() {
             </h1>
           </div>
 
-          {/* col-4: filters + attendance widget */}
-          <div className="col-span-2 lg:col-span-1 flex flex-col gap-2">
-
-            {/* filters row */}
-            <div className="flex items-center gap-2">
-              <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm flex-1">
-                {["today","month","year"].map(p => (
-                  <button key={p} onClick={() => setPeriod(p)}
-                    className={cn(
-                      "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
-                      period === p ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-                    )}>
-                    {periodLabels[p]}
-                  </button>
-                ))}
-              </div>
-              <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm flex-1">
-                {[["inc", t("withVat")], ["exc", t("withoutVat")]].map(([v, l]) => (
-                  <button key={v} onClick={() => setVatMode(v)}
-                    className={cn(
-                      "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
-                      vatMode === v ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-                    )}>
-                    {l}
-                  </button>
-                ))}
-              </div>
+          {/* filters: exactly col-4 width, one row */}
+          <div className="col-span-2 lg:col-span-1 flex items-center gap-2">
+            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm flex-1">
+              {["today","month","year"].map(p => (
+                <button key={p} onClick={() => setPeriod(p)}
+                  className={cn(
+                    "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
+                    period === p ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                  )}>
+                  {periodLabels[p]}
+                </button>
+              ))}
             </div>
-
-            {/* attendance widget */}
-            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-              {/* not checked in banner */}
-              {attendance === "idle" && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-b border-amber-100" style={{ animation: "slideIn 0.3s ease" }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" style={{ animation: "glowPulse 2s infinite" }} />
-                  <p className="text-[10px] font-semibold text-amber-700 tracking-wide">Nuk je kyçur ende</p>
-                </div>
-              )}
-              {attendance === "on_break" && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-b border-amber-100" style={{ animation: "slideIn 0.3s ease" }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" style={{ animation: "glowPulse 1.5s infinite" }} />
-                  <p className="text-[10px] font-semibold text-amber-700 tracking-wide">Në pauzë</p>
-                </div>
-              )}
-              {attendance === "checked_in" && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border-b border-emerald-100" style={{ animation: "slideIn 0.3s ease" }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" style={{ animation: "glowPulse 2s infinite" }} />
-                  <p className="text-[10px] font-semibold text-emerald-700 tracking-wide">Aktiv në punë</p>
-                </div>
-              )}
-
-              {/* buttons */}
-              <div className="flex p-1.5 gap-1">
-                {/* Hyrje */}
-                <button
-                  onClick={() => setStatus("checked_in")}
-                  disabled={attendance !== "idle"}
+            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm flex-1">
+              {[["inc", t("withVat")], ["exc", t("withoutVat")]].map(([v, l]) => (
+                <button key={v} onClick={() => setVatMode(v)}
                   className={cn(
-                    "flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all duration-200",
-                    attendance === "idle"
-                      ? "bg-gradient-to-b from-emerald-400 to-emerald-600 text-white shadow-md hover:from-emerald-500 hover:to-emerald-700 hover:-translate-y-0.5"
-                      : attendance === "checked_in"
-                      ? "bg-emerald-50 text-emerald-400 cursor-default"
-                      : "bg-slate-50 text-slate-300 cursor-not-allowed"
-                  )}
-                  style={attendance === "idle" ? { animation: "glowPulse 2.5s ease-in-out infinite" } : {}}
-                >
-                  <LogIn className={cn("w-4 h-4", attendance === "idle" ? "text-white" : "")} />
-                  Hyrje
+                    "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
+                    vatMode === v ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
+                  )}>
+                  {l}
                 </button>
-
-                {/* Pauzë */}
-                <button
-                  onClick={() => setStatus(attendance === "on_break" ? "checked_in" : "on_break")}
-                  disabled={attendance === "idle"}
-                  className={cn(
-                    "flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all duration-200",
-                    attendance === "on_break"
-                      ? "bg-gradient-to-b from-amber-400 to-amber-600 text-white shadow-md hover:from-amber-500 hover:to-amber-700 hover:-translate-y-0.5"
-                      : attendance === "checked_in"
-                      ? "bg-slate-50 text-amber-500 hover:bg-amber-50 hover:-translate-y-0.5"
-                      : "bg-slate-50 text-slate-300 cursor-not-allowed"
-                  )}
-                >
-                  <Coffee
-                    className="w-4 h-4"
-                    style={attendance === "on_break" ? { animation: "coffeeWobble 1.5s ease-in-out infinite" } : {}}
-                  />
-                  {attendance === "on_break" ? "Vazhdo" : "Pauzë"}
-                </button>
-
-                {/* Dalje */}
-                <button
-                  onClick={() => setStatus("idle")}
-                  disabled={attendance === "idle"}
-                  className={cn(
-                    "flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all duration-200",
-                    attendance !== "idle"
-                      ? "bg-slate-50 text-rose-500 hover:bg-rose-50 hover:-translate-y-0.5"
-                      : "bg-slate-50 text-slate-300 cursor-not-allowed"
-                  )}
-                >
-                  <CirclePower className="w-4 h-4" />
-                  Dalje
-                </button>
-              </div>
+              ))}
             </div>
-
           </div>
         </div>
 
