@@ -319,21 +319,32 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* ── Middle: Chart (left 3/4) + Sidebar (right 1/4 = gjerësia e Kalendarit) ── */}
+        {/* ── Middle: Chart + Sidebar ─────────────────────────────── */}
         <div
-          className="grid grid-cols-1 lg:grid-cols-4 gap-5 animate-fade-in"
+          className="animate-fade-in"
           style={{ animationDelay: "0.5s", animationFillMode: "both" }}
         >
+          {/* shared header row: left title + right title */}
+          <div className="grid grid-cols-4 gap-5 mb-5">
+            <div className="col-span-3">
+              <SectionLabel>Grafiku i të Ardhurave</SectionLabel>
+            </div>
+            <div>
+              <SectionLabel>Sinjalizimet & Navigim</SectionLabel>
+            </div>
+          </div>
+
+          {/* content row */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           {/* Chart */}
-          <div className="lg:col-span-3 space-y-5">
-            <SectionLabel>Grafiku i të Ardhurave</SectionLabel>
+          <div className="lg:col-span-3">
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
               <RevenueChart />
             </div>
           </div>
 
-          {/* Sidebar — fillon ku fillon grafiku */}
-          <div className="flex flex-col gap-2.5 pt-10">
+          {/* Sidebar */}
+          <div className="flex flex-col gap-2.5">
             {/* 6 nav quick-links */}
             <QuickLink icon={Users2}       label="Burimet Njerezore" sub="HR & menaxhim punonjësish"  onClick={() => navigate('/employees')} />
             <QuickLink icon={UserCheck}    label="Prezenca"          sub="Orari & prezenca ditore"     onClick={() => navigate('/attendance')} />
@@ -349,6 +360,7 @@ export default function Dashboard() {
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
               <UndeliveredCashAlert users={undeliveredUsers} />
             </div>
+          </div>
           </div>
         </div>
 
