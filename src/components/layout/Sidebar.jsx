@@ -254,12 +254,12 @@ export default function Sidebar() {
       onMouseEnter={() => setCollapsed(false)}
       className={cn(
         "h-screen sticky top-0 flex flex-col transition-all duration-300 ease-in-out z-30",
-        "bg-violet-50 border-r border-violet-100 shadow-sm",
+        "bg-white border-r border-slate-200 shadow-sm",
         collapsed ? "w-[80px]" : "w-[260px]"
       )}
     >
       <div className={cn(
-        "flex items-center h-16 border-b border-violet-100 transition-all duration-300",
+        "flex items-center h-16 border-b border-slate-100 transition-all duration-300",
         collapsed ? "justify-center px-2" : "gap-3 px-5"
       )}>
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-md shadow-violet-200">
@@ -340,7 +340,7 @@ export default function Sidebar() {
 
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-violet-100 text-violet-300 hover:text-violet-600 hover:bg-violet-100 transition-colors"
+        className="flex items-center justify-center h-12 border-t border-slate-100 text-slate-400 hover:text-violet-600 hover:bg-slate-50 transition-colors"
         data-testid="button-toggle-sidebar"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
