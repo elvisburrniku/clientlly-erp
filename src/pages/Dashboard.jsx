@@ -48,18 +48,17 @@ function SectionLabel({ children }) {
   );
 }
 
-/* ─── greeting data ─────────────────────────────────────────── */
-const WELCOME_PHRASES = [
-  { sub: "Pasqyra Financiare", main: "Sot në fokus" },
-  { sub: "Pasqyra Financiare", main: "Si jemi?" },
-  { sub: "Pasqyra Financiare", main: "Shifrat e ditës" },
-  { sub: "Pasqyra Financiare", main: "Gjendja juaj" },
-];
-const INSIGHT_PHRASES = [
-  { sub: "Situata", main: "Pasqyra e ditës" },
-  { sub: "Analiza", main: "Nën kontroll" },
-  { sub: "Financat", main: "Në fokus" },
-];
+/* ─── weather code → label ───────────────────────────────────── */
+function weatherLabel(code) {
+  if (code === 0)                        return "☀ Kthjellët";
+  if (code <= 3)                         return "⛅ Vranët";
+  if (code <= 48)                        return "🌫 Mjegull";
+  if (code <= 67)                        return "🌧 Shi";
+  if (code <= 77)                        return "❄ Borë";
+  if (code <= 82)                        return "🌦 Shi i lehtë";
+  if (code <= 99)                        return "⛈ Stuhi";
+  return "🌤 E panjohur";
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -79,50 +78,72 @@ export default function Dashboard() {
 
   /* ── dynamic greeting ── */
   const [phraseIdx, setPhraseIdx]     = useState(0);
-  const [phase, setPhase]             = useState("welcome");
-  const [contextCard, setContextCard] = useState(null); // { sub, main } shown on hover/click
+  const [contextCard, setContextCard] = useState(null);
   const [fadeIn, setFadeIn]           = useState(true);
+  const [weather, setWeather]         = useState(null);   // "18° ☀ Kthjellët"
+  const [localTime, setLocalTime]     = useState("");     // "14:32"
+
+  /* live clock — update every minute */
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setLocalTime(now.toLocaleTimeString("sq-AL", { hour: "2-digit", minute: "2-digit" }));
+    };
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  /* fetch weather via geolocation + open-meteo (no key needed) */
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(({ coords }) => {
+      const { latitude: lat, longitude: lon } = coords;
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(r => r.json())
+        .then(d => {
+          const { temperature, weathercode } = d.current_weather;
+          setWeather(`${Math.round(temperature)}° ${weatherLabel(weathercode)}`);
+        })
+        .catch(() => {});
+    }, () => {});
+  }, []);
+
+  /* build the full phrase sequence */
+  const userName = user?.full_name || user?.name || user?.email?.split("@")[0] || "";
+  const EXTRA_PHRASES = ["Sot në fokus", "Shifrat e ditës", "Gjendja juaj", "Pasqyra e ditës", "Nën kontroll"];
+
+  const PHRASES = [
+    { sub: "Pasqyra Financiare", main: `Mirë se vjen, ${userName}` },
+    ...(localTime ? [{ sub: "Ora lokale", main: localTime }] : []),
+    ...(weather   ? [{ sub: "Moti sot",   main: weather   }] : []),
+    ...EXTRA_PHRASES.map(main => ({ sub: "Pasqyra Financiare", main })),
+  ];
 
   const triggerTransition = (nextFn) => {
     setFadeIn(false);
     setTimeout(() => { nextFn(); setFadeIn(true); }, 250);
   };
 
-  /* navigate with a title flash first */
   const navWithFlash = (phrase, route) => {
     triggerTransition(() => setContextCard(phrase));
     if (route) setTimeout(() => navigate(route), 380);
   };
 
-  /* hover in/out */
   const onCardEnter = (phrase) => triggerTransition(() => setContextCard(phrase));
   const onCardLeave = () => triggerTransition(() => setContextCard(null));
 
-  /* cycle phrase every 7s */
+  /* cycle every 7s */
   useEffect(() => {
+    if (!PHRASES.length) return;
     const id = setInterval(() => {
       if (contextCard) return;
-      triggerTransition(() => {
-        setPhraseIdx(i => {
-          const pool = phase === "welcome" ? WELCOME_PHRASES : INSIGHT_PHRASES;
-          return (i + 1) % pool.length;
-        });
-      });
+      triggerTransition(() => setPhraseIdx(i => (i + 1) % PHRASES.length));
     }, 7000);
     return () => clearInterval(id);
-  }, [phase, contextCard]);
+  }, [contextCard, PHRASES.length]);
 
-  /* switch to insight mode after 60s */
-  useEffect(() => {
-    const id = setTimeout(() => {
-      triggerTransition(() => { setPhase("insight"); setPhraseIdx(0); });
-    }, 60000);
-    return () => clearTimeout(id);
-  }, []);
-
-  const activePhrase = contextCard
-    ?? (phase === "welcome" ? WELCOME_PHRASES[phraseIdx % WELCOME_PHRASES.length]
-                            : INSIGHT_PHRASES[phraseIdx % INSIGHT_PHRASES.length]);
+  const activePhrase = contextCard ?? (PHRASES[phraseIdx % Math.max(PHRASES.length, 1)] || PHRASES[0]);
 
   useEffect(() => { loadDashboardData(); }, [period, vatMode]);
 
