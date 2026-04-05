@@ -412,7 +412,7 @@ export default function Dashboard() {
               style={{
                 opacity: fadeIn ? 1 : 0,
                 transform: fadeIn ? "translateY(0)" : "translateY(8px)",
-                fontSize: "clamp(1.6rem, 4vw, 3rem)",
+                fontSize: "clamp(1.2rem, 2.5vw, 2rem)",
               }}
             >
               {activePhrase.main}
