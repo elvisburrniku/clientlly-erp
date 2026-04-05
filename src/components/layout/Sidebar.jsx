@@ -193,13 +193,13 @@ export default function Sidebar() {
             : "gap-3 px-3 py-2.5 rounded-xl",
           isActive
             ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            : "text-slate-600 hover:bg-violet-100 hover:text-violet-900"
         )}
       >
         <item.icon className={cn(
           "shrink-0 transition-all duration-200",
           collapsed ? "w-[18px] h-[18px]" : "w-5 h-5",
-          isActive ? "text-white" : "text-slate-500"
+          isActive ? "text-white" : "text-violet-400"
         )} />
         {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
         {isActive && !collapsed && (
@@ -212,7 +212,7 @@ export default function Sidebar() {
   const renderSection = (key, label, items, opts = {}) => {
     if (items.length === 0) return null;
     const isOpen = sectionOpen[key];
-    const labelColor = opts.amber ? "text-amber-500" : "text-slate-400";
+    const labelColor = opts.amber ? "text-amber-500" : "text-violet-300";
     return (
       <div className="mt-4">
         {!collapsed && (
@@ -254,12 +254,12 @@ export default function Sidebar() {
       onMouseEnter={() => setCollapsed(false)}
       className={cn(
         "h-screen sticky top-0 flex flex-col transition-all duration-300 ease-in-out z-30",
-        "bg-white border-r border-slate-200 shadow-sm",
+        "bg-violet-50 border-r border-violet-100 shadow-sm",
         collapsed ? "w-[80px]" : "w-[260px]"
       )}
     >
       <div className={cn(
-        "flex items-center h-16 border-b border-slate-100 transition-all duration-300",
+        "flex items-center h-16 border-b border-violet-100 transition-all duration-300",
         collapsed ? "justify-center px-2" : "gap-3 px-5"
       )}>
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-md shadow-violet-200">
@@ -327,7 +327,7 @@ export default function Sidebar() {
                     : "gap-3 px-3 py-2.5 rounded-xl",
                   location.pathname === '/super-admin'
                     ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    : "text-slate-600 hover:bg-violet-100 hover:text-violet-900"
                 )}
               >
                 <ShieldCheck className={cn("shrink-0", collapsed ? "w-[18px] h-[18px]" : "w-5 h-5")} />
@@ -340,7 +340,7 @@ export default function Sidebar() {
 
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
+        className="flex items-center justify-center h-12 border-t border-violet-100 text-violet-300 hover:text-violet-600 hover:bg-violet-100 transition-colors"
         data-testid="button-toggle-sidebar"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
