@@ -19,6 +19,13 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
+function permissionSafe(promise, fallback) {
+  return promise.catch(err => {
+    if (err?.status === 403) return fallback;
+    throw err;
+  });
+}
+
 function createEntityClient(entityName) {
   return {
     async list(sort, limit = 1000) {
@@ -26,7 +33,7 @@ function createEntityClient(entityName) {
       if (sort) params.set('_sort', sort);
       if (limit) params.set('_limit', limit);
       const qs = params.toString();
-      return apiFetch(`/entities/${entityName}${qs ? `?${qs}` : ''}`);
+      return permissionSafe(apiFetch(`/entities/${entityName}${qs ? `?${qs}` : ''}`), []);
     },
 
     async all(sort, limit = 10000) {
@@ -34,10 +41,10 @@ function createEntityClient(entityName) {
     },
 
     async filter(filters = {}, sort, limit = 1000) {
-      return apiFetch(`/entities/${entityName}/filter`, {
+      return permissionSafe(apiFetch(`/entities/${entityName}/filter`, {
         method: 'POST',
         body: { ...filters, _sort: sort, _limit: limit },
-      });
+      }), []);
     },
 
     async create(data) {
@@ -61,7 +68,7 @@ function createEntityClient(entityName) {
     },
 
     async get(id) {
-      return apiFetch(`/entities/${entityName}/${id}`);
+      return permissionSafe(apiFetch(`/entities/${entityName}/${id}`), null);
     },
   };
 }
