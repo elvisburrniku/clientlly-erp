@@ -192,7 +192,7 @@ export default function Sidebar() {
             ? "justify-center w-10 h-10 mx-auto rounded-xl"
             : "gap-3 px-3 py-2.5 rounded-xl",
           isActive
-            ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
+            ? "bg-gradient-to-r from-violet-600 to-purple-700 text-white shadow-md shadow-violet-300"
             : "text-slate-800 hover:bg-violet-100 hover:text-violet-900"
         )}
       >
@@ -326,7 +326,7 @@ export default function Sidebar() {
                     ? "justify-center w-10 h-10 mx-auto rounded-xl"
                     : "gap-3 px-3 py-2.5 rounded-xl",
                   location.pathname === '/super-admin'
-                    ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
+                    ? "bg-gradient-to-r from-violet-600 to-purple-700 text-white shadow-md shadow-violet-300"
                     : "text-slate-800 hover:bg-violet-100 hover:text-violet-900"
                 )}
               >
