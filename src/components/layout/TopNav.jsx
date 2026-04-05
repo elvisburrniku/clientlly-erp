@@ -58,18 +58,25 @@ export default function TopNav() {
           <DropdownMenuTrigger asChild>
             <button
               data-testid="button-user-menu"
-              className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-lg hover:bg-accent transition-colors"
+              className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50 transition-all duration-200 shadow-sm group"
             >
-              <Avatar className="w-8 h-8">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+              <Avatar className="w-8 h-8 shrink-0">
+                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs font-bold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="text-left hidden sm:block">
-                <p className="text-sm font-medium leading-none" data-testid="text-user-name">{user?.full_name || "User"}</p>
-                <p className="text-xs text-muted-foreground capitalize mt-0.5" data-testid="text-user-role">{user?.role || "staff"}</p>
+                <p className="text-[13px] font-semibold leading-tight text-slate-800" data-testid="text-user-name">
+                  {user?.full_name || "User"}
+                </p>
+                <span
+                  data-testid="text-user-role"
+                  className="inline-block text-[10px] font-semibold capitalize px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 leading-tight mt-0.5"
+                >
+                  {user?.role || "staff"}
+                </span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-violet-500 transition-colors ml-0.5" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
