@@ -192,18 +192,18 @@ export default function Sidebar() {
             ? "justify-center w-10 h-10 mx-auto rounded-xl"
             : "gap-3 px-3 py-2.5 rounded-xl",
           isActive
-            ? "bg-white/15 text-white shadow-lg"
-            : "text-white/55 hover:bg-white/10 hover:text-white/90"
+            ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
+            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
         )}
       >
         <item.icon className={cn(
           "shrink-0 transition-all duration-200",
           collapsed ? "w-[18px] h-[18px]" : "w-5 h-5",
-          isActive ? "text-white" : "text-white/55"
+          isActive ? "text-white" : "text-slate-500"
         )} />
         {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
         {isActive && !collapsed && (
-          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
+          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/70" />
         )}
       </Link>
     );
@@ -212,7 +212,7 @@ export default function Sidebar() {
   const renderSection = (key, label, items, opts = {}) => {
     if (items.length === 0) return null;
     const isOpen = sectionOpen[key];
-    const labelColor = opts.amber ? "text-amber-400/60" : "text-white/30";
+    const labelColor = opts.amber ? "text-amber-500" : "text-slate-400";
     return (
       <div className="mt-4">
         {!collapsed && (
@@ -253,20 +253,20 @@ export default function Sidebar() {
       onMouseLeave={() => setCollapsed(true)}
       onMouseEnter={() => setCollapsed(false)}
       className={cn(
-        "h-screen sticky top-0 flex flex-col text-[hsl(230,40%,90%)] transition-all duration-300 ease-in-out z-30",
-        "bg-gradient-to-b from-slate-900 to-slate-800",
-        collapsed ? "w-[72px]" : "w-[250px]"
+        "h-screen sticky top-0 flex flex-col transition-all duration-300 ease-in-out z-30",
+        "bg-white border-r border-slate-200 shadow-sm",
+        collapsed ? "w-[80px]" : "w-[260px]"
       )}
     >
       <div className={cn(
-        "flex items-center h-16 border-b border-white/10 transition-all duration-300",
+        "flex items-center h-16 border-b border-slate-100 transition-all duration-300",
         collapsed ? "justify-center px-2" : "gap-3 px-5"
       )}>
-        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-md shadow-violet-200">
           <span className="text-white font-bold text-sm">E</span>
         </div>
         {!collapsed && (
-          <span className="text-base font-bold tracking-tight whitespace-nowrap text-white">
+          <span className="text-base font-bold tracking-tight whitespace-nowrap text-slate-900">
             ERP Finance
           </span>
         )}
@@ -299,7 +299,7 @@ export default function Sidebar() {
               <button
                 onClick={() => toggleSection("superAdmin")}
                 data-testid="section-toggle-superAdmin"
-                className="flex items-center w-full gap-1.5 px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-amber-400/60"
+                className="flex items-center w-full gap-1.5 px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-amber-500"
               >
                 <span className="flex-1 text-left">Super Admin</span>
                 <ChevronDown
@@ -326,8 +326,8 @@ export default function Sidebar() {
                     ? "justify-center w-10 h-10 mx-auto rounded-xl"
                     : "gap-3 px-3 py-2.5 rounded-xl",
                   location.pathname === '/super-admin'
-                    ? "bg-amber-500/20 text-amber-300 shadow-lg"
-                    : "text-amber-400/60 hover:bg-amber-500/10 hover:text-amber-300"
+                    ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md shadow-violet-200"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 )}
               >
                 <ShieldCheck className={cn("shrink-0", collapsed ? "w-[18px] h-[18px]" : "w-5 h-5")} />
@@ -340,7 +340,7 @@ export default function Sidebar() {
 
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center justify-center h-12 border-t border-white/10 text-white/30 hover:text-white transition-colors"
+        className="flex items-center justify-center h-12 border-t border-slate-100 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
         data-testid="button-toggle-sidebar"
       >
         {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
