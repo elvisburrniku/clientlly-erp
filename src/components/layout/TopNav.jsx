@@ -58,20 +58,18 @@ export default function TopNav() {
           <DropdownMenuTrigger asChild>
             <button
               data-testid="button-user-menu"
-              className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50 transition-all duration-200 shadow-sm group"
+              className="flex items-center gap-2 h-9 pl-1.5 pr-2.5 rounded-xl border border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50 transition-all duration-200 shadow-sm group"
             >
-              <Avatar className="w-8 h-8 shrink-0">
-                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-xs font-bold">
+              <Avatar className="w-6 h-6 shrink-0">
+                <AvatarFallback className="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-[11px] font-bold">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="text-left hidden sm:block">
-                <p className="text-[13px] font-semibold text-slate-800" data-testid="text-user-name">
-                  {user?.full_name || "User"}
-                </p>
-                <span data-testid="text-user-role" className="hidden">{user?.role || "staff"}</span>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-violet-500 transition-colors ml-0.5" />
+              <p className="text-[13px] font-semibold text-slate-800 hidden sm:block" data-testid="text-user-name">
+                {user?.full_name || "User"}
+              </p>
+              <span data-testid="text-user-role" className="hidden">{user?.role || "staff"}</span>
+              <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-violet-500 transition-colors" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
