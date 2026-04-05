@@ -89,7 +89,7 @@ export default function NotificationBell() {
           data-testid="button-notifications"
           className="relative w-9 h-9 rounded-xl flex items-center justify-center hover:bg-violet-50 transition-all duration-200"
         >
-          <Bell className="w-[18px] h-[18px] text-violet-600" />
+          <Bell className="w-[18px] h-[18px] text-violet-600 fill-violet-600" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 shadow-sm">
               {unreadCount > 99 ? '99+' : unreadCount}
