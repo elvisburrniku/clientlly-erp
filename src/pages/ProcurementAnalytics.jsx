@@ -45,7 +45,7 @@ export default function ProcurementAnalytics() {
       }
       const s = supplierMap[po.supplier_id];
       s.totalOrders++;
-      s.totalValue += po.total || 0;
+      s.totalValue += parseFloat(po.total) || 0;
       if (po.status === "received" || po.status === "closed") {
         s.receivedOrders++;
         if (po.expected_date && po.received_date) {
@@ -162,7 +162,7 @@ export default function ProcurementAnalytics() {
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale PO</p>
-          <p className="text-2xl font-bold mt-1">€{orders.reduce((s, o) => s + (o.total || 0), 0).toFixed(2)}</p>
+          <p className="text-2xl font-bold mt-1">€{orders.reduce((s, o) => s + (parseFloat(o.total) || 0), 0).toFixed(2)}</p>
         </div>
         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Furnitorë Aktivë</p>

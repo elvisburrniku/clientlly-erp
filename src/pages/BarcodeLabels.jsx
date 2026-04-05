@@ -97,7 +97,7 @@ function LabelPreview({ product, size = "medium" }) {
       ) : (
         <p className="text-[9px] text-muted-foreground italic">Pa barkod</p>
       )}
-      {product.price > 0 && <p className={cn("font-bold", s.textSize)}>€{(product.price || 0).toFixed(2)}</p>}
+      {product.price > 0 && <p className={cn("font-bold", s.textSize)}>€{(parseFloat(product.price) || 0).toFixed(2)}</p>}
     </div>
   );
 }
@@ -156,7 +156,7 @@ export default function BarcodeLabels() {
         <div style="font-weight:bold;font-size:14px;margin-bottom:4px;">${product.name}</div>
         ${product.sku ? `<div style="font-size:10px;color:#666;">SKU: ${product.sku}</div>` : ""}
         ${product.barcode ? `<div style="font-family:monospace;font-size:18px;letter-spacing:3px;margin:8px 0;">${product.barcode}</div>` : ""}
-        ${product.price > 0 ? `<div style="font-weight:bold;font-size:16px;">€${(product.price || 0).toFixed(2)}</div>` : ""}
+        ${product.price > 0 ? `<div style="font-weight:bold;font-size:16px;">€${(parseFloat(product.price) || 0).toFixed(2)}</div>` : ""}
       </div>
     `).join("");
 
@@ -291,7 +291,7 @@ export default function BarcodeLabels() {
                           <span className="text-xs text-muted-foreground italic">Pa barkod</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm">€{(product.price || 0).toFixed(2)}</td>
+                      <td className="px-6 py-4 text-sm">€{(parseFloat(product.price) || 0).toFixed(2)}</td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex gap-1.5 justify-end">
                           <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => { setEditBarcode(product); setBarcodeValue(product.barcode || ""); }} data-testid={`button-edit-barcode-${product.id}`}>

@@ -194,19 +194,19 @@ export default function PurchaseOrders() {
       if (i % 2 === 0) { doc.setFillColor(245, 247, 255); doc.rect(14, y - 4, 182, 7, "F"); }
       doc.text((item.product_name || "").slice(0, 40), 16, y);
       doc.text(String(item.quantity || 0), 100, y);
-      doc.text(`€${(item.unit_price || 0).toFixed(2)}`, 125, y);
+      doc.text(`€${(parseFloat(item.unit_price) || 0).toFixed(2)}`, 125, y);
       doc.text(`${item.tax_rate || 0}%`, 150, y);
-      const lineTotal = (item.quantity || 0) * (item.unit_price || 0) * (1 + (item.tax_rate || 0) / 100);
+      const lineTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0) * (1 + (parseFloat(item.tax_rate) || 0) / 100);
       doc.text(`€${lineTotal.toFixed(2)}`, 170, y);
       y += 7;
     });
 
     y += 5;
     doc.setFont("helvetica", "bold");
-    doc.text(`Nëntotali: €${(order.subtotal || 0).toFixed(2)}`, 140, y); y += 6;
-    doc.text(`TVSH: €${(order.tax_amount || 0).toFixed(2)}`, 140, y); y += 6;
+    doc.text(`Nëntotali: €${(parseFloat(order.subtotal) || 0).toFixed(2)}`, 140, y); y += 6;
+    doc.text(`TVSH: €${(parseFloat(order.tax_amount) || 0).toFixed(2)}`, 140, y); y += 6;
     doc.setFontSize(11);
-    doc.text(`TOTALI: €${(order.total || 0).toFixed(2)}`, 140, y);
+    doc.text(`TOTALI: €${(parseFloat(order.total) || 0).toFixed(2)}`, 140, y);
 
     doc.save(`${order.po_number || "PO"}.pdf`);
   };
@@ -293,7 +293,7 @@ export default function PurchaseOrders() {
                         {statusLabels[order.status] || order.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold text-right">€{(order.total || 0).toFixed(2)}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-right">€{(parseFloat(order.total) || 0).toFixed(2)}</td>
                     <td className="px-6 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -484,9 +484,9 @@ export default function PurchaseOrders() {
                       <tr key={i}>
                         <td className="px-4 py-2.5 text-sm">{item.product_name}</td>
                         <td className="px-4 py-2.5 text-sm text-right">{item.quantity}</td>
-                        <td className="px-4 py-2.5 text-sm text-right">€{(item.unit_price || 0).toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-sm text-right">€{(parseFloat(item.unit_price) || 0).toFixed(2)}</td>
                         <td className="px-4 py-2.5 text-sm text-right">{item.tax_rate || 0}%</td>
-                        <td className="px-4 py-2.5 text-sm font-semibold text-right">€{((item.quantity || 0) * (item.unit_price || 0) * (1 + (item.tax_rate || 0) / 100)).toFixed(2)}</td>
+                        <td className="px-4 py-2.5 text-sm font-semibold text-right">€{((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0) * (1 + (parseFloat(item.tax_rate) || 0) / 100)).toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -494,9 +494,9 @@ export default function PurchaseOrders() {
               </div>
 
               <div className="text-right space-y-1">
-                <p className="text-sm">Nëntotali: €{(viewOrder.subtotal || 0).toFixed(2)}</p>
-                <p className="text-sm">TVSH: €{(viewOrder.tax_amount || 0).toFixed(2)}</p>
-                <p className="text-lg font-bold">Totali: €{(viewOrder.total || 0).toFixed(2)}</p>
+                <p className="text-sm">Nëntotali: €{(parseFloat(viewOrder.subtotal) || 0).toFixed(2)}</p>
+                <p className="text-sm">TVSH: €{(parseFloat(viewOrder.tax_amount) || 0).toFixed(2)}</p>
+                <p className="text-lg font-bold">Totali: €{(parseFloat(viewOrder.total) || 0).toFixed(2)}</p>
               </div>
 
               {viewOrder.notes && (

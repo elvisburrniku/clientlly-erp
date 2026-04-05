@@ -255,10 +255,11 @@ export default function StockTransfers() {
                       {idx === 0 && <Label className="text-xs">Produkti</Label>}
                       <Select value={item.product_name} onValueChange={v => {
                         const prod = products.find(p => p.name === v);
-                        updateItem(idx, "product_name", v);
-                        if (prod) updateItem(idx, "product_id", prod.id);
+                        const newItems = [...form.items];
+                        newItems[idx] = { ...newItems[idx], product_name: v, ...(prod ? { product_id: prod.id } : {}) };
+                        setForm({ ...form, items: newItems });
                       }}>
-                        <SelectTrigger className="mt-1"><SelectValue placeholder="Produkti" /></SelectTrigger>
+                        <SelectTrigger className="mt-1" data-testid={`select-transfer-product-${idx}`}><SelectValue placeholder="Produkti" /></SelectTrigger>
                         <SelectContent>
                           {products.filter(p => p.is_active !== false).map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
                         </SelectContent>
