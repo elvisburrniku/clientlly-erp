@@ -6,7 +6,6 @@ module.exports = {
         extend: {
                 fontFamily: {
                         inter: ['var(--font-inter)'],
-                        playfair: ['var(--font-playfair)'],
                         marker: ['var(--font-marker)'],
                         script: ['var(--font-script)']
                 },

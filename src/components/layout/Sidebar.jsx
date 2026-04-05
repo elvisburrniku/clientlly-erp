@@ -186,16 +186,16 @@ export default function Sidebar() {
         to={item.path}
         data-testid={`nav-link-${item.path.replace('/', '') || 'dashboard'}`}
         className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200",
+          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
           isActive
-            ? "bg-indigo-500/20 text-white font-semibold"
-            : "text-slate-400 hover:bg-white/6 hover:text-white font-medium"
+            ? "bg-white/15 text-white shadow-lg backdrop-blur-sm"
+            : "text-white/55 hover:bg-white/8 hover:text-white/90"
         )}
       >
-        <item.icon className={cn("w-4 h-4 shrink-0", isActive ? "text-indigo-400" : "text-slate-500")} />
+        <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-white" : "text-white/50")} />
         {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
         {isActive && !collapsed && (
-          <span className="ml-auto w-1 h-4 rounded-full bg-indigo-400" />
+          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
         )}
       </Link>
     );
@@ -204,7 +204,7 @@ export default function Sidebar() {
   const renderSection = (key, label, items, opts = {}) => {
     if (items.length === 0) return null;
     const isOpen = sectionOpen[key];
-    const labelColor = opts.amber ? "text-amber-400/50" : "text-slate-500";
+    const labelColor = opts.amber ? "text-amber-400/60" : "text-white/30";
     return (
       <div className="mt-4">
         {!collapsed && (
@@ -213,7 +213,7 @@ export default function Sidebar() {
             data-testid={`section-toggle-${key}`}
             className={cn(
               "flex items-center w-full gap-1.5 px-3 mb-1 group",
-              "text-[10px] font-bold uppercase tracking-widest",
+              "text-[10px] font-semibold uppercase tracking-widest",
               labelColor
             )}
           >
@@ -251,12 +251,12 @@ export default function Sidebar() {
       )}
     >
       <div className="flex items-center gap-3 px-5 h-16 border-b border-white/10">
-        <div className="w-8 h-8 rounded-xl bg-indigo-500 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/30">
-          <span className="text-white font-extrabold text-sm">C</span>
+        <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0 backdrop-blur-sm">
+          <span className="text-white font-bold text-sm">E</span>
         </div>
         {!collapsed && (
-          <span className="text-base font-extrabold tracking-tight whitespace-nowrap text-white">
-            Clientlly ERP
+          <span className="text-base font-bold tracking-tight whitespace-nowrap text-white">
+            ERP Finance
           </span>
         )}
       </div>

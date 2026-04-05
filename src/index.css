@@ -1,4 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Architects+Daughter:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,72 +8,46 @@
 
 @layer base {
   :root {
-    --font-inter: 'Inter', sans-serif;
-    --font-playfair: 'Playfair Display', serif;
-    --font-marker: 'Inter', sans-serif;
-    --font-script: 'Inter', sans-serif;
-
-    /* Backgrounds */
-    --background: 0 0% 100%;
-    --foreground: 221 39% 11%;
-
-    /* Card */
+    --font-inter: 'Sora', sans-serif;
+    --font-marker: 'Architects Daughter', system-ui;
+    --font-script: 'Architects Daughter', system-ui;
+    --background: 230 40% 97%;
+    --foreground: 235 45% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 221 39% 11%;
-
-    /* Popover */
+    --card-foreground: 235 45% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 221 39% 11%;
-
-    /* Primary — indigo-600 #4F46E5 */
-    --primary: 243 75% 59%;
+    --popover-foreground: 235 45% 12%;
+    --primary: 244 75% 60%;
     --primary-foreground: 0 0% 100%;
-
-    /* Secondary — gray-100 */
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 221 39% 11%;
-
-    /* Muted — gray-50 */
-    --muted: 220 14% 97%;
-    --muted-foreground: 220 9% 46%;
-
-    /* Accent — indigo-50 */
-    --accent: 231 77% 96%;
-    --accent-foreground: 243 75% 59%;
-
-    /* Destructive */
+    --secondary: 230 40% 95%;
+    --secondary-foreground: 235 45% 12%;
+    --muted: 230 30% 94%;
+    --muted-foreground: 230 15% 50%;
+    --accent: 230 35% 93%;
+    --accent-foreground: 235 45% 12%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
-    /* Borders & inputs — gray-200 */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 243 75% 59%;
-
-    /* Charts */
-    --chart-1: 243 75% 59%;
+    --border: 230 25% 90%;
+    --input: 230 25% 90%;
+    --ring: 244 75% 60%;
+    --chart-1: 244 75% 60%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-
     --radius: 0.75rem;
-
-    /* Status colors */
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     --success: 160 60% 45%;
     --success-foreground: 0 0% 100%;
-
-    /* Sidebar — slate-900 / slate-800 gradient */
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 213 27% 84%;
-    --sidebar-primary: 239 84% 72%;
+    --sidebar-background: 244 60% 22%;
+    --sidebar-foreground: 230 40% 90%;
+    --sidebar-primary: 244 75% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 28% 17%;
-    --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 215 28% 16%;
-    --sidebar-ring: 239 84% 72%;
+    --sidebar-accent: 244 50% 30%;
+    --sidebar-accent-foreground: 230 40% 95%;
+    --sidebar-border: 244 40% 28%;
+    --sidebar-ring: 244 75% 60%;
   }
 
   .dark {
@@ -81,7 +57,7 @@
     --card-foreground: 213 31% 91%;
     --popover: 215 28% 17%;
     --popover-foreground: 213 31% 91%;
-    --primary: 239 84% 72%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
     --secondary: 215 28% 17%;
     --secondary-foreground: 213 31% 91%;
@@ -93,20 +69,20 @@
     --destructive-foreground: 0 0% 98%;
     --border: 215 28% 22%;
     --input: 215 28% 22%;
-    --ring: 239 84% 72%;
-    --chart-1: 239 84% 72%;
+    --ring: 221 83% 53%;
+    --chart-1: 221 83% 53%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --sidebar-background: 222 50% 8%;
     --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 239 84% 72%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 215 28% 14%;
     --sidebar-accent-foreground: 213 31% 91%;
     --sidebar-border: 215 28% 14%;
-    --sidebar-ring: 239 84% 72%;
+    --sidebar-ring: 221 83% 53%;
   }
 }
 
@@ -115,48 +91,6 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-inter font-normal;
-  }
-  h1, h2, h3 {
-    @apply font-extrabold;
-  }
-  h4, h5, h6 {
-    @apply font-bold;
+    @apply bg-background text-foreground font-inter font-black;
   }
 }
-
-/* ===== Clientlly Animations ===== */
-@keyframes gentle-rise {
-  from { opacity: 0; transform: translateY(22px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes gentle-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes gentle-scale {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes accordion-down {
-  from { height: 0; }
-  to   { height: var(--radix-accordion-content-height); }
-}
-@keyframes accordion-up {
-  from { height: var(--radix-accordion-content-height); }
-  to   { height: 0; }
-}
-
-.anim-rise  { animation: gentle-rise  0.55s cubic-bezier(.22,1,.36,1) both; }
-.anim-fade  { animation: gentle-fade  0.5s ease both; }
-.anim-scale { animation: gentle-scale 0.5s cubic-bezier(.22,1,.36,1) both; }
-.anim-d1 { animation-delay: 0.1s; }
-.anim-d2 { animation-delay: 0.2s; }
-.anim-d3 { animation-delay: 0.3s; }
-.anim-d4 { animation-delay: 0.4s; }
-.anim-d5 { animation-delay: 0.5s; }
-.animate-fade-in { animation: fade-in 0.4s ease-out both; }
