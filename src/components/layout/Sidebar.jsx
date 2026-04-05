@@ -192,8 +192,8 @@ export default function Sidebar() {
             ? "justify-center w-10 h-10 mx-auto rounded-xl"
             : "gap-3 px-3 py-2.5 rounded-xl",
           isActive
-            ? "bg-gradient-to-r from-violet-600 to-purple-700 text-white shadow-md shadow-violet-300"
-            : "text-slate-800 hover:bg-violet-100 hover:text-violet-900"
+            ? "bg-gradient-to-r from-indigo-600 to-violet-700 text-white shadow-md shadow-indigo-300"
+            : "text-slate-800 hover:bg-indigo-50 hover:text-indigo-900"
         )}
       >
         <item.icon className={cn(
@@ -212,7 +212,7 @@ export default function Sidebar() {
   const renderSection = (key, label, items, opts = {}) => {
     if (items.length === 0) return null;
     const isOpen = sectionOpen[key];
-    const labelColor = opts.amber ? "text-amber-500" : "text-violet-300";
+    const labelColor = opts.amber ? "text-amber-500" : "text-indigo-400";
     return (
       <div className="mt-4">
         {!collapsed && (
@@ -262,7 +262,7 @@ export default function Sidebar() {
         "flex items-center h-16 border-b border-slate-100 transition-all duration-300",
         collapsed ? "justify-center px-2" : "gap-3 px-5"
       )}>
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 shadow-md shadow-violet-200">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0 shadow-md shadow-indigo-200">
           <span className="text-white font-bold text-sm">E</span>
         </div>
         {!collapsed && (
@@ -326,8 +326,8 @@ export default function Sidebar() {
                     ? "justify-center w-10 h-10 mx-auto rounded-xl"
                     : "gap-3 px-3 py-2.5 rounded-xl",
                   location.pathname === '/super-admin'
-                    ? "bg-gradient-to-r from-violet-600 to-purple-700 text-white shadow-md shadow-violet-300"
-                    : "text-slate-800 hover:bg-violet-100 hover:text-violet-900"
+                    ? "bg-gradient-to-r from-indigo-600 to-violet-700 text-white shadow-md shadow-indigo-300"
+                    : "text-slate-800 hover:bg-indigo-50 hover:text-indigo-900"
                 )}
               >
                 <ShieldCheck className={cn("shrink-0", collapsed ? "w-[18px] h-[18px]" : "w-5 h-5")} />
