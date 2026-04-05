@@ -319,23 +319,21 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* ── Middle: Chart (left 2/3) + Sidebar (right 1/3) ────────── */}
+        {/* ── Middle: Chart (left 3/4) + Sidebar (right 1/4 = gjerësia e Kalendarit) ── */}
         <div
-          className="grid grid-cols-1 lg:grid-cols-3 gap-5 animate-fade-in"
+          className="grid grid-cols-1 lg:grid-cols-4 gap-5 animate-fade-in"
           style={{ animationDelay: "0.5s", animationFillMode: "both" }}
         >
           {/* Chart */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="lg:col-span-3 space-y-5">
             <SectionLabel>Grafiku i të Ardhurave</SectionLabel>
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
               <RevenueChart />
             </div>
           </div>
 
-          {/* Sidebar — Sinjalizimet + shortcuts */}
-          <div className="flex flex-col gap-2.5">
-            <SectionLabel>Sinjalizimet & Navigim</SectionLabel>
-
+          {/* Sidebar — fillon ku fillon grafiku */}
+          <div className="flex flex-col gap-2.5 pt-10">
             {/* 6 nav quick-links */}
             <QuickLink icon={Users2}       label="Burimet Njerezore" sub="HR & menaxhim punonjësish"  onClick={() => navigate('/employees')} />
             <QuickLink icon={UserCheck}    label="Prezenca"          sub="Orari & prezenca ditore"     onClick={() => navigate('/attendance')} />
