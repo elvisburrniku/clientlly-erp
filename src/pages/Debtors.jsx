@@ -49,8 +49,8 @@ export default function Debtors() {
           };
         }
         const daysOverdue = inv.due_date ? Math.max(0, Math.floor((Date.now() - new Date(inv.due_date)) / (1000 * 60 * 60 * 24))) : 0;
-        debtorMap[inv.client_name].total_amount += inv.amount || 0;
-        debtorMap[inv.client_name].paid_amount += inv.payment_records?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+        debtorMap[inv.client_name].total_amount += parseFloat(inv.amount || 0);
+        debtorMap[inv.client_name].paid_amount += inv.payment_records?.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0) || 0;
         debtorMap[inv.client_name].invoices.push({
           number: inv.invoice_number,
           client_name: inv.client_name,

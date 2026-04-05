@@ -64,23 +64,32 @@ export default function Dashboard() {
         return d.getFullYear() === now.getFullYear();
       });
 
-      const getAmount = (inv) => vatMode === "inc" ? (inv.amount || 0) : (inv.subtotal || inv.amount || 0);
+      const getAmount = (inv) => vatMode === "inc" ? parseFloat(inv.amount || 0) : parseFloat(inv.subtotal || inv.amount || 0);
 
       const totalInvoices = filtered.reduce((sum, inv) => sum + getAmount(inv), 0);
-      const cashIn = transactions.filter(t => t.type === "cash_in").reduce((sum, t) => sum + (t.amount || 0), 0);
-      const cashOut = transactions.filter(t => t.type === "cash_out").reduce((sum, t) => sum + (t.amount || 0), 0);
+      const cashIn = transactions.filter(t => t.type === "cash_in").reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+      const cashOut = transactions.filter(t => t.type === "cash_out").reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
       const cashBalance = cashIn - cashOut;
-      const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const totalExpenses = expenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
       const netProfit = totalInvoices - totalExpenses;
 
-      const usersWithCash = users.filter(u => (u.cash_on_hand || 0) > 0);
-      const totalUndelivered = usersWithCash.reduce((sum, u) => sum + (u.cash_on_hand || 0), 0);
+      const usersWithCash = users.filter(u => parseFloat(u.cash_on_hand || 0) > 0);
+      const totalUndelivered = usersWithCash.reduce((sum, u) => sum + parseFloat(u.cash_on_hand || 0), 0);
       const uniqueClients = new Set(filtered.map(i => i.client_name)).size;
+
+      // Debt = sum of unpaid balances from open invoices (period-filtered)
+      const totalDebt = filtered.reduce((sum, inv) => {
+        if (inv.status === 'cancelled') return sum;
+        const invAmount = getAmount(inv);
+        const paid = (inv.payment_records || []).reduce((ps, p) => ps + parseFloat(p.amount || 0), 0);
+        const balance = invAmount - paid;
+        return sum + (balance > 0 ? balance : 0);
+      }, 0);
 
       setStats({
         totalInvoices,
         totalExpenses,
-        totalDebt: totalInvoices - cashIn,
+        totalDebt,
         clientCount: uniqueClients,
         cashBalance,
         undeliveredCash: totalUndelivered,

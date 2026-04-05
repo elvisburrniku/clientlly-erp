@@ -186,7 +186,7 @@ export default function Invoices() {
       const users = await base44.entities.User.filter({ email: currentUser.email });
       if (users.length > 0) {
         const u = users[0];
-        await base44.entities.User.update(u.id, { cash_on_hand: (u.cash_on_hand || 0) + amount });
+        await base44.entities.User.update(u.id, { cash_on_hand: parseFloat(u.cash_on_hand || 0) + parseFloat(amount || 0) });
       }
     }
     setDialogOpen(false);
