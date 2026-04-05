@@ -1,4 +1,4 @@
-import { ChevronDown, LogOut, Settings as SettingsIcon, User as UserIcon } from "lucide-react";
+import { ChevronDown, LogOut, Settings as SettingsIcon, User as UserIcon, LogIn, Coffee, CircleStop } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -14,12 +14,22 @@ import LanguageSwitcher from './LanguageSwitcher';
 import NotificationBell from './NotificationBell';
 import GlobalSearch from './GlobalSearch';
 import { useLanguage } from "@/lib/useLanguage";
+import { cn } from "@/lib/utils";
+
+/* ── Attendance states: idle | checked_in | on_break ── */
+const STORAGE_KEY = "attendance_status";
 
 export default function TopNav() {
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  /* ── attendance ── */
+  const [attendance, setAttendance] = useState(
+    () => localStorage.getItem(STORAGE_KEY) || "idle"
+  );
+  const setStatus = (s) => { setAttendance(s); localStorage.setItem(STORAGE_KEY, s); };
 
   useEffect(() => {
     base44.auth.me().then(u => {
@@ -48,6 +58,61 @@ export default function TopNav() {
     <header className="h-16 border-b border-border bg-white/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-20">
       <div className="flex items-center gap-3 flex-1 max-w-md">
         <GlobalSearch />
+      </div>
+
+      {/* ── Attendance widget ── */}
+      <div className="flex items-center gap-1 mx-4 bg-slate-50 border border-slate-200 rounded-xl p-1 shadow-sm">
+        {/* Check In */}
+        <button
+          onClick={() => setStatus("checked_in")}
+          disabled={attendance !== "idle"}
+          title="Check In"
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200",
+            attendance === "idle"
+              ? "bg-emerald-500 text-white shadow-sm shadow-emerald-200 hover:bg-emerald-600"
+              : attendance === "checked_in"
+              ? "bg-emerald-100 text-emerald-600 cursor-default"
+              : "text-slate-400 cursor-not-allowed"
+          )}
+        >
+          <LogIn className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Hyrje</span>
+        </button>
+
+        {/* Pause */}
+        <button
+          onClick={() => setStatus(attendance === "on_break" ? "checked_in" : "on_break")}
+          disabled={attendance === "idle"}
+          title={attendance === "on_break" ? "Vazhdo" : "Pauzë"}
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200",
+            attendance === "on_break"
+              ? "bg-amber-500 text-white shadow-sm shadow-amber-200 hover:bg-amber-600"
+              : attendance === "checked_in"
+              ? "text-amber-600 hover:bg-amber-50"
+              : "text-slate-300 cursor-not-allowed"
+          )}
+        >
+          <Coffee className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">{attendance === "on_break" ? "Vazhdo" : "Pauzë"}</span>
+        </button>
+
+        {/* Check Out */}
+        <button
+          onClick={() => setStatus("idle")}
+          disabled={attendance === "idle"}
+          title="Check Out"
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200",
+            attendance !== "idle"
+              ? "text-rose-600 hover:bg-rose-50"
+              : "text-slate-300 cursor-not-allowed"
+          )}
+        >
+          <CircleStop className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Dalje</span>
+        </button>
       </div>
 
       <div className="flex items-center gap-2">
