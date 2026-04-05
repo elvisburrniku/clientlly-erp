@@ -1,0 +1,37 @@
+
+﻿
+installHook.js:1 Another version of Vue Devtools seems to be installed. Please enable only one version at a time.
+manifest.json:1 Manifest: Line: 1, column: 1, Syntax error.
+manifest.json:1 Manifest: Line: 1, column: 1, Syntax error.
+2
+AuthContext.jsx:70 Uncaught Error: useAuth must be used within an AuthProvider
+    at useAuth (AuthContext.jsx:70:23)
+    at AuthenticatedApp (App.jsx:102:82)
+installHook.js:1 The above error occurred in the <AuthenticatedApp> component:
+
+    at AuthenticatedApp (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/App.jsx:119:82)
+    at AuthProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/lib/AuthContext.jsx?t=1775391278199:21:32)
+    at RenderedRoute (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=a166fd69:4131:5)
+    at Routes (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=a166fd69:4601:5)
+    at Router (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=a166fd69:4544:15)
+    at BrowserRouter (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=a166fd69:5290:5)
+    at QueryClientProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=a166fd69:3168:3)
+    at LanguageProvider (https://fe058885-de7a-40b6-94da-d3f33dfd5b10-00-m4bjz13f1uh0.kirk.replit.dev/src/lib/useLanguage.jsx:21:36)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+AuthContext.jsx:70 Uncaught (in promise) Error: useAuth must be used within an AuthProvider
+    at useAuth (AuthContext.jsx:70:23)
+    at AuthenticatedApp (App.jsx:102:82)
+/src/pages/Dashboard…x?t=1775391864959:1 
+ Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+installHook.js:1 [vite] Failed to reload /src/pages/Dashboard.jsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+/api/entities/CashTransaction/filter:1 
+ Failed to load resource: the server responded with a status of 403 (Forbidden)
+/api/entities/Expense/filter:1 
+ Failed to load resource: the server responded with a status of 403 (Forbidden)
+/api/entities/Supplier/filter:1 
+ Failed to load resource: the server responded with a status of 403 (Forbidden)
+/api/entities/User?_limit=1000:1 
+ Failed to load resource: the server responded with a status of 403 (Forbidden)

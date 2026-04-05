@@ -65,8 +65,18 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+const AUTH_FALLBACK = {
+  user: null,
+  isAuthenticated: false,
+  isLoadingAuth: true,
+  isLoadingPublicSettings: false,
+  authError: null,
+  logout: () => {},
+  navigateToLogin: () => {},
+  checkAppState: () => Promise.resolve(null),
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
-  return context;
+  return context || AUTH_FALLBACK;
 };

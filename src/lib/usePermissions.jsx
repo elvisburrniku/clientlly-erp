@@ -59,8 +59,18 @@ export function PermissionsProvider({ children }) {
   );
 }
 
+const PERMISSIONS_FALLBACK = {
+  permissions: null,
+  fullAccess: false,
+  loading: true,
+  can: () => false,
+  canView: () => false,
+  canCreate: () => false,
+  canEdit: () => false,
+  canDelete: () => false,
+};
+
 export function usePermissions() {
   const context = useContext(PermissionsContext);
-  if (!context) throw new Error('usePermissions must be used within PermissionsProvider');
-  return context;
+  return context || PERMISSIONS_FALLBACK;
 }
