@@ -127,7 +127,7 @@ export default function Dashboard() {
   /* ── loading skeleton ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6 lg:p-8 space-y-7">
+      <div className="min-h-screen bg-gray-50 p-6 lg:p-8 space-y-7">
         <div className="flex items-end justify-between">
           <div className="space-y-2">
             <div className="h-4 w-36 bg-slate-200 rounded animate-pulse" />
