@@ -1,45 +1,67 @@
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
-export default function StatCard({ icon: Icon, title, value, description, variant = "default", color = "blue", trend }) {
-  const colorMap = {
-    blue:   { bg: "bg-blue-50",   icon: "bg-blue-500",   text: "text-blue-600",   ring: "ring-blue-100" },
-    violet: { bg: "bg-violet-50", icon: "bg-violet-500", text: "text-violet-600", ring: "ring-violet-100" },
-    rose:   { bg: "bg-rose-50",   icon: "bg-rose-500",   text: "text-rose-600",   ring: "ring-rose-100" },
-    teal:   { bg: "bg-teal-50",   icon: "bg-teal-500",   text: "text-teal-600",   ring: "ring-teal-100" },
-    amber:  { bg: "bg-amber-50",  icon: "bg-amber-500",  text: "text-amber-600",  ring: "ring-amber-100" },
-    green:  { bg: "bg-emerald-50",icon: "bg-emerald-500",text: "text-emerald-600",ring: "ring-emerald-100" },
-  };
+const colorMap = {
+  blue:   { strip: "bg-blue-500",   badge: "bg-blue-50 text-blue-600 border-blue-200",   icon: "bg-blue-50 text-blue-500"   },
+  violet: { strip: "bg-violet-500", badge: "bg-violet-50 text-violet-600 border-violet-200", icon: "bg-violet-50 text-violet-500" },
+  rose:   { strip: "bg-rose-500",   badge: "bg-rose-50 text-rose-600 border-rose-200",   icon: "bg-rose-50 text-rose-500"   },
+  teal:   { strip: "bg-teal-500",   badge: "bg-teal-50 text-teal-600 border-teal-200",   icon: "bg-teal-50 text-teal-500"   },
+  amber:  { strip: "bg-amber-500",  badge: "bg-amber-50 text-amber-600 border-amber-200",  icon: "bg-amber-50 text-amber-500"  },
+  green:  { strip: "bg-emerald-500",badge: "bg-emerald-50 text-emerald-600 border-emerald-200",icon: "bg-emerald-50 text-emerald-500"},
+  indigo: { strip: "bg-indigo-500", badge: "bg-indigo-50 text-indigo-600 border-indigo-200", icon: "bg-indigo-50 text-indigo-500" },
+  pink:   { strip: "bg-pink-500",   badge: "bg-pink-50 text-pink-600 border-pink-200",   icon: "bg-pink-50 text-pink-500"   },
+  cyan:   { strip: "bg-cyan-500",   badge: "bg-cyan-50 text-cyan-600 border-cyan-200",   icon: "bg-cyan-50 text-cyan-500"   },
+  purple: { strip: "bg-purple-500", badge: "bg-purple-50 text-purple-600 border-purple-200", icon: "bg-purple-50 text-purple-500" },
+};
 
-  const c = variant === "warning" ? colorMap.amber : (colorMap[color] || colorMap.blue);
+export default function StatCard({ icon: Icon, title, value, description, color = "blue", badge }) {
+  const c = colorMap[color] || colorMap.blue;
 
   return (
     <div className={cn(
-      "group relative overflow-hidden rounded-2xl border bg-white p-6 transition-all duration-300",
-      "hover:shadow-lg hover:-translate-y-0.5 shadow-sm border-border/60"
+      "group relative bg-white rounded-2xl border border-border/50 overflow-hidden",
+      "shadow-sm hover:shadow-lg hover:-translate-y-1",
+      "transition-all duration-300 ease-out"
     )}>
-      {/* Top accent line */}
-      <div className={cn("absolute top-0 left-0 right-0 h-0.5", c.icon)} />
+      {/* top colour strip */}
+      <div className={cn("h-1 w-full", c.strip)} />
 
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
+      <div className="p-5">
+        {/* header: title + icon */}
+        <div className="flex items-start justify-between mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground leading-none pt-0.5">
             {title}
           </p>
-          <p className="text-2xl font-bold tracking-tight text-foreground leading-none">
-            {value}
-          </p>
+          <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center shrink-0", c.icon)}>
+            <Icon className="w-4 h-4" />
+          </div>
+        </div>
+
+        {/* big number */}
+        <p className="text-[2rem] font-black tracking-tight text-foreground leading-none mb-4">
+          {value}
+        </p>
+
+        {/* bottom row: badge + description */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {badge && (
+            <span className={cn(
+              "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest border",
+              badge.color === "green"  && "bg-emerald-50 text-emerald-600 border-emerald-200",
+              badge.color === "red"    && "bg-rose-50 text-rose-600 border-rose-200",
+              badge.color === "amber"  && "bg-amber-50 text-amber-600 border-amber-200",
+              badge.color === "blue"   && "bg-blue-50 text-blue-600 border-blue-200",
+              badge.color === "muted"  && "bg-muted text-muted-foreground border-border",
+              badge.color === "violet" && "bg-violet-50 text-violet-600 border-violet-200",
+            )}>
+              {badge.dot && <span className="w-1.5 h-1.5 rounded-full bg-current" />}
+              {badge.label}
+            </span>
+          )}
           {description && (
-            <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+            <p className="text-[11px] text-muted-foreground leading-snug">
               {description}
             </p>
           )}
-        </div>
-        <div className={cn(
-          "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ring-4",
-          c.icon, c.ring
-        )}>
-          <Icon className="w-5 h-5 text-white" />
         </div>
       </div>
     </div>
