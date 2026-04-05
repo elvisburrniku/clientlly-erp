@@ -41,7 +41,7 @@ export default function TopNav() {
   };
 
   const initials = user?.full_name
-    ? user.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    ? user.full_name.split(" ")[0][0].toUpperCase()
     : "U";
 
   return (

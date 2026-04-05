@@ -17,9 +17,6 @@ export default function LanguageSwitcher() {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-slate-200 bg-white hover:border-violet-300 hover:bg-violet-50 transition-all duration-200 shadow-sm group">
           <Globe className="w-3.5 h-3.5 text-violet-500 group-hover:text-violet-600" />
-          <span className="text-[11px] font-bold text-slate-600 group-hover:text-violet-700 uppercase tracking-wide">
-            {language}
-          </span>
           <span className="text-sm leading-none">{currentLang?.flag}</span>
         </button>
       </DropdownMenuTrigger>
