@@ -97,24 +97,33 @@ export default function StockAlerts() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-primary" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Alarme</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className={cn("h-[3px] w-full", alerts.length > 0 ? "bg-rose-500" : "bg-emerald-500")} />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Bell className="w-4 h-4 text-primary" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Alarme</p></div>
+            <p className={cn("text-2xl font-bold", alerts.length > 0 ? "text-destructive" : "text-emerald-600")} data-testid="text-total-alerts">{alerts.length}</p>
           </div>
-          <p className={cn("text-2xl font-bold mt-2", alerts.length > 0 ? "text-destructive" : "text-emerald-600")} data-testid="text-total-alerts">{alerts.length}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-red-600">Kritike</p>
-          <p className="text-2xl font-bold mt-2 text-red-700" data-testid="text-critical-alerts">{criticalCount}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-rose-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><AlertTriangle className="w-4 h-4 text-rose-600" /><p className="text-xs font-semibold uppercase tracking-widest text-red-600">Kritike</p></div>
+            <p className="text-2xl font-bold text-red-700" data-testid="text-critical-alerts">{criticalCount}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-amber-200 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-amber-600">E Lartë</p>
-          <p className="text-2xl font-bold mt-2 text-amber-700" data-testid="text-high-alerts">{highCount}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-amber-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><TrendingDown className="w-4 h-4 text-amber-600" /><p className="text-xs font-semibold uppercase tracking-widest text-amber-600">E Lartë</p></div>
+            <p className="text-2xl font-bold text-amber-700" data-testid="text-high-alerts">{highCount}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-yellow-200 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-yellow-600">Mesatare</p>
-          <p className="text-2xl font-bold mt-2 text-yellow-700" data-testid="text-medium-alerts">{mediumCount}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-yellow-400" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Package className="w-4 h-4 text-yellow-600" /><p className="text-xs font-semibold uppercase tracking-widest text-yellow-600">Mesatare</p></div>
+            <p className="text-2xl font-bold text-yellow-700" data-testid="text-medium-alerts">{mediumCount}</p>
+          </div>
         </div>
       </div>
 

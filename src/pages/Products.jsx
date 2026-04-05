@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Pencil, MoreHorizontal, SlidersHorizontal, X, Download, FileSpreadsheet, Search } from "lucide-react";
+import { Plus, Trash2, Pencil, MoreHorizontal, SlidersHorizontal, X, Download, FileSpreadsheet, Search, Package, Layers } from "lucide-react";
 import { Sheet, SheetContent, SheetClose, SheetTrigger } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -191,17 +191,23 @@ export default function Products() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Produktesh</p>
-          <p className="text-2xl font-bold mt-1">{products.filter(p => p.is_active).length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">aktivë</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Package className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Produktesh</p></div>
+            <p className="text-2xl font-bold">{products.filter(p => p.is_active).length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">aktivë</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Shërbime vs Produkte</p>
-          <p className="text-2xl font-bold mt-1">
-            {products.filter(p => p.type === "service" && p.is_active).length} / {products.filter(p => p.type === "product" && p.is_active).length}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">shërbime / produkte</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Layers className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Shërbime vs Produkte</p></div>
+            <p className="text-2xl font-bold">
+              {products.filter(p => p.type === "service" && p.is_active).length} / {products.filter(p => p.type === "product" && p.is_active).length}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">shërbime / produkte</p>
+          </div>
         </div>
       </div>
 

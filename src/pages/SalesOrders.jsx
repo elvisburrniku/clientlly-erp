@@ -288,10 +288,18 @@ export default function SalesOrders() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        {["draft", "confirmed", "shipped", "delivered"].map(status => (
-          <div key={status} className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{STATUS_CONFIG[status].label}</p>
-            <p className="text-2xl font-bold mt-1">{orders.filter(o => o.status === status).length}</p>
+        {[
+          { s: "draft",     bar: "bg-slate-400",   icon: <FileText className="w-4 h-4 text-slate-400" /> },
+          { s: "confirmed", bar: "bg-blue-500",     icon: <CheckCircle className="w-4 h-4 text-blue-500" /> },
+          { s: "shipped",   bar: "bg-amber-500",    icon: <Truck className="w-4 h-4 text-amber-500" /> },
+          { s: "delivered", bar: "bg-emerald-500",  icon: <Package className="w-4 h-4 text-emerald-500" /> },
+        ].map(({ s, bar, icon }) => (
+          <div key={s} className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+            <div className={`h-[3px] w-full ${bar}`} />
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-1">{icon}<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{STATUS_CONFIG[s].label}</p></div>
+              <p className="text-2xl font-bold">{orders.filter(o => o.status === s).length}</p>
+            </div>
           </div>
         ))}
       </div>

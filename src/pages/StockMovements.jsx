@@ -102,18 +102,26 @@ export default function StockMovements() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        {["in", "out", "adjustment", "transfer"].map(t => {
+        {[
+          { t: "in",         bar: "bg-emerald-500" },
+          { t: "out",        bar: "bg-rose-500" },
+          { t: "adjustment", bar: "bg-amber-500" },
+          { t: "transfer",   bar: "bg-blue-500" },
+        ].map(({ t, bar }) => {
           const count = movements.filter(m => m.type === t).length;
           const Icon = typeIcons[t];
           return (
-            <div key={t} className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-              <div className="flex items-center gap-2">
-                <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", typeColors[t])}>
-                  <Icon className="w-4 h-4" />
+            <div key={t} className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+              <div className={`h-[3px] w-full ${bar}`} />
+              <div className="p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", typeColors[t])}>
+                    <Icon className="w-3.5 h-3.5" />
+                  </div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{typeLabels[t]}</p>
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{typeLabels[t]}</p>
+                <p className="text-2xl font-bold" data-testid={`text-count-${t}`}>{count}</p>
               </div>
-              <p className="text-2xl font-bold mt-2" data-testid={`text-count-${t}`}>{count}</p>
             </div>
           );
         })}

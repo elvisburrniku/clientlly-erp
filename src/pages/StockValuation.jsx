@@ -94,19 +94,19 @@ export default function StockValuation() {
           <p className="text-3xl font-bold mt-2" data-testid="text-total-value">€{totalValue.toFixed(2)}</p>
           <p className="text-xs opacity-60 mt-1">Metoda: Kosto Mesatare</p>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <div className="flex items-center gap-2">
-            <Package className="w-5 h-5 text-primary" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Njësi në Stok</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-teal-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Package className="w-4 h-4 text-teal-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Njësi në Stok</p></div>
+            <p className="text-2xl font-bold" data-testid="text-total-units">{totalItems.toFixed(0)}</p>
           </div>
-          <p className="text-2xl font-bold mt-2" data-testid="text-total-units">{totalItems.toFixed(0)}</p>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Artikuj Unik</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><BarChart3 className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Artikuj Unik</p></div>
+            <p className="text-2xl font-bold" data-testid="text-unique-items">{inventory.length}</p>
           </div>
-          <p className="text-2xl font-bold mt-2" data-testid="text-unique-items">{inventory.length}</p>
         </div>
       </div>
 

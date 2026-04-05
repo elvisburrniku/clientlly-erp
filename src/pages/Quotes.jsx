@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetClose } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calendar, User, Upload, Bold, Type, PenTool } from 'lucide-react';
+import { Plus, FileText, Download, Filter, X, SlidersHorizontal, Search, Calendar, User, Upload, Bold, Type, PenTool, CheckCircle, DollarSign } from 'lucide-react';
 import { useLanguage } from '@/lib/useLanguage';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
@@ -370,20 +370,29 @@ export default function Quotes() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
-          <p className="text-2xl font-bold mt-1">{quotes.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Ofertat</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><FileText className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p></div>
+            <p className="text-2xl font-bold">{quotes.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Ofertat</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Pranuara</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">{quotes.filter(q => q.status === 'accepted').length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">E pranuara</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><CheckCircle className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Pranuara</p></div>
+            <p className="text-2xl font-bold text-emerald-600">{quotes.filter(q => q.status === 'accepted').length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">E pranuara</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 col-span-2 sm:col-span-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Gjithsej</p>
-          <p className="text-2xl font-bold mt-1 text-primary">€{quotes.reduce((s, q) => s + (q.amount || 0), 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Me TVSH</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden col-span-2 sm:col-span-1">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><DollarSign className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Gjithsej</p></div>
+            <p className="text-2xl font-bold text-primary">€{quotes.reduce((s, q) => s + (q.amount || 0), 0).toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Me TVSH</p>
+          </div>
         </div>
       </div>
 

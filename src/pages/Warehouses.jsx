@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, Trash2, Edit2, MoreHorizontal, Warehouse, MapPin, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, Edit2, MoreHorizontal, Warehouse, MapPin, ChevronDown, ChevronUp, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -151,17 +151,26 @@ export default function Warehouses() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Magazina</p>
-          <p className="text-2xl font-bold mt-1" data-testid="text-total-warehouses">{warehouses.length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Warehouse className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Magazina</p></div>
+            <p className="text-2xl font-bold" data-testid="text-total-warehouses">{warehouses.length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktive</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600" data-testid="text-active-warehouses">{warehouses.filter(w => w.is_active !== false).length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><CheckCircle className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktive</p></div>
+            <p className="text-2xl font-bold text-emerald-600" data-testid="text-active-warehouses">{warehouses.filter(w => w.is_active !== false).length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Lokacione</p>
-          <p className="text-2xl font-bold mt-1" data-testid="text-total-locations">{locations.length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-amber-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><MapPin className="w-4 h-4 text-amber-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Lokacione</p></div>
+            <p className="text-2xl font-bold" data-testid="text-total-locations">{locations.length}</p>
+          </div>
         </div>
       </div>
 

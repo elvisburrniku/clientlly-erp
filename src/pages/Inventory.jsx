@@ -163,19 +163,26 @@ export default function Inventory() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Produktet</p>
-          <p className="text-2xl font-bold mt-1">{totalItems}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Package className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Produktet</p></div>
+            <p className="text-2xl font-bold">{totalItems}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Stok i Ulët</p>
-          <p className={cn("text-2xl font-bold mt-1", lowStockItems.length > 0 ? "text-destructive" : "text-emerald-600")}>
-            {lowStockItems.length}
-          </p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className={cn("h-[3px] w-full", lowStockItems.length > 0 ? "bg-rose-500" : "bg-emerald-500")} />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><AlertTriangle className="w-4 h-4 text-amber-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Stok i Ulët</p></div>
+            <p className={cn("text-2xl font-bold", lowStockItems.length > 0 ? "text-destructive" : "text-emerald-600")}>{lowStockItems.length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Totali në Magazinë</p>
-          <p className="text-2xl font-bold mt-1">{filteredInventory.reduce((s, i) => s + i.quantity, 0)}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-teal-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Plus className="w-4 h-4 text-teal-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Totali në Magazinë</p></div>
+            <p className="text-2xl font-bold">{filteredInventory.reduce((s, i) => s + i.quantity, 0)}</p>
+          </div>
         </div>
       </div>
 

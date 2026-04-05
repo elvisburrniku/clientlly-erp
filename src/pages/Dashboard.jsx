@@ -16,26 +16,29 @@ import { useLanguage } from "@/lib/useLanguage.jsx";
 
 
 /* ─── Quick link button ──────────────────────────────────────── */
-function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", iconColor = "text-slate-500", iconAnim }) {
+function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", iconColor = "text-slate-500", iconAnim, accentBar = "bg-indigo-500" }) {
   return (
     <button
       onClick={onClick}
-      className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-1 transition-all duration-200 text-left shadow-sm"
+      className="group flex flex-col w-full rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-1 transition-all duration-200 text-left shadow-sm overflow-hidden"
     >
-      <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}
-        style={{ isolation: "isolate", willChange: iconAnim ? "transform" : "auto" }}
-      >
-        <Icon
-          className={`w-3.5 h-3.5 ${iconColor}`}
-          style={{ ...iconAnim, backfaceVisibility: "hidden" }}
-        />
+      <div className={`h-[3px] w-full ${accentBar}`} />
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div
+          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}
+          style={{ isolation: "isolate", willChange: iconAnim ? "transform" : "auto" }}
+        >
+          <Icon
+            className={`w-3.5 h-3.5 ${iconColor}`}
+            style={{ ...iconAnim, backfaceVisibility: "hidden" }}
+          />
+        </div>
+        <div className="flex-1 min-w-0" style={{ transform: "translateZ(0)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-800 truncate">{label}</p>
+          {sub && <p className="text-[11px] font-semibold text-slate-500 truncate leading-tight">{sub}</p>}
+        </div>
+        <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all shrink-0" />
       </div>
-      <div className="flex-1 min-w-0" style={{ transform: "translateZ(0)" }}>
-        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-800 truncate">{label}</p>
-        {sub && <p className="text-[11px] font-semibold text-slate-500 truncate leading-tight">{sub}</p>}
-      </div>
-      <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all shrink-0" />
     </button>
   );
 }
@@ -541,15 +544,15 @@ export default function Dashboard() {
             </div>
             <div className="flex flex-col justify-between h-full">
               {[
-                { icon: Users2,     label: "Burimet Njerezore", sub: "HR & menaxhim punonjësish", route: '/employees',   iconBg: "bg-violet-100",  iconColor: "text-violet-600",  iconAnim: { animation: 'userPulse 3s ease-in-out infinite' } },
-                { icon: Clock,      label: "Prezenca",          sub: "Orari & prezenca ditore",   route: '/attendance',  iconBg: "bg-blue-100",    iconColor: "text-blue-600",    iconAnim: { animation: 'spin 8s linear infinite' } },
-                { icon: Car,        label: "Motorpool",         sub: "Flotë & automjete",         route: '/vehicles',    iconBg: "bg-amber-100",   iconColor: "text-amber-600",   iconAnim: { animation: 'carSlide 2s ease-in-out infinite' } },
-                { icon: Tag,        label: "Ofertat",           sub: "Oferta & kuotacione",       route: '/quotes',      iconBg: "bg-emerald-100", iconColor: "text-emerald-600", iconAnim: { animation: 'tagSwing 2.5s ease-in-out infinite' } },
-                { icon: ScrollText, label: "Kontratat",         sub: "Kontratat e biznesit",      route: '/employees',   iconBg: "bg-rose-100",    iconColor: "text-rose-600",    iconAnim: { animation: 'scrollUp 2.5s ease-in-out infinite' } },
-                { icon: ShieldCheck,label: "Vërtetimet",        sub: "Certifikata & dokumente",   route: '/certificates',iconBg: "bg-teal-100",    iconColor: "text-teal-600",    iconAnim: { animation: 'shieldPulse 3s ease-in-out infinite' } },
-              ].map(({ icon, label, sub, route, iconBg, iconColor, iconAnim }) => (
+                { icon: Users2,     label: "Burimet Njerezore", sub: "HR & menaxhim punonjësish", route: '/employees',   iconBg: "bg-violet-100",  iconColor: "text-violet-600",  iconAnim: { animation: 'userPulse 3s ease-in-out infinite' },  accentBar: "bg-violet-500" },
+                { icon: Clock,      label: "Prezenca",          sub: "Orari & prezenca ditore",   route: '/attendance',  iconBg: "bg-blue-100",    iconColor: "text-blue-600",    iconAnim: { animation: 'spin 8s linear infinite' },            accentBar: "bg-blue-500" },
+                { icon: Car,        label: "Motorpool",         sub: "Flotë & automjete",         route: '/vehicles',    iconBg: "bg-amber-100",   iconColor: "text-amber-600",   iconAnim: { animation: 'carSlide 2s ease-in-out infinite' },   accentBar: "bg-amber-500" },
+                { icon: Tag,        label: "Ofertat",           sub: "Oferta & kuotacione",       route: '/quotes',      iconBg: "bg-emerald-100", iconColor: "text-emerald-600", iconAnim: { animation: 'tagSwing 2.5s ease-in-out infinite' }, accentBar: "bg-emerald-500" },
+                { icon: ScrollText, label: "Kontratat",         sub: "Kontratat e biznesit",      route: '/employees',   iconBg: "bg-rose-100",    iconColor: "text-rose-600",    iconAnim: { animation: 'scrollUp 2.5s ease-in-out infinite' }, accentBar: "bg-rose-500" },
+                { icon: ShieldCheck,label: "Vërtetimet",        sub: "Certifikata & dokumente",   route: '/certificates',iconBg: "bg-teal-100",    iconColor: "text-teal-600",    iconAnim: { animation: 'shieldPulse 3s ease-in-out infinite' },accentBar: "bg-teal-500" },
+              ].map(({ icon, label, sub, route, iconBg, iconColor, iconAnim, accentBar }) => (
                 <div key={label} onMouseEnter={() => onCardEnter({ sub: "Duke hapur", main: label })} onMouseLeave={onCardLeave}>
-                  <QuickLink icon={icon} label={label} sub={sub} onClick={() => navWithFlash({ sub: "Duke hapur", main: label }, route)} iconBg={iconBg} iconColor={iconColor} iconAnim={iconAnim} />
+                  <QuickLink icon={icon} label={label} sub={sub} onClick={() => navWithFlash({ sub: "Duke hapur", main: label }, route)} iconBg={iconBg} iconColor={iconColor} iconAnim={iconAnim} accentBar={accentBar} />
                 </div>
               ))}
             </div>

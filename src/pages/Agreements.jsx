@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, FileText, Trash2, Pencil, MoreHorizontal, AlertTriangle, Download, Paperclip, X } from 'lucide-react';
+import { Plus, FileText, Trash2, Pencil, MoreHorizontal, AlertTriangle, Download, Paperclip, X, CheckCircle, DollarSign } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -259,20 +259,29 @@ export default function Agreements() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
-          <p className="text-2xl font-bold mt-1" data-testid="text-total-agreements">{agreements.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Marrëveshje</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><FileText className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p></div>
+            <p className="text-2xl font-bold" data-testid="text-total-agreements">{agreements.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Marrëveshje</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktive</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">{agreements.filter(a => a.status === 'active').length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Marrëveshje</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><CheckCircle className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktive</p></div>
+            <p className="text-2xl font-bold text-emerald-600">{agreements.filter(a => a.status === 'active').length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Marrëveshje</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p>
-          <p className="text-2xl font-bold mt-1 text-primary">€{agreements.reduce((s, a) => s + parseFloat(a.value || 0), 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Kontrata aktive</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><DollarSign className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p></div>
+            <p className="text-2xl font-bold text-primary">€{agreements.reduce((s, a) => s + parseFloat(a.value || 0), 0).toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Kontrata aktive</p>
+          </div>
         </div>
       </div>
 

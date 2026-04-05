@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, Trash2, MoreHorizontal, Download, Pencil, Search, Sheet } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Download, Pencil, Search, Sheet, FileText, TrendingUp, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -206,17 +206,26 @@ export default function Revenues() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Regjistrime</p>
-          <p className="text-2xl font-bold mt-1">{filtered.length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><FileText className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Regjistrime</p></div>
+            <p className="text-2xl font-bold">{filtered.length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Të Ardhura</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">€{totalAmount.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><TrendingUp className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Të Ardhura</p></div>
+            <p className="text-2xl font-bold text-emerald-600">€{totalAmount.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Ky Muaj</p>
-          <p className="text-2xl font-bold mt-1 text-primary">€{thisMonth.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Calendar className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Ky Muaj</p></div>
+            <p className="text-2xl font-bold text-primary">€{thisMonth.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+          </div>
         </div>
       </div>
 

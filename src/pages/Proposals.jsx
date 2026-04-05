@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, FileText, Download, Copy, Send, Eye, Check, X, MoreHorizontal, Trash2, Pencil, ArrowRightLeft, Palette, ExternalLink } from 'lucide-react';
+import { Plus, FileText, Download, Copy, Send, Eye, Check, X, MoreHorizontal, Trash2, Pencil, ArrowRightLeft, Palette, ExternalLink, CheckCircle, DollarSign } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -368,20 +368,29 @@ export default function Proposals() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
-          <p className="text-2xl font-bold mt-1" data-testid="text-total-proposals">{totals.count}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Propozime</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><FileText className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p></div>
+            <p className="text-2xl font-bold" data-testid="text-total-proposals">{totals.count}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Propozime</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Pranuara</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600" data-testid="text-accepted-proposals">{totals.accepted}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Propozime</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><CheckCircle className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Pranuara</p></div>
+            <p className="text-2xl font-bold text-emerald-600" data-testid="text-accepted-proposals">{totals.accepted}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Propozime</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p>
-          <p className="text-2xl font-bold mt-1 text-primary" data-testid="text-total-value">€{totals.value.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Me TVSH</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><DollarSign className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p></div>
+            <p className="text-2xl font-bold text-primary" data-testid="text-total-value">€{totals.value.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Me TVSH</p>
+          </div>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, Trash2, MoreHorizontal, Download, Pencil, Search } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Download, Pencil, Search, FileText, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -219,14 +219,20 @@ export default function DebitNotes() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total</p>
-          <p className="text-2xl font-bold mt-1">{filtered.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">nota debitore</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><FileText className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total</p></div>
+            <p className="text-2xl font-bold">{filtered.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">nota debitore</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p>
-          <p className="text-2xl font-bold mt-1 text-orange-600">€{totalAmount.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-orange-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><TrendingUp className="w-4 h-4 text-orange-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p></div>
+            <p className="text-2xl font-bold text-orange-600">€{totalAmount.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+          </div>
         </div>
       </div>
 

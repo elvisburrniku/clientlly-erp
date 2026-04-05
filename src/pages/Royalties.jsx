@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Download } from "lucide-react";
+import { Download, FileText, DollarSign, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { base44 } from "@/api/base44Client";
 import { Label } from "@/components/ui/label";
@@ -182,17 +182,26 @@ export default function Royalties() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Faturat</p>
-          <p className="text-2xl font-bold mt-1">{filteredInvoices.length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><FileText className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Faturat</p></div>
+            <p className="text-2xl font-bold">{filteredInvoices.length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Pa TVSH</p>
-          <p className="text-2xl font-bold mt-1 text-primary">€{totalSubtotal.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><DollarSign className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Pa TVSH</p></div>
+            <p className="text-2xl font-bold text-primary">€{totalSubtotal.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Royalties ({royaltyPercentage}%)</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">€{totalRoyalties.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Percent className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Royalties ({royaltyPercentage}%)</p></div>
+            <p className="text-2xl font-bold text-emerald-600">€{totalRoyalties.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+          </div>
         </div>
       </div>
 

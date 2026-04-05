@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import {
   Plus, Trash2, Pencil, MoreHorizontal, Users, KanbanSquare, List,
-  GripVertical, ArrowRight, X, Search, Filter
+  GripVertical, ArrowRight, X, Search, Filter, Star, Trophy, TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -233,21 +233,33 @@ export default function Leads() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
-          <p className="text-2xl font-bold mt-1" data-testid="text-total-leads">{stats.total}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Users className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p></div>
+            <p className="text-2xl font-bold" data-testid="text-total-leads">{stats.total}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Rinj</p>
-          <p className="text-2xl font-bold mt-1 text-blue-600">{stats.new}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-blue-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Star className="w-4 h-4 text-blue-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Rinj</p></div>
+            <p className="text-2xl font-bold text-blue-600">{stats.new}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Fituar</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">{stats.won}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Trophy className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Fituar</p></div>
+            <p className="text-2xl font-bold text-emerald-600">{stats.won}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p>
-          <p className="text-2xl font-bold mt-1">€{stats.totalValue.toFixed(2)}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><TrendingUp className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vlera Totale</p></div>
+            <p className="text-2xl font-bold">€{stats.totalValue.toFixed(2)}</p>
+          </div>
         </div>
       </div>
 

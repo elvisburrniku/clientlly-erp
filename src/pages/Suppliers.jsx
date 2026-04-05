@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, Trash2, MoreHorizontal, Mail, Phone, Download, SlidersHorizontal, Merge, Link2, Copy } from "lucide-react";
+import { Plus, Trash2, MoreHorizontal, Mail, Phone, Download, SlidersHorizontal, Merge, Link2, Copy, Truck, CheckCircle, XCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader } from "@/components/ui/sheet";
 import { jsPDF } from "jspdf";
 import { Button } from "@/components/ui/button";
@@ -207,20 +207,29 @@ export default function Suppliers() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Furnitorësh</p>
-          <p className="text-2xl font-bold mt-1">{suppliers.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">të regjistruar</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Truck className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Furnitorësh</p></div>
+            <p className="text-2xl font-bold">{suppliers.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">të regjistruar</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktiv</p>
-          <p className="text-2xl font-bold mt-1 text-success">{suppliers.filter(s => s.is_active).length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">furnitorë aktiv</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><CheckCircle className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktiv</p></div>
+            <p className="text-2xl font-bold text-success">{suppliers.filter(s => s.is_active).length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">furnitorë aktiv</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Jo Aktiv</p>
-          <p className="text-2xl font-bold mt-1 text-muted-foreground">{suppliers.filter(s => !s.is_active).length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">të mos aktive</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-slate-400" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><XCircle className="w-4 h-4 text-slate-400" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Jo Aktiv</p></div>
+            <p className="text-2xl font-bold text-muted-foreground">{suppliers.filter(s => !s.is_active).length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">të mos aktive</p>
+          </div>
         </div>
       </div>
 

@@ -234,15 +234,21 @@ export default function Reminders() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Kujtesat Aktive</p>
-          <p className="text-2xl font-bold mt-1">{reminders.filter(r => r.is_active).length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">të aktivizuara</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Bell className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Kujtesat Aktive</p></div>
+            <p className="text-2xl font-bold">{reminders.filter(r => r.is_active).length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">të aktivizuara</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Kujtesash</p>
-          <p className="text-2xl font-bold mt-1">{reminders.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">regjistrime</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Plus className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Kujtesash</p></div>
+            <p className="text-2xl font-bold">{reminders.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">regjistrime</p>
+          </div>
         </div>
       </div>
 

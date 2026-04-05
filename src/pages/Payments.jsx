@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Search, Download, CreditCard, Banknote, Building2 } from "lucide-react";
+import { Search, Download, CreditCard, Banknote, Building2, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -134,30 +134,22 @@ export default function Payments() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Pagesa</p>
-          <p className="text-2xl font-bold mt-1">{filtered.length}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Mbledhur</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">€{totalCollected.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Para Cash</p>
-          <p className="text-2xl font-bold mt-1 text-blue-600">€{(byMethod["cash"] || 0).toLocaleString('en', { minimumFractionDigits: 2 })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Transferi Bankar</p>
-          <p className="text-2xl font-bold mt-1 text-violet-600">€{((byMethod["bank_transfer"] || 0) + (byMethod["bank"] || 0)).toLocaleString('en', { minimumFractionDigits: 2 })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Kartë</p>
-          <p className="text-2xl font-bold mt-1 text-amber-600">€{(byMethod["card"] || 0).toLocaleString('en', { minimumFractionDigits: 2 })}</p>
-        </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tjetër</p>
-          <p className="text-2xl font-bold mt-1 text-slate-600">€{(byMethod["other"] || 0).toLocaleString('en', { minimumFractionDigits: 2 })}</p>
-        </div>
+        {[
+          { bar: "bg-indigo-500", icon: <Search className="w-4 h-4 text-indigo-500" />, label: "Total Pagesa",       val: filtered.length,                                                                          cls: "" },
+          { bar: "bg-emerald-500", icon: <TrendingUp className="w-4 h-4 text-emerald-500" />, label: "Total Mbledhur", val: `€${totalCollected.toLocaleString('en',{minimumFractionDigits:2})}`,                    cls: "text-emerald-600" },
+          { bar: "bg-blue-500",   icon: <Banknote className="w-4 h-4 text-blue-500" />,    label: "Para Cash",       val: `€${(byMethod["cash"]||0).toLocaleString('en',{minimumFractionDigits:2})}`,               cls: "text-blue-600" },
+          { bar: "bg-violet-500", icon: <Building2 className="w-4 h-4 text-violet-500" />, label: "Transferi Bankar",val: `€${((byMethod["bank_transfer"]||0)+(byMethod["bank"]||0)).toLocaleString('en',{minimumFractionDigits:2})}`, cls: "text-violet-600" },
+          { bar: "bg-amber-500",  icon: <CreditCard className="w-4 h-4 text-amber-500" />, label: "Kartë",           val: `€${(byMethod["card"]||0).toLocaleString('en',{minimumFractionDigits:2})}`,               cls: "text-amber-600" },
+          { bar: "bg-slate-400",  icon: <Download className="w-4 h-4 text-slate-400" />,   label: "Tjetër",          val: `€${(byMethod["other"]||0).toLocaleString('en',{minimumFractionDigits:2})}`,              cls: "text-slate-600" },
+        ].map(({ bar, icon, label, val, cls }) => (
+          <div key={label} className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+            <div className={`h-[3px] w-full ${bar}`} />
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-1">{icon}<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{label}</p></div>
+              <p className={`text-2xl font-bold ${cls}`}>{val}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

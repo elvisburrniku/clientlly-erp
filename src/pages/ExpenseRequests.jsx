@@ -138,17 +138,26 @@ export default function ExpenseRequests() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Kërkesa</p>
-          <p className="text-2xl font-bold mt-1">{requests.length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Clock className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Kërkesa</p></div>
+            <p className="text-2xl font-bold">{requests.length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Në Pritje</p>
-          <p className="text-2xl font-bold mt-1 text-blue-600">{totalPending}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-blue-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Clock className="w-4 h-4 text-blue-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Në Pritje</p></div>
+            <p className="text-2xl font-bold text-blue-600">{totalPending}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aprovuara</p>
-          <p className="text-2xl font-bold mt-1 text-green-600">€{totalApproved.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><CheckCircle className="w-4 h-4 text-emerald-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aprovuara</p></div>
+            <p className="text-2xl font-bold text-green-600">€{totalApproved.toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+          </div>
         </div>
       </div>
 

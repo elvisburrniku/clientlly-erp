@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { Plus, Pin, PinOff, Pencil, Trash2, Megaphone, Eye } from "lucide-react";
+import { Plus, Pin, PinOff, Pencil, Trash2, Megaphone, Eye, MessageSquare, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -149,17 +149,26 @@ export default function Announcements() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
-          <p className="text-2xl font-bold mt-1" data-testid="text-total-announcements">{announcements.length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><MessageSquare className="w-4 h-4 text-indigo-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p></div>
+            <p className="text-2xl font-bold" data-testid="text-total-announcements">{announcements.length}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Palexuara</p>
-          <p className="text-2xl font-bold mt-1 text-amber-600" data-testid="text-unread-count">{unreadCount}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-amber-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Megaphone className="w-4 h-4 text-amber-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Të Palexuara</p></div>
+            <p className="text-2xl font-bold text-amber-600" data-testid="text-unread-count">{unreadCount}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pinned</p>
-          <p className="text-2xl font-bold mt-1 text-primary">{announcements.filter(a => a.is_pinned).length}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-2 mb-1"><Bell className="w-4 h-4 text-violet-500" /><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Pinned</p></div>
+            <p className="text-2xl font-bold text-primary">{announcements.filter(a => a.is_pinned).length}</p>
+          </div>
         </div>
       </div>
 

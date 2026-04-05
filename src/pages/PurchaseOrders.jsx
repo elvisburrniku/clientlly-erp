@@ -234,10 +234,18 @@ export default function PurchaseOrders() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {["draft", "ordered", "received", "closed"].map(s => (
-          <div key={s} className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{statusLabels[s]}</p>
-            <p className="text-2xl font-bold mt-1">{orders.filter(o => o.status === s).length}</p>
+        {[
+          { s: "draft",    bar: "bg-slate-400",  icon: <FileText className="w-4 h-4 text-slate-400" /> },
+          { s: "ordered",  bar: "bg-violet-500", icon: <Package className="w-4 h-4 text-violet-500" /> },
+          { s: "received", bar: "bg-teal-500",   icon: <Truck className="w-4 h-4 text-teal-500" /> },
+          { s: "closed",   bar: "bg-emerald-500",icon: <Check className="w-4 h-4 text-emerald-500" /> },
+        ].map(({ s, bar, icon }) => (
+          <div key={s} className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+            <div className={`h-[3px] w-full ${bar}`} />
+            <div className="p-5">
+              <div className="flex items-center gap-2 mb-1">{icon}<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{statusLabels[s]}</p></div>
+              <p className="text-2xl font-bold">{orders.filter(o => o.status === s).length}</p>
+            </div>
           </div>
         ))}
       </div>
