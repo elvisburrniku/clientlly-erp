@@ -303,7 +303,7 @@ export default function Dashboard() {
         </div>
 
         {/* ── Row 2: 4 nav/count cards (compact — half height) ───────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {cards.slice(4).map((card, i) => (
             <div
               key={card.title}
