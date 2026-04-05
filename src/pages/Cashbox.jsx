@@ -249,36 +249,45 @@ export default function Cashbox() {
 
       {/* Balance cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-card rounded-xl border border-border p-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('balance')}</p>
-              <p className="text-xl font-bold">€{balance.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-card rounded-xl border border-border p-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-              <ArrowDownCircle className="w-5 h-5 text-success" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('cashIn')}</p>
-              <p className="text-xl font-bold text-success">€{cashIn.toLocaleString()}</p>
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t('balance')}</p>
+                <p className="text-xl font-bold">€{balance.toLocaleString()}</p>
+              </div>
             </div>
           </div>
         </div>
-        <div className="bg-card rounded-xl border border-border p-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-              <ArrowUpCircle className="w-5 h-5 text-destructive" />
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                <ArrowDownCircle className="w-5 h-5 text-success" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t('cashIn')}</p>
+                <p className="text-xl font-bold text-success">€{cashIn.toLocaleString()}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('cashOut')}</p>
-              <p className="text-xl font-bold text-destructive">€{cashOut.toLocaleString()}</p>
+          </div>
+        </div>
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
+          <div className="h-[3px] w-full bg-rose-500" />
+          <div className="p-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+                <ArrowUpCircle className="w-5 h-5 text-destructive" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{t('cashOut')}</p>
+                <p className="text-xl font-bold text-destructive">€{cashOut.toLocaleString()}</p>
+              </div>
             </div>
           </div>
         </div>

@@ -218,20 +218,29 @@ export default function Certificates() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
-          <p className="text-2xl font-bold mt-1" data-testid="text-total-certificates">{certificates.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Certifikata</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
+            <p className="text-2xl font-bold mt-1" data-testid="text-total-certificates">{certificates.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Certifikata</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktive</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">{certificates.filter(c => c.status === 'active').length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Certifikata</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Aktive</p>
+            <p className="text-2xl font-bold mt-1 text-emerald-600">{certificates.filter(c => c.status === 'active').length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Certifikata</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Dërguar</p>
-          <p className="text-2xl font-bold mt-1 text-blue-600">{certificates.filter(c => c.sent_at).length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Me email</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-blue-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Dërguar</p>
+            <p className="text-2xl font-bold mt-1 text-blue-600">{certificates.filter(c => c.sent_at).length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Me email</p>
+          </div>
         </div>
       </div>
 

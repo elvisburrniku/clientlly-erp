@@ -424,20 +424,29 @@ export default function Invoices() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('total')}</p>
-          <p className="text-2xl font-bold mt-1">{invoices.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{t('invoices')}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('total')}</p>
+            <p className="text-2xl font-bold mt-1">{invoices.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('invoices')}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('openInvoices')}</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">{openCount}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{t('unpaid')}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('openInvoices')}</p>
+            <p className="text-2xl font-bold mt-1 text-emerald-600">{openCount}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('unpaid')}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 col-span-2 sm:col-span-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('total')}</p>
-          <p className="text-2xl font-bold mt-1 text-primary">€{totalRevenue.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{t('withVat')}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden col-span-2 sm:col-span-1">
+          <div className="h-[3px] w-full bg-violet-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('total')}</p>
+            <p className="text-2xl font-bold mt-1 text-primary">€{totalRevenue.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2})}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('withVat')}</p>
+          </div>
         </div>
       </div>
 

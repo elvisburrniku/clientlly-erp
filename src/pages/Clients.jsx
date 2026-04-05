@@ -286,21 +286,33 @@ export default function Clients() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
-          <p className="text-2xl font-bold mt-1">{stats.total}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej</p>
+            <p className="text-2xl font-bold mt-1">{stats.total}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Institucional</p>
-          <p className="text-2xl font-bold mt-1 text-blue-600">{stats.institutional}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-blue-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Institucional</p>
+            <p className="text-2xl font-bold mt-1 text-blue-600">{stats.institutional}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Biznesor</p>
-          <p className="text-2xl font-bold mt-1 text-amber-600">{stats.business}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-amber-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Biznesor</p>
+            <p className="text-2xl font-bold mt-1 text-amber-600">{stats.business}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rezidencial</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600">{stats.residential}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-emerald-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Rezidencial</p>
+            <p className="text-2xl font-bold mt-1 text-emerald-600">{stats.residential}</p>
+          </div>
         </div>
       </div>
 

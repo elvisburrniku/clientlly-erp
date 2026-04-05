@@ -323,15 +323,21 @@ export default function Expenses() {
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Shpenzimesh</p>
-          <p className="text-2xl font-bold mt-1 text-destructive">€{totalExpenses.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{hasActiveFilters ? "filtruara" : "të gjitha"}</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-rose-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Shpenzimesh</p>
+            <p className="text-2xl font-bold mt-1 text-destructive">€{totalExpenses.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{hasActiveFilters ? "filtruara" : "të gjitha"}</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Numri i Shpenzimeve</p>
-          <p className="text-2xl font-bold mt-1">{filtered.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">regjistrime</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Numri i Shpenzimeve</p>
+            <p className="text-2xl font-bold mt-1">{filtered.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">regjistrime</p>
+          </div>
         </div>
       </div>
 

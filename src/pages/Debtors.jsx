@@ -204,20 +204,29 @@ export default function Debtors() {
 
       {/* Summary Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Borxh</p>
-          <p className="text-2xl font-bold mt-1 text-destructive">€{totalOwed.toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">në pritje</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-rose-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Gjithsej Borxh</p>
+            <p className="text-2xl font-bold mt-1 text-destructive">€{totalOwed.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">në pritje</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Në Vonese</p>
-          <p className="text-2xl font-bold mt-1 text-warning">{overdueCount}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">debitorë</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="h-[3px] w-full bg-amber-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Në Vonese</p>
+            <p className="text-2xl font-bold mt-1 text-warning">{overdueCount}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">debitorë</p>
+          </div>
         </div>
-        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-5 col-span-2 sm:col-span-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Debitorë</p>
-          <p className="text-2xl font-bold mt-1">{filtered.length}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">aktiv</p>
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm overflow-hidden col-span-2 sm:col-span-1">
+          <div className="h-[3px] w-full bg-indigo-500" />
+          <div className="p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Debitorë</p>
+            <p className="text-2xl font-bold mt-1">{filtered.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">aktiv</p>
+          </div>
         </div>
       </div>
 
