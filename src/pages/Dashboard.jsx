@@ -127,7 +127,7 @@ export default function Dashboard() {
   /* ── loading skeleton ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/40 to-slate-100 p-6 lg:p-8 space-y-7">
+      <div className="min-h-screen p-6 lg:p-8 space-y-7" style={{ background: "linear-gradient(135deg, #f1f5f9 0%, #ede9fe 40%, #ddd6fe 100%)" }}>
         <div className="flex items-end justify-between">
           <div className="space-y-2">
             <div className="h-4 w-36 bg-slate-200 rounded animate-pulse" />
