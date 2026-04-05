@@ -67,6 +67,10 @@ export async function getProjectDatabaseUrl(projectRef, dbPassword) {
   return `postgresql://postgres:${encodeURIComponent(dbPassword)}@${host}:5432/postgres`;
 }
 
+export async function deleteProject(projectRef) {
+  return supabaseRequest('DELETE', `/projects/${projectRef}`);
+}
+
 export function generateDbPassword() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
   let pass = '';

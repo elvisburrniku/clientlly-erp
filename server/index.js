@@ -14,7 +14,7 @@ import { requirePermission, getPermissionsApi, clearPermissionsCache } from './p
 import { logActivity, getActivityApi, notifyTenantAdmins } from './activityLog.js';
 import runMigration from './migrate.js';
 import { resolvePoolForTenant, clearCachedTenantDb } from './tenantDb.js';
-import { listOrganizations, createProject, waitForProjectReady, getProjectDatabaseUrl, generateDbPassword } from './supabaseService.js';
+import { listOrganizations, createProject, waitForProjectReady, getProjectDatabaseUrl, generateDbPassword, deleteProject } from './supabaseService.js';
 import { runSchemaOnPersonalDb, migrateTenantData } from './dbMigration.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -2190,12 +2190,30 @@ app.post('/api/superadmin/tenants/:tenantId/create-database', requireAuth, requi
         addProgress('Done! Personal database is now active.');
       } catch (err) {
         console.error(`[DB Provision ${tenantId}] Error:`, err.message);
+        const job = migrationJobs.get(jobId);
+        const projectRef = job?.projectRef;
+
+        if (projectRef) {
+          const deleteMsg = `Cleaning up: deleting failed Supabase project ${projectRef}...`;
+          console.log(`[DB Provision ${tenantId}] ${deleteMsg}`);
+          if (job) job.progress.push({ time: new Date(), message: deleteMsg });
+          try {
+            await deleteProject(projectRef);
+            const doneMsg = `Supabase project ${projectRef} deleted successfully.`;
+            console.log(`[DB Provision ${tenantId}] ${doneMsg}`);
+            if (job) job.progress.push({ time: new Date(), message: doneMsg });
+          } catch (delErr) {
+            const failMsg = `Warning: failed to delete Supabase project ${projectRef}: ${delErr.message}`;
+            console.error(`[DB Provision ${tenantId}] ${failMsg}`);
+            if (job) job.progress.push({ time: new Date(), message: failMsg });
+          }
+        }
+
         await pool.query(
-          'UPDATE tenants SET database_status = $1, updated_at = NOW() WHERE id = $2',
+          'UPDATE tenants SET database_status = $1, database_url = NULL, supabase_project_id = NULL, updated_at = NOW() WHERE id = $2',
           ['failed', tenantId]
         ).catch(() => {});
         clearCachedTenantDb(tenantId);
-        const job = migrationJobs.get(jobId);
         if (job) {
           job.status = 'failed';
           job.error = err.message;
