@@ -20,12 +20,18 @@ function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", ic
       onClick={onClick}
       className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left shadow-sm"
     >
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-opacity ${iconBg}`}>
-        <Icon className={`w-3.5 h-3.5 ${iconColor}`} style={iconAnim} />
+      <div
+        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}
+        style={{ isolation: "isolate", willChange: iconAnim ? "transform" : "auto" }}
+      >
+        <Icon
+          className={`w-3.5 h-3.5 ${iconColor}`}
+          style={{ ...iconAnim, backfaceVisibility: "hidden" }}
+        />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-900 truncate">{label}</p>
-        {sub && <p className="text-[11px] font-black text-slate-900 truncate leading-tight">{sub}</p>}
+      <div className="flex-1 min-w-0" style={{ transform: "translateZ(0)" }}>
+        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-800 truncate">{label}</p>
+        {sub && <p className="text-[11px] font-semibold text-slate-500 truncate leading-tight">{sub}</p>}
       </div>
       <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5 transition-all shrink-0" />
     </button>
@@ -225,7 +231,7 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 antialiased">
       <style>{`
         @keyframes carSlide {
           0%,100% { transform: translateX(0px); }
