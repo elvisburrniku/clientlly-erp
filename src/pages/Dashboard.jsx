@@ -20,9 +20,9 @@ function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", ic
   return (
     <button
       onClick={onClick}
-      className="group flex flex-col w-full rounded-xl bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left shadow-sm overflow-hidden"
+      className="group flex flex-col w-full rounded-xl bg-white hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-left shadow-md overflow-hidden"
     >
-      <div className={`h-[3px] w-full ${accentBar}`} />
+      <div className={`h-1 w-full ${accentBar}`} />
       <div className="flex items-center gap-3 px-3 py-2.5">
         <div
           className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${iconBg}`}
