@@ -48,6 +48,19 @@ function SectionLabel({ children }) {
   );
 }
 
+/* ─── greeting data ─────────────────────────────────────────── */
+const WELCOME_PHRASES = [
+  { sub: "Pasqyra Financiare", main: "Çfarë po ndodh sot?" },
+  { sub: "Pasqyra Financiare", main: "Gjithçka nën kontroll?" },
+  { sub: "Pasqyra Financiare", main: "Si janë numrat?" },
+  { sub: "Pasqyra Financiare", main: "Financat tuaja sot" },
+];
+const INSIGHT_PHRASES = [
+  { sub: "Situata aktuale", main: "Pasqyra e ditës" },
+  { sub: "Analiza financiare", main: "Kontrollo shifrat" },
+  { sub: "Gjendja e biznesit", main: "Financat në fokus" },
+];
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
@@ -63,6 +76,43 @@ export default function Dashboard() {
   const [loading, setLoading]                   = useState(true);
   const [pendingHandovers, setPendingHandovers] = useState([]);
   const navigate = useNavigate();
+
+  /* ── dynamic greeting ── */
+  const [phraseIdx, setPhraseIdx]   = useState(0);
+  const [phase, setPhase]           = useState("welcome"); // "welcome" | "insight"
+  const [hoveredCard, setHoveredCard] = useState(null);    // { sub, main } | null
+  const [fadeIn, setFadeIn]         = useState(true);
+
+  const triggerTransition = (nextFn) => {
+    setFadeIn(false);
+    setTimeout(() => { nextFn(); setFadeIn(true); }, 280);
+  };
+
+  /* cycle phrase every 7s */
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (hoveredCard) return;
+      triggerTransition(() => {
+        setPhraseIdx(i => {
+          const pool = phase === "welcome" ? WELCOME_PHRASES : INSIGHT_PHRASES;
+          return (i + 1) % pool.length;
+        });
+      });
+    }, 7000);
+    return () => clearInterval(id);
+  }, [phase, hoveredCard]);
+
+  /* switch to insight mode after 60s */
+  useEffect(() => {
+    const id = setTimeout(() => {
+      triggerTransition(() => { setPhase("insight"); setPhraseIdx(0); });
+    }, 60000);
+    return () => clearTimeout(id);
+  }, []);
+
+  const activePhrase = hoveredCard
+    ?? (phase === "welcome" ? WELCOME_PHRASES[phraseIdx % WELCOME_PHRASES.length]
+                            : INSIGHT_PHRASES[phraseIdx % INSIGHT_PHRASES.length]);
 
   useEffect(() => { loadDashboardData(); }, [period, vatMode]);
 
@@ -261,12 +311,20 @@ export default function Dashboard() {
 
         {/* ── Header — same grid as cards so filters align to col-4 ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          {/* title: spans first 3 cols */}
+          {/* title: spans first 3 cols — dynamic greeting */}
           <div className="col-span-2 lg:col-span-3">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">
-              Pasqyra Financiare
+            <p
+              className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1 transition-all duration-300"
+              style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(-6px)" }}
+            >
+              {activePhrase.sub}
             </p>
-            <h1 className="text-5xl font-bold tracking-tight text-black">{t("welcome")}</h1>
+            <h1
+              className="text-5xl font-bold tracking-tight text-black transition-all duration-300"
+              style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(8px)" }}
+            >
+              {activePhrase.main}
+            </h1>
           </div>
 
           {/* filters: exactly col-4 width, one row */}
@@ -327,6 +385,8 @@ export default function Dashboard() {
               key={card.title}
               className="animate-fade-in"
               style={{ animationDelay: `${i * 55}ms`, animationFillMode: "both" }}
+              onMouseEnter={() => triggerTransition(() => setHoveredCard({ sub: "Duke parë", main: card.title }))}
+              onMouseLeave={() => triggerTransition(() => setHoveredCard(null))}
             >
               <button onClick={() => card.route && navigate(card.route)} className="w-full text-left">
                 <StatCard {...card} />
