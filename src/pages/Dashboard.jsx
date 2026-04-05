@@ -10,10 +10,7 @@ import {
 } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import RevenueChart from "../components/dashboard/RevenueChart";
-import RecentInvoices from "../components/dashboard/RecentInvoices";
 import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
-import UpcomingReminders from "../components/dashboard/UpcomingReminders";
-import QuotesSummary from "../components/dashboard/QuotesSummary";
 import LowStockAlert from "../components/dashboard/LowStockAlert";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/useLanguage.jsx";
@@ -357,27 +354,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ── Bottom: Invoices (left) + Quotes+Reminders (right) ─────── */}
-        <div
-          className="grid grid-cols-1 lg:grid-cols-3 gap-5 animate-fade-in"
-          style={{ animationDelay: "0.65s", animationFillMode: "both" }}
-        >
-          <div className="lg:col-span-2 space-y-2">
-            <SectionLabel>Faturat e Fundit</SectionLabel>
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-              <RecentInvoices />
-            </div>
-          </div>
-          <div className="space-y-4">
-            <SectionLabel>Ofertat & Kujtesa</SectionLabel>
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-              <QuotesSummary />
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-              <UpcomingReminders />
-            </div>
-          </div>
-        </div>
 
       </div>
     </div>
