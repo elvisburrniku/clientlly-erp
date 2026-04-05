@@ -6,12 +6,10 @@ import {
   FileText, TrendingDown, CreditCard, Wallet, Users,
   BanknoteIcon, ChevronRight, Package, Calendar,
   Truck, ArrowRight, BarChart3, Gift, Car, UserCheck,
-  ClipboardList, Award, Users2
+  ClipboardList, Award, Users2, Banknote, Receipt, ShieldCheck
 } from "lucide-react";
 import StatCard from "../components/dashboard/StatCard";
 import RevenueChart from "../components/dashboard/RevenueChart";
-import UndeliveredCashAlert from "../components/dashboard/UndeliveredCashAlert";
-import LowStockAlert from "../components/dashboard/LowStockAlert";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/useLanguage.jsx";
 
@@ -343,23 +341,18 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar — nav cards only, fills chart height */}
           <div className="flex flex-col gap-2.5">
-            {/* 6 nav quick-links */}
-            <QuickLink icon={Users2}       label="Burimet Njerezore" sub="HR & menaxhim punonjësish"  onClick={() => navigate('/employees')} />
-            <QuickLink icon={UserCheck}    label="Prezenca"          sub="Orari & prezenca ditore"     onClick={() => navigate('/attendance')} />
-            <QuickLink icon={Car}          label="Motorpool"         sub="Flotë & automjete"           onClick={() => navigate('/vehicles')} />
-            <QuickLink icon={Gift}         label="Ofertat"           sub="Oferta & kuotacione"         onClick={() => navigate('/quotes')} />
-            <QuickLink icon={ClipboardList}label="Kontratat"         sub="Kontratat e biznesit"        onClick={() => navigate('/employees')} />
-            <QuickLink icon={Award}        label="Vërtetimet"        sub="Certifikata & dokumente"     onClick={() => navigate('/certificates')} />
-
-            {/* alerts below the nav cards */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-              <LowStockAlert />
-            </div>
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-              <UndeliveredCashAlert users={undeliveredUsers} />
-            </div>
+            <QuickLink icon={Users2}       label="Burimet Njerezore" sub="HR & menaxhim punonjësish" onClick={() => navigate('/employees')} />
+            <QuickLink icon={UserCheck}    label="Prezenca"          sub="Orari & prezenca ditore"    onClick={() => navigate('/attendance')} />
+            <QuickLink icon={Car}          label="Motorpool"         sub="Flotë & automjete"          onClick={() => navigate('/vehicles')} />
+            <QuickLink icon={Gift}         label="Ofertat"           sub="Oferta & kuotacione"        onClick={() => navigate('/quotes')} />
+            <QuickLink icon={ClipboardList}label="Kontratat"         sub="Kontratat e biznesit"       onClick={() => navigate('/employees')} />
+            <QuickLink icon={Award}        label="Vërtetimet"        sub="Certifikata & dokumente"    onClick={() => navigate('/certificates')} />
+            <QuickLink icon={Banknote}     label="Pagat"             sub="Pagesa & llogaritje"        onClick={() => navigate('/payroll')} />
+            <QuickLink icon={Receipt}      label="Faturat Blerjes"   sub="Blerje & fatura hyrëse"     onClick={() => navigate('/bills')} />
+            <QuickLink icon={BarChart3}    label="Analitika"         sub="Raporte & performancë"      onClick={() => navigate('/invoice-analytics')} />
+            <QuickLink icon={ShieldCheck}  label="Raportet"          sub="Pasqyra financiare"         onClick={() => navigate('/reports')} />
           </div>
           </div>
         </div>
