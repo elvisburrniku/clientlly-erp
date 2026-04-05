@@ -182,7 +182,7 @@ export default function Sidebar() {
   const adminItems = [
     { label: t('settings') || "Parametrat",         icon: Settings, path: "/settings",       module: "settings" },
     { label: t('activityLog') || "Activity Log",    icon: Activity, path: "/activity-log",   module: "activity_log" },
-    { label: t('roleManagement') || "Role Management", icon: Shield,path: "/role-management", module: "users" },
+    { label: "Përdoruesit & Rolet",                    icon: Users,  path: "/role-management", module: "users" },
   ];
 
   const visibleSales          = salesItems.filter(item => fullAccess || canView(item.module));
