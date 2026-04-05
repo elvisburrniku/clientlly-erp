@@ -160,6 +160,7 @@ export default function Sidebar() {
     { label: "Bilanci",              icon: LayoutGrid,  path: "/balance-sheet",     module: "accounting" },
     { label: "Libri Shitjeve ATK",   icon: FileOutput,  path: "/atk-sales-book",    module: "accounting" },
     { label: "Libri Blerjeve ATK",   icon: FileInput,   path: "/atk-purchase-book", module: "accounting" },
+    { label: "Normat e TVSH-së",      icon: Percent,     path: "/tax-rates",         module: "accounting" },
     { label: "Përmbledhje TVSH",     icon: Percent,     path: "/tax-summary",       module: "accounting" },
     { label: "Kartela Financiare",   icon: IdCard,      path: "/financial-cards",   module: "accounting" },
   ];
