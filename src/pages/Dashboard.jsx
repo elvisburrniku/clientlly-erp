@@ -341,16 +341,20 @@ export default function Dashboard() {
         {/* ── Header — same grid as cards so filters align to col-4 ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           {/* title: spans first 3 cols — dynamic greeting */}
-          <div className="col-span-2 lg:col-span-3">
+          <div className="col-span-2 lg:col-span-3 min-w-0 overflow-hidden">
             <p
-              className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1 transition-all duration-300"
+              className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1 transition-all duration-300 truncate"
               style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(-6px)" }}
             >
               {activePhrase.sub}
             </p>
             <h1
-              className="text-5xl font-bold tracking-tight text-black transition-all duration-300"
-              style={{ opacity: fadeIn ? 1 : 0, transform: fadeIn ? "translateY(0)" : "translateY(8px)" }}
+              className="font-bold tracking-tight text-black transition-all duration-300 truncate"
+              style={{
+                opacity: fadeIn ? 1 : 0,
+                transform: fadeIn ? "translateY(0)" : "translateY(8px)",
+                fontSize: "clamp(1.6rem, 4vw, 3rem)",
+              }}
             >
               {activePhrase.main}
             </h1>
