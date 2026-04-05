@@ -302,12 +302,27 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* ── Chart + Sidebar + compact cards — një bllok i vetëm ────── */}
+        {/* ── Row 2: 4 nav/count cards (compact — half height) ───────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          {cards.slice(4).map((card, i) => (
+            <div
+              key={card.title}
+              className="animate-fade-in"
+              style={{ animationDelay: `${(i + 4) * 55}ms`, animationFillMode: "both" }}
+            >
+              <button onClick={() => card.route && navigate(card.route)} className="w-full text-left">
+                <StatCard {...card} compact />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Middle: Chart + Sidebar ─────────────────────────────── */}
         <div
           className="animate-fade-in"
           style={{ animationDelay: "0.5s", animationFillMode: "both" }}
         >
-          {/* titujt */}
+          {/* shared header row: left title + right title */}
           <div className="grid grid-cols-4 gap-5 mb-5">
             <div className="col-span-3">
               <SectionLabel>Grafiku i të Ardhurave</SectionLabel>
@@ -317,9 +332,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* grafik + sidebar */}
-          <div className="grid grid-cols-4 gap-5 mb-5">
-            <div className="col-span-3">
+          {/* content row */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+            <div className="lg:col-span-3">
               <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
                 <RevenueChart />
               </div>
@@ -332,20 +347,6 @@ export default function Dashboard() {
               <QuickLink icon={ClipboardList}label="Kontratat"         sub="Kontratat e biznesit"       onClick={() => navigate('/employees')} />
               <QuickLink icon={Award}        label="Vërtetimet"        sub="Certifikata & dokumente"    onClick={() => navigate('/certificates')} />
             </div>
-          </div>
-
-          {/* rreshti kompakt — brenda të njëjtit bllok, gap identik */}
-          <div className="grid grid-cols-4 gap-5">
-            {cards.slice(4).map((card, i) => (
-              <button
-                key={card.title}
-                onClick={() => card.route && navigate(card.route)}
-                className="w-full text-left animate-fade-in"
-                style={{ animationDelay: `${(i + 4) * 55}ms`, animationFillMode: "both" }}
-              >
-                <StatCard {...card} compact />
-              </button>
-            ))}
           </div>
         </div>
 
