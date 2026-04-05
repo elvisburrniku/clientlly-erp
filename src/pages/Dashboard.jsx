@@ -291,24 +291,34 @@ export default function Dashboard() {
           </button>
         )}
 
-        {/* ── 8 Stat cards (2 rows of 4) ──────────────────────────── */}
-        <div>
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {cards.map((card, i) => (
-              <div
-                key={card.title}
-                className="animate-fade-in"
-                style={{ animationDelay: `${i * 55}ms`, animationFillMode: "both" }}
-              >
-                <button
-                  onClick={() => card.route && navigate(card.route)}
-                  className="w-full text-left"
-                >
-                  <StatCard {...card} />
-                </button>
-              </div>
-            ))}
-          </div>
+        {/* ── Row 1: 4 main financial cards (full size) ─────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {cards.slice(0, 4).map((card, i) => (
+            <div
+              key={card.title}
+              className="animate-fade-in"
+              style={{ animationDelay: `${i * 55}ms`, animationFillMode: "both" }}
+            >
+              <button onClick={() => card.route && navigate(card.route)} className="w-full text-left">
+                <StatCard {...card} />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Row 2: 4 nav/count cards (compact — half height) ───────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {cards.slice(4).map((card, i) => (
+            <div
+              key={card.title}
+              className="animate-fade-in"
+              style={{ animationDelay: `${(i + 4) * 55}ms`, animationFillMode: "both" }}
+            >
+              <button onClick={() => card.route && navigate(card.route)} className="w-full text-left">
+                <StatCard {...card} compact />
+              </button>
+            </div>
+          ))}
         </div>
 
         {/* ── Middle: Chart (left 2/3) + Sidebar (right 1/3) ────────── */}

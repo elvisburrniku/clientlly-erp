@@ -1,16 +1,16 @@
 import { cn } from "@/lib/utils";
 
 const palettes = {
-  blue:   { icon: "bg-blue-500",    iconRing: "ring-blue-100",    iconText: "text-white" },
-  rose:   { icon: "bg-rose-500",    iconRing: "ring-rose-100",    iconText: "text-white" },
-  amber:  { icon: "bg-amber-500",   iconRing: "ring-amber-100",   iconText: "text-white" },
-  green:  { icon: "bg-emerald-500", iconRing: "ring-emerald-100", iconText: "text-white" },
-  teal:   { icon: "bg-teal-500",    iconRing: "ring-teal-100",    iconText: "text-white" },
-  violet: { icon: "bg-violet-500",  iconRing: "ring-violet-100",  iconText: "text-white" },
-  indigo: { icon: "bg-indigo-500",  iconRing: "ring-indigo-100",  iconText: "text-white" },
-  cyan:   { icon: "bg-cyan-500",    iconRing: "ring-cyan-100",    iconText: "text-white" },
-  purple: { icon: "bg-purple-500",  iconRing: "ring-purple-100",  iconText: "text-white" },
-  pink:   { icon: "bg-pink-500",    iconRing: "ring-pink-100",    iconText: "text-white" },
+  blue:   { icon: "bg-blue-500",    iconRing: "ring-blue-100"    },
+  rose:   { icon: "bg-rose-500",    iconRing: "ring-rose-100"    },
+  amber:  { icon: "bg-amber-500",   iconRing: "ring-amber-100"   },
+  green:  { icon: "bg-emerald-500", iconRing: "ring-emerald-100" },
+  teal:   { icon: "bg-teal-500",    iconRing: "ring-teal-100"    },
+  violet: { icon: "bg-violet-500",  iconRing: "ring-violet-100"  },
+  indigo: { icon: "bg-indigo-500",  iconRing: "ring-indigo-100"  },
+  cyan:   { icon: "bg-cyan-500",    iconRing: "ring-cyan-100"    },
+  purple: { icon: "bg-purple-500",  iconRing: "ring-purple-100"  },
+  pink:   { icon: "bg-pink-500",    iconRing: "ring-pink-100"    },
 };
 
 const badgeClasses = {
@@ -22,8 +22,40 @@ const badgeClasses = {
   muted:  "bg-slate-100  text-slate-500   border border-slate-200",
 };
 
-export default function StatCard({ icon: Icon, title, value, description, color = "blue", badge }) {
+export default function StatCard({ icon: Icon, title, value, description, color = "blue", badge, compact = false }) {
   const p = palettes[color] || palettes.blue;
+
+  if (compact) {
+    return (
+      <div className={cn(
+        "bg-white rounded-xl border border-slate-200/80 px-4 py-3",
+        "hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm overflow-hidden",
+        "flex items-center gap-3"
+      )}>
+        {Icon && (
+          <div className={cn(
+            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ring-2",
+            p.icon, p.iconRing
+          )}>
+            <Icon className="text-white" style={{ width: 14, height: 14 }} />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 truncate">{title}</p>
+          <p className="text-lg font-black tracking-tight text-slate-900 leading-tight truncate">{value}</p>
+        </div>
+        {badge && (
+          <span className={cn(
+            "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-widest shrink-0",
+            badgeClasses[badge.color] || badgeClasses.muted
+          )}>
+            {badge.dot && <span className="w-1 h-1 rounded-full bg-current opacity-80" />}
+            {badge.label}
+          </span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={cn(
@@ -40,7 +72,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
             "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ring-4",
             p.icon, p.iconRing
           )}>
-            <Icon className={cn("w-4.5 h-4.5", p.iconText)} style={{ width: 18, height: 18 }} />
+            <Icon className="text-white" style={{ width: 18, height: 18 }} />
           </div>
         )}
       </div>
