@@ -189,7 +189,7 @@ export default function Sidebar() {
         className={cn(
           "flex items-center transition-all duration-200 font-medium text-sm",
           collapsed
-            ? "justify-center w-9 h-9 mx-auto rounded-xl"
+            ? "justify-center w-10 h-10 mx-auto rounded-xl"
             : "gap-3 px-3 py-2.5 rounded-xl",
           isActive
             ? "bg-white/15 text-white shadow-lg"
@@ -255,7 +255,7 @@ export default function Sidebar() {
       className={cn(
         "h-screen sticky top-0 flex flex-col text-[hsl(230,40%,90%)] transition-all duration-300 ease-in-out z-30",
         "bg-gradient-to-b from-slate-900 to-slate-800",
-        collapsed ? "w-[56px]" : "w-[250px]"
+        collapsed ? "w-[72px]" : "w-[250px]"
       )}
     >
       <div className={cn(
@@ -323,7 +323,7 @@ export default function Sidebar() {
                 className={cn(
                   "flex items-center transition-all duration-200 text-sm font-medium",
                   collapsed
-                    ? "justify-center w-9 h-9 mx-auto rounded-xl"
+                    ? "justify-center w-10 h-10 mx-auto rounded-xl"
                     : "gap-3 px-3 py-2.5 rounded-xl",
                   location.pathname === '/super-admin'
                     ? "bg-amber-500/20 text-amber-300 shadow-lg"

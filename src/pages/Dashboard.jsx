@@ -127,7 +127,7 @@ export default function Dashboard() {
   /* ── loading skeleton ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6 lg:p-10 space-y-7">
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-8 space-y-7">
         <div className="flex items-end justify-between">
           <div className="space-y-2">
             <div className="h-4 w-36 bg-slate-200 rounded animate-pulse" />
@@ -257,7 +257,7 @@ export default function Dashboard() {
           50%      { transform: scale(1.2); opacity: 0.75; }
         }
       `}</style>
-      <div className="p-6 lg:p-10 space-y-7 max-w-[1600px] mx-auto">
+      <div className="p-6 lg:p-8 space-y-7">
 
         {/* ── Header ───────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
