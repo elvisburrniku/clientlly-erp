@@ -109,15 +109,13 @@ export default function Dashboard() {
     }, () => {});
   }, []);
 
-  /* build the full phrase sequence */
+  /* build the 3-step sequence: greeting → time → weather */
   const userName = user?.full_name || user?.name || user?.email?.split("@")[0] || "";
-  const EXTRA_PHRASES = ["Sot në fokus", "Shifrat e ditës", "Gjendja juaj", "Pasqyra e ditës", "Nën kontroll"];
 
   const PHRASES = [
-    { sub: "Pasqyra Financiare", main: `Mirë se vjen, ${userName}` },
-    ...(localTime ? [{ sub: "Ora lokale", main: localTime }] : []),
-    ...(weather   ? [{ sub: "Moti sot",   main: weather   }] : []),
-    ...EXTRA_PHRASES.map(main => ({ sub: "Pasqyra Financiare", main })),
+    { sub: "Pasqyra Financiare", main: `Mirë se vjen, ${userName}`, duration: 7000 },
+    ...(localTime ? [{ sub: "Ora lokale",  main: localTime, duration: 7000  }] : []),
+    ...(weather   ? [{ sub: "Moti sot",    main: weather,   duration: 20000 }] : []),
   ];
 
   const triggerTransition = (nextFn) => {
@@ -133,15 +131,15 @@ export default function Dashboard() {
   const onCardEnter = (phrase) => triggerTransition(() => setContextCard(phrase));
   const onCardLeave = () => triggerTransition(() => setContextCard(null));
 
-  /* cycle every 7s */
+  /* step through with per-phrase durations */
   useEffect(() => {
-    if (!PHRASES.length) return;
-    const id = setInterval(() => {
-      if (contextCard) return;
+    if (contextCard || !PHRASES.length) return;
+    const current = PHRASES[phraseIdx % PHRASES.length];
+    const id = setTimeout(() => {
       triggerTransition(() => setPhraseIdx(i => (i + 1) % PHRASES.length));
-    }, 7000);
-    return () => clearInterval(id);
-  }, [contextCard, PHRASES.length]);
+    }, current?.duration ?? 7000);
+    return () => clearTimeout(id);
+  }, [phraseIdx, contextCard, PHRASES.length, weather, localTime]);
 
   const activePhrase = contextCard ?? (PHRASES[phraseIdx % Math.max(PHRASES.length, 1)] || PHRASES[0]);
 
