@@ -241,6 +241,77 @@ app.get('/api/permissions/me', requireAuth, async (req, res) => {
   try { await permissionsApi.getUserPermissions(req, res); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ============ ADMIN USER MANAGEMENT ============
+
+app.get('/api/admin/tenants', requireAuth, requireSuperAdmin, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name, code FROM tenants ORDER BY name ASC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { email, full_name, password, role, tenant_id: bodyTenantId } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+    if (!full_name) return res.status(400).json({ error: 'Full name is required' });
+
+    const allowedRoles = ['user', 'admin'];
+    if (req.session.user.role === 'superadmin') allowedRoles.push('superadmin');
+    if (role && !allowedRoles.includes(role)) return res.status(400).json({ error: 'Invalid role' });
+
+    let tenantId = req.session.user.tenant_id;
+
+    if (req.session.user.role === 'superadmin' && bodyTenantId) {
+      const tenantCheck = await pool.query('SELECT id FROM tenants WHERE id = $1', [bodyTenantId]);
+      if (tenantCheck.rows.length === 0) return res.status(404).json({ error: 'Tenant not found' });
+      tenantId = bodyTenantId;
+    }
+
+    if (!tenantId) return res.status(400).json({ error: 'Admin must belong to a tenant' });
+
+    const tenantRes = await pool.query('SELECT name FROM tenants WHERE id = $1', [tenantId]);
+    const tenantName = tenantRes.rows[0]?.name || null;
+
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()]);
+    if (existing.rows.length > 0) return res.status(409).json({ error: 'Email already registered' });
+
+    const hash = await bcrypt.hash(password, 10);
+    const assignedRole = role || 'user';
+    const result = await pool.query(
+      'INSERT INTO users (email, password_hash, full_name, role, tenant_id, tenant_name) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, full_name, role, tenant_id, tenant_name',
+      [email.toLowerCase(), hash, full_name, assignedRole, tenantId, tenantName]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/users/:id', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    if (String(targetId) === String(req.session.user.id)) return res.status(400).json({ error: 'Cannot delete yourself' });
+
+    const tenantId = req.session.user.tenant_id;
+    const targetRes = await pool.query('SELECT id, role, tenant_id FROM users WHERE id = $1', [targetId]);
+    if (targetRes.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+    const target = targetRes.rows[0];
+    if (req.session.user.role !== 'superadmin') {
+      if (target.tenant_id !== tenantId) return res.status(403).json({ error: 'Access denied' });
+      if (target.role === 'superadmin') return res.status(403).json({ error: 'Cannot delete a superadmin' });
+    }
+
+    await pool.query('DELETE FROM users WHERE id = $1', [targetId]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/permissions/modules', requireAuth, requireSuperAdminOrAdmin, async (req, res) => {
   try { await permissionsApi.getAllModules(req, res); } catch (err) { res.status(500).json({ error: err.message }); }
 });
