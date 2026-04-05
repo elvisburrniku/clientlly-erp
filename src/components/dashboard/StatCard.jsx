@@ -28,7 +28,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
   if (compact) {
     return (
       <div className={cn(
-        "bg-white rounded-xl border border-slate-200/80 px-4 py-3",
+        "bg-white rounded-xl border border-slate-200 px-4 py-3",
         "hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm overflow-hidden",
         "flex items-center gap-3"
       )}>
@@ -59,7 +59,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
 
   return (
     <div className={cn(
-      "bg-white rounded-2xl border border-slate-200/80 p-5",
+      "bg-white rounded-2xl border border-slate-200 p-5",
       "hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 shadow-sm overflow-hidden"
     )}>
       {/* header: label + icon */}

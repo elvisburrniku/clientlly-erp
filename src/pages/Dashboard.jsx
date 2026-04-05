@@ -18,7 +18,7 @@ function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", ic
   return (
     <button
       onClick={onClick}
-      className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left shadow-sm"
+      className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left shadow-sm"
     >
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-opacity ${iconBg}`}>
         <Icon className={`w-3.5 h-3.5 ${iconColor}`} style={iconAnim} />
@@ -37,7 +37,7 @@ function SectionLabel({ children }) {
   return (
     <div className="flex items-center gap-3 py-0.5">
       <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 whitespace-nowrap">{children}</span>
-      <div className="flex-1 h-px bg-slate-200/60" />
+      <div className="flex-1 h-px bg-slate-200" />
     </div>
   );
 }
@@ -121,7 +121,7 @@ export default function Dashboard() {
   /* ── loading skeleton ── */
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50/40 p-6 lg:p-10 space-y-7">
+      <div className="min-h-screen bg-slate-50 p-6 lg:p-10 space-y-7">
         <div className="flex items-end justify-between">
           <div className="space-y-2">
             <div className="h-4 w-36 bg-slate-200 rounded animate-pulse" />
@@ -225,12 +225,30 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/40">
+    <div className="min-h-screen bg-slate-50">
       <style>{`
         @keyframes carSlide {
           0%,100% { transform: translateX(0px); }
           30%      { transform: translateX(3px); }
           60%      { transform: translateX(-1px); }
+        }
+        @keyframes userPulse {
+          0%,100% { transform: scale(1); }
+          50%      { transform: scale(1.18); }
+        }
+        @keyframes tagSwing {
+          0%,100% { transform: rotate(0deg); }
+          25%      { transform: rotate(12deg); }
+          75%      { transform: rotate(-8deg); }
+        }
+        @keyframes scrollUp {
+          0%,100% { transform: translateY(0px); }
+          40%      { transform: translateY(-3px); }
+          70%      { transform: translateY(1px); }
+        }
+        @keyframes shieldPulse {
+          0%,100% { transform: scale(1);    opacity: 1; }
+          50%      { transform: scale(1.2); opacity: 0.75; }
         }
       `}</style>
       <div className="p-6 lg:p-10 space-y-7 max-w-[1600px] mx-auto">
@@ -342,17 +360,17 @@ export default function Dashboard() {
           {/* content row */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
                 <RevenueChart />
               </div>
             </div>
             <div className="flex flex-col justify-between h-full">
-              <QuickLink icon={Users2}     label="Burimet Njerezore" sub="HR & menaxhim punonjësish" onClick={() => navigate('/employees')}   iconBg="bg-violet-100"  iconColor="text-violet-600" />
-              <QuickLink icon={Clock}      label="Prezenca"          sub="Orari & prezenca ditore"    onClick={() => navigate('/attendance')}  iconBg="bg-blue-100"    iconColor="text-blue-600"   iconAnim={{ animation: 'spin 8s linear infinite' }} />
-              <QuickLink icon={Car}        label="Motorpool"         sub="Flotë & automjete"          onClick={() => navigate('/vehicles')}    iconBg="bg-amber-100"   iconColor="text-amber-600"  iconAnim={{ animation: 'carSlide 2s ease-in-out infinite' }} />
-              <QuickLink icon={Tag}        label="Ofertat"           sub="Oferta & kuotacione"        onClick={() => navigate('/quotes')}      iconBg="bg-emerald-100" iconColor="text-emerald-600" />
-              <QuickLink icon={ScrollText} label="Kontratat"         sub="Kontratat e biznesit"       onClick={() => navigate('/employees')}   iconBg="bg-rose-100"    iconColor="text-rose-600" />
-              <QuickLink icon={ShieldCheck}label="Vërtetimet"        sub="Certifikata & dokumente"    onClick={() => navigate('/certificates')}iconBg="bg-teal-100"    iconColor="text-teal-600" />
+              <QuickLink icon={Users2}     label="Burimet Njerezore" sub="HR & menaxhim punonjësish" onClick={() => navigate('/employees')}   iconBg="bg-violet-100"  iconColor="text-violet-600"  iconAnim={{ animation: 'userPulse 3s ease-in-out infinite' }} />
+              <QuickLink icon={Clock}      label="Prezenca"          sub="Orari & prezenca ditore"    onClick={() => navigate('/attendance')}  iconBg="bg-blue-100"    iconColor="text-blue-600"    iconAnim={{ animation: 'spin 8s linear infinite' }} />
+              <QuickLink icon={Car}        label="Motorpool"         sub="Flotë & automjete"          onClick={() => navigate('/vehicles')}    iconBg="bg-amber-100"   iconColor="text-amber-600"   iconAnim={{ animation: 'carSlide 2s ease-in-out infinite' }} />
+              <QuickLink icon={Tag}        label="Ofertat"           sub="Oferta & kuotacione"        onClick={() => navigate('/quotes')}      iconBg="bg-emerald-100" iconColor="text-emerald-600" iconAnim={{ animation: 'tagSwing 2.5s ease-in-out infinite' }} />
+              <QuickLink icon={ScrollText} label="Kontratat"         sub="Kontratat e biznesit"       onClick={() => navigate('/employees')}   iconBg="bg-rose-100"    iconColor="text-rose-600"    iconAnim={{ animation: 'scrollUp 2.5s ease-in-out infinite' }} />
+              <QuickLink icon={ShieldCheck}label="Vërtetimet"        sub="Certifikata & dokumente"    onClick={() => navigate('/certificates')}iconBg="bg-teal-100"    iconColor="text-teal-600"    iconAnim={{ animation: 'shieldPulse 3s ease-in-out infinite' }} />
             </div>
           </div>
         </div>
