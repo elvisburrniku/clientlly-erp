@@ -14,14 +14,14 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/useLanguage.jsx";
 
 /* ─── Quick link button ──────────────────────────────────────── */
-function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", iconColor = "text-slate-500" }) {
+function QuickLink({ icon: Icon, label, sub, onClick, iconBg = "bg-slate-50", iconColor = "text-slate-500", iconAnim }) {
   return (
     <button
       onClick={onClick}
       className="group flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-white border border-slate-200/80 hover:border-slate-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left shadow-sm"
     >
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-opacity ${iconBg}`}>
-        <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
+        <Icon className={`w-3.5 h-3.5 ${iconColor}`} style={iconAnim} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-900 truncate">{label}</p>
@@ -226,6 +226,13 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50/40">
+      <style>{`
+        @keyframes carSlide {
+          0%,100% { transform: translateX(0px); }
+          30%      { transform: translateX(3px); }
+          60%      { transform: translateX(-1px); }
+        }
+      `}</style>
       <div className="p-6 lg:p-10 space-y-7 max-w-[1600px] mx-auto">
 
         {/* ── Header ───────────────────────────────────────────── */}
@@ -341,8 +348,8 @@ export default function Dashboard() {
             </div>
             <div className="flex flex-col justify-between h-full">
               <QuickLink icon={Users2}     label="Burimet Njerezore" sub="HR & menaxhim punonjësish" onClick={() => navigate('/employees')}   iconBg="bg-violet-100"  iconColor="text-violet-600" />
-              <QuickLink icon={Clock}      label="Prezenca"          sub="Orari & prezenca ditore"    onClick={() => navigate('/attendance')}  iconBg="bg-blue-100"    iconColor="text-blue-600" />
-              <QuickLink icon={Car}        label="Motorpool"         sub="Flotë & automjete"          onClick={() => navigate('/vehicles')}    iconBg="bg-amber-100"   iconColor="text-amber-600" />
+              <QuickLink icon={Clock}      label="Prezenca"          sub="Orari & prezenca ditore"    onClick={() => navigate('/attendance')}  iconBg="bg-blue-100"    iconColor="text-blue-600"   iconAnim={{ animation: 'spin 8s linear infinite' }} />
+              <QuickLink icon={Car}        label="Motorpool"         sub="Flotë & automjete"          onClick={() => navigate('/vehicles')}    iconBg="bg-amber-100"   iconColor="text-amber-600"  iconAnim={{ animation: 'carSlide 2s ease-in-out infinite' }} />
               <QuickLink icon={Tag}        label="Ofertat"           sub="Oferta & kuotacione"        onClick={() => navigate('/quotes')}      iconBg="bg-emerald-100" iconColor="text-emerald-600" />
               <QuickLink icon={ScrollText} label="Kontratat"         sub="Kontratat e biznesit"       onClick={() => navigate('/employees')}   iconBg="bg-rose-100"    iconColor="text-rose-600" />
               <QuickLink icon={ShieldCheck}label="Vërtetimet"        sub="Certifikata & dokumente"    onClick={() => navigate('/certificates')}iconBg="bg-teal-100"    iconColor="text-teal-600" />
