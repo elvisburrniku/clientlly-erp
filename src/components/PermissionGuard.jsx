@@ -4,9 +4,11 @@ import { useLanguage } from "@/lib/useLanguage";
 import { Shield } from "lucide-react";
 
 export default function PermissionGuard({ module, action = 'can_view', adminOnly = false, children }) {
-  const { can, fullAccess } = usePermissions();
+  const { can, fullAccess, loading } = usePermissions();
   const { user } = useAuth();
   const { t } = useLanguage();
+
+  if (loading) return null;
 
   if (adminOnly) {
     if (user?.role !== 'admin' && user?.role !== 'superadmin') {

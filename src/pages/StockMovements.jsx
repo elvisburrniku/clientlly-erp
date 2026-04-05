@@ -200,7 +200,7 @@ export default function StockMovements() {
                           {m.type === "out" ? "-" : "+"}{m.quantity}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground text-right">€{(m.unit_cost || 0).toFixed(2)}</td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground text-right">€{(parseFloat(m.unit_cost) || 0).toFixed(2)}</td>
                       <td className="px-6 py-4 text-xs text-muted-foreground">{m.reference_number || m.notes || "—"}</td>
                       <td className="px-6 py-4 text-xs text-muted-foreground">{m.created_by_name || "—"}</td>
                     </tr>

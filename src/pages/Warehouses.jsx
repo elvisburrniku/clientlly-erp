@@ -208,15 +208,15 @@ export default function Warehouses() {
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost" className="h-7 w-7">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" data-testid={`button-menu-warehouse-${wh.id}`}>
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEditWarehouse(wh)}>
+                        <DropdownMenuItem onClick={() => openEditWarehouse(wh)} data-testid={`button-edit-warehouse-${wh.id}`}>
                           <Edit2 className="w-4 h-4 mr-2" /> Modifiko
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteWarehouse(wh)} className="text-destructive focus:text-destructive">
+                        <DropdownMenuItem onClick={() => handleDeleteWarehouse(wh)} className="text-destructive focus:text-destructive" data-testid={`button-delete-warehouse-${wh.id}`}>
                           <Trash2 className="w-4 h-4 mr-2" /> Fshi
                         </DropdownMenuItem>
                       </DropdownMenuContent>

@@ -386,10 +386,11 @@ export default function PurchaseOrders() {
                       {idx === 0 && <Label className="text-xs">Produkti</Label>}
                       <Select value={item.product_name} onValueChange={v => {
                         const prod = products.find(p => p.name === v);
-                        updateItem(idx, "product_name", v);
-                        if (prod) updateItem(idx, "unit_price", prod.cost_price || prod.price || 0);
+                        const newItems = [...form.items];
+                        newItems[idx] = { ...newItems[idx], product_name: v, ...(prod ? { unit_price: prod.cost_price || prod.price || 0 } : {}) };
+                        setForm({ ...form, items: newItems });
                       }}>
-                        <SelectTrigger className="mt-1"><SelectValue placeholder="Produkti" /></SelectTrigger>
+                        <SelectTrigger className="mt-1" data-testid={`select-po-product-${idx}`}><SelectValue placeholder="Produkti" /></SelectTrigger>
                         <SelectContent>
                           {products.filter(p => p.is_active !== false).map(p => <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>)}
                         </SelectContent>
