@@ -259,32 +259,34 @@ export default function Dashboard() {
       `}</style>
       <div className="p-6 lg:p-8 space-y-7 min-h-screen" style={{ background: "linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0f9ff 100%)" }}>
 
-        {/* ── Header ───────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
+        {/* ── Header — same grid as cards so filters align to col-4 ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          {/* title: spans first 3 cols */}
+          <div className="col-span-2 lg:col-span-3">
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-1">
               Pasqyra Financiare
             </p>
             <h1 className="text-5xl font-bold tracking-tight text-black">{t("welcome")}</h1>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm">
+          {/* filters: exactly col-4 width, stack two toggle rows */}
+          <div className="col-span-2 lg:col-span-1 flex flex-col gap-2">
+            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm w-full">
               {["today","month","year"].map(p => (
                 <button key={p} onClick={() => setPeriod(p)}
                   className={cn(
-                    "px-3.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150",
+                    "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
                     period === p ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   )}>
                   {periodLabels[p]}
                 </button>
               ))}
             </div>
-            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm">
+            <div className="flex bg-white border border-slate-200 rounded-xl p-1 gap-0.5 shadow-sm w-full">
               {[["inc", t("withVat")], ["exc", t("withoutVat")]].map(([v, l]) => (
                 <button key={v} onClick={() => setVatMode(v)}
                   className={cn(
-                    "px-3.5 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150",
+                    "flex-1 py-1.5 text-[11px] font-semibold rounded-lg transition-all duration-150 text-center",
                     vatMode === v ? "bg-slate-900 text-white shadow-sm" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   )}>
                   {l}
