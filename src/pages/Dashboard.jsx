@@ -80,14 +80,17 @@ export default function Dashboard() {
   const [phraseIdx, setPhraseIdx]     = useState(0);
   const [contextCard, setContextCard] = useState(null);
   const [fadeIn, setFadeIn]           = useState(true);
-  const [weather, setWeather]         = useState(null);   // "18° ☀ Kthjellët"
-  const [localTime, setLocalTime]     = useState("");     // "14:32"
+  const [localDate, setLocalDate]     = useState("");  // "E Hënë, 5 Prill"
+  const [localTime, setLocalTime]     = useState("");  // "14:32"
+  const [weatherTemp, setWeatherTemp] = useState(null); // "5°"
+  const [weatherDesc, setWeatherDesc] = useState(null); // "⛅ Vranët"
 
-  /* live clock — update every minute */
+  /* live clock + date — update every minute */
   useEffect(() => {
     const tick = () => {
       const now = new Date();
       setLocalTime(now.toLocaleTimeString("sq-AL", { hour: "2-digit", minute: "2-digit" }));
+      setLocalDate(now.toLocaleDateString("sq-AL", { weekday: "long", day: "numeric", month: "long" }));
     };
     tick();
     const id = setInterval(tick, 60000);
@@ -103,19 +106,22 @@ export default function Dashboard() {
         .then(r => r.json())
         .then(d => {
           const { temperature, weathercode } = d.current_weather;
-          setWeather(`${Math.round(temperature)}° ${weatherLabel(weathercode)}`);
+          setWeatherTemp(`${Math.round(temperature)}°`);
+          setWeatherDesc(weatherLabel(weathercode));
         })
         .catch(() => {});
     }, () => {});
   }, []);
 
-  /* build the 3-step sequence: greeting → time → weather */
+  /* build sequence: greeting → date → time → weather → air condition */
   const userName = user?.full_name || user?.name || user?.email?.split("@")[0] || "";
 
   const PHRASES = [
     { sub: "Pasqyra Financiare", main: `Mirë se vjen, ${userName}`, duration: 7000 },
-    ...(localTime ? [{ sub: "Ora lokale",  main: localTime, duration: 7000  }] : []),
-    ...(weather   ? [{ sub: "Moti sot",    main: weather,   duration: 20000 }] : []),
+    ...(localDate ? [{ sub: "Data sot",      main: localDate,  duration: 7000 }] : []),
+    ...(localTime ? [{ sub: "Ora lokale",    main: localTime,  duration: 7000 }] : []),
+    ...(weatherTemp ? [{ sub: "Moti sot",    main: weatherTemp, duration: 7000 }] : []),
+    ...(weatherDesc ? [{ sub: "Gjendja e ajrit", main: weatherDesc, duration: 7000 }] : []),
   ];
 
   const triggerTransition = (nextFn) => {
