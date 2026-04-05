@@ -12,7 +12,6 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import LanguageSwitcher from './LanguageSwitcher';
 import NotificationBell from './NotificationBell';
-import GlobalSearch from './GlobalSearch';
 import { useLanguage } from "@/lib/useLanguage";
 import { cn } from "@/lib/utils";
 
@@ -56,10 +55,6 @@ export default function TopNav() {
 
   return (
     <header className="h-16 border-b border-border bg-white/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-20">
-      <div className="flex items-center gap-3 flex-1 max-w-md">
-        <GlobalSearch />
-      </div>
-
       {/* ── Attendance widget ── */}
       <div className="flex items-center gap-1 mx-4 bg-slate-50 border border-slate-200 rounded-xl p-1 shadow-sm">
         {/* Check In */}
