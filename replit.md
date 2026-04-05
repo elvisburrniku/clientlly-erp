@@ -1,8 +1,20 @@
-# ERP Finance – Albanian Business Management System
+# Clientlly ERP – Albanian Business Management System
 
 ## Overview
 
-A comprehensive ERP (Enterprise Resource Planning) application for Albanian-speaking businesses, featuring invoicing, quotes, expenses, cash management, inventory, and reporting. The UI supports Albanian and English.
+A comprehensive ERP (Enterprise Resource Planning) application for Albanian-speaking businesses, featuring invoicing, quotes, expenses, cash management, inventory, and reporting. Branded as **Clientlly ERP**. The UI supports Albanian and English.
+
+## Design System (Clientlly)
+
+- **Fonts:** Inter (body/UI) + Playfair Display (decorative headings) via Google Fonts
+- **Primary color:** Indigo-600 `#4F46E5` (HSL `243 75% 59%`) — buttons, links, active nav
+- **Background:** Pure white with `bg-gradient-to-b from-slate-50 via-indigo-50/40 to-white` for login
+- **Sidebar:** `bg-gradient-to-b from-slate-900 to-slate-800` — dark with indigo active state (`bg-indigo-500/20`)
+- **Animations:** `anim-rise`, `anim-fade`, `anim-scale` + delay classes `anim-d1..d5` (defined in `index.css`)
+- **Buttons:** `rounded-xl`, `font-bold`, `hover:-translate-y-0.5 hover:shadow-xl` lift effect
+- **Cards:** `bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1`
+- **Inputs:** `h-12 px-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500`
+- **Currency:** Always Euro (€), never dollar ($)
 
 ## Architecture
 

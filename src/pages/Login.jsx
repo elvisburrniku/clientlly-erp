@@ -52,83 +52,95 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-700 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-indigo-50/40 to-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md anim-rise">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">ERP Finance</h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200 mb-4">
+            <span className="text-white font-extrabold text-lg">C</span>
+          </div>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Clientlly ERP</h1>
+          <p className="text-gray-500 mt-1 text-sm font-normal">
             {mode === 'login' ? 'Hyni në llogarinë tuaj' : 'Krijoni llogarinë tuaj'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {mode === 'register' && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'register' && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Emri i plotë</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+                  placeholder="Emri Mbiemri"
+                />
+              </div>
+            )}
+
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Emri i plotë</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
               <input
-                type="text"
-                value={fullName}
-                onChange={e => setFullName(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-                placeholder="Emri Mbiemri"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                data-testid="input-email"
+                className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+                placeholder="email@shembull.com"
               />
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-              placeholder="email@shembull.com"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Fjalëkalimi</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-sm">
-              {error}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Fjalëkalimi</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                data-testid="input-password"
+                className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
+                placeholder="••••••••"
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-slate-900 hover:bg-slate-700 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-60"
-          >
-            {loading ? 'Duke u ngarkuar...' : mode === 'login' ? 'Hyr' : 'Regjistrohu'}
-          </button>
-        </form>
+            {error && (
+              <div className="bg-red-50 border border-red-100 text-red-600 rounded-xl px-4 py-3 text-sm">
+                {error}
+              </div>
+            )}
 
-        <div className="mt-6 text-center text-sm text-slate-500">
-          {mode === 'login' ? (
-            <>Nuk keni llogari?{' '}
-              <button onClick={() => { setMode('register'); setError(''); }} className="text-slate-900 font-medium hover:underline">
-                Regjistrohu
-              </button>
-            </>
-          ) : (
-            <>Keni llogari?{' '}
-              <button onClick={() => { setMode('login'); setError(''); }} className="text-slate-900 font-medium hover:underline">
-                Hyni
-              </button>
-            </>
-          )}
+            <button
+              type="submit"
+              disabled={loading}
+              data-testid="button-login"
+              className="w-full inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            >
+              {loading ? 'Duke u ngarkuar...' : mode === 'login' ? 'Hyr' : 'Regjistrohu'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-gray-500">
+            {mode === 'login' ? (
+              <>Nuk keni llogari?{' '}
+                <button onClick={() => { setMode('register'); setError(''); }} className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+                  Regjistrohu
+                </button>
+              </>
+            ) : (
+              <>Keni llogari?{' '}
+                <button onClick={() => { setMode('login'); setError(''); }} className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors">
+                  Hyni
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        <p className="text-center text-xs text-gray-400 mt-6">
+          © {new Date().getFullYear()} Clientlly ERP · Të gjitha të drejtat e rezervuara
+        </p>
       </div>
     </div>
   );

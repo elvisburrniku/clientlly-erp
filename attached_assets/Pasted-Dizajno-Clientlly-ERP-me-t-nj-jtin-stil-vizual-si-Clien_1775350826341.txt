@@ -1,0 +1,216 @@
+Dizajno Clientlly ERP me të njëjtin stil vizual si Clientlly Web. Ndiq këtë guidë saktësisht për ngjyrat, fontet, komponentët dhe animacionet. Gjuha kryesore: Shqip (sq). Mbështet 5 gjuhë: sq, en, es, de, mk. Valuta: Euro (€) — asnjëherë dollar ($).
+
+1. FONTET
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+Inter — për gjithë tekstin (body, butona, navigim, etiketa)
+Playfair Display — vetëm për tituj dekorativë (opsional)
+Pesha e titujve: font-extrabold (800)
+Pesha e tekstit: font-normal ose font-medium (400–500)
+Pesha e butonave: font-bold (700)
+2. NGJYRAT
+Ngjyra kryesore (Primary)
+indigo-600: #4F46E5  — butona, lidhje, tituj të theksuar
+indigo-700: #4338CA  — hover i butonave
+indigo-50:  #EEF2FF  — sfonde të lehta, badge-e
+indigo-100: #E0E7FF  — bordura të lehta
+indigo-200: #C7D2FE  — hije butonash hover
+
+Sfonde
+Faqja:     bg-white (#FFFFFF)
+Seksione:  bg-gray-50 (#F9FAFB) — alternuar me bg-white
+Hero:      bg-gradient-to-b from-slate-50 via-indigo-50/40 to-white
+
+Teksti
+Tituj:     text-gray-900 (#111827)
+Paragrafë: text-gray-500 (#6B7280) ose text-gray-600
+Etiketë:   text-gray-400 (#9CA3AF)
+Aktiv:     text-indigo-600 (#4F46E5)
+
+Hero/CTA me sfond të verdhë
+bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400
+Teksti mbi verdhë: text-gray-900 (zi)
+Butona mbi verdhë: bg-gray-900 text-white
+Sparkle-t: bg-white rounded-full animate-bounce opacity-20
+
+Footer
+bg-gray-950 (#0C0A09)
+Tekst: text-gray-400
+Hover: hover:text-white
+Tituj kolonash: text-gray-500 uppercase tracking-widest text-[11px]
+
+3. NAVIGIMI (NAV)
+<nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+  <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    {/* Logo majtas */}
+    <Link href="/" className="flex items-center gap-2">
+      <img src={logo} alt="Clientlly" className="h-8 w-10 object-contain" />
+      <span className="font-bold text-lg text-gray-900">Clientlly</span>
+    </Link>
+    {/* Lidhje qendrore — desktop */}
+    <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-600">
+      <a className="hover:text-indigo-600 transition-colors">...</a>
+      <LanguageSelector />
+    </div>
+    {/* Mobile: LanguageSelector + hamburger */}
+    <div className="md:hidden flex items-center gap-2 ml-auto">
+      <LanguageSelector />
+      <button><Menu /></button>
+    </div>
+  </div>
+</nav>
+
+4. BUTONAT
+Buton kryesor (Primary)
+<button className="inline-flex items-center gap-2 px-7 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5">
+
+Buton sekondar (Secondary)
+<button className="inline-flex items-center gap-2 px-7 py-3.5 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all">
+
+Buton mbi sfond të verdhë
+<button className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+
+5. KARTAT
+Kartë standarde
+<div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+  <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center mb-4">
+    <Icon className="h-6 w-6 text-indigo-600" />
+  </div>
+  <h3 className="text-lg font-bold text-gray-900 mb-2">Titulli</h3>
+  <p className="text-gray-500 text-sm leading-relaxed">Përshkrimi</p>
+</div>
+
+Ikonat e kartave — ngjyra
+indigo:  bg-indigo-50 text-indigo-600
+emerald: bg-emerald-100 text-emerald-600
+blue:    bg-blue-100 text-blue-600
+purple:  bg-purple-100 text-purple-600
+orange:  bg-orange-100 text-orange-600
+rose:    bg-rose-100 text-rose-600
+cyan:    bg-cyan-100 text-cyan-600
+
+6. BADGE / ETIKETË
+<div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border border-indigo-100 rounded-full text-xs font-semibold text-indigo-700 shadow-sm">
+  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+  Teksti i badge-it
+</div>
+
+7. SEKSIONET E FAQES
+Seksion standard
+<section className="py-20">
+  <div className="max-w-5xl mx-auto px-6">
+    <div className="text-center mb-14">
+      <p className="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-3">Nën-titull</p>
+      <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">Titulli</h2>
+    </div>
+    {/* Përmbajtja */}
+  </div>
+</section>
+
+Seksion me sfond gri (alternuar)
+<section className="py-20 bg-gray-50">
+
+Hero me sfond të verdhë
+<section className="relative overflow-hidden bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400 py-20 lg:py-28">
+  {/* Sparkle-t dekorative */}
+  <div className="absolute inset-0 pointer-events-none">
+    {[...Array(8)].map((_, i) => (
+      <div key={i} className="absolute bg-white rounded-full animate-bounce opacity-20"
+        style={{ width: 6+i*3, height: 6+i*3, top: `${10+i*10}%`, left: `${5+i*12}%`,
+                 animationDelay: `${i*0.4}s`, animationDuration: `${2+i*0.5}s` }} />
+    ))}
+  </div>
+  <div className="max-w-5xl mx-auto px-6 text-center relative z-10">
+    <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">Titulli</h1>
+    <p className="text-lg text-gray-800">Përshkrimi</p>
+  </div>
+</section>
+
+8. ANIMACIONET CSS
+/* Kopjo këto në index.css */
+@keyframes gentle-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes gentle-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes gentle-scale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.anim-rise  { animation: gentle-rise 0.55s cubic-bezier(.22,1,.36,1) both; }
+.anim-fade  { animation: gentle-fade 0.5s ease both; }
+.anim-scale { animation: gentle-scale 0.5s cubic-bezier(.22,1,.36,1) both; }
+.anim-d1 { animation-delay: 0.1s; }
+.anim-d2 { animation-delay: 0.2s; }
+.anim-d3 { animation-delay: 0.3s; }
+.anim-d4 { animation-delay: 0.4s; }
+.anim-d5 { animation-delay: 0.5s; }
+
+9. GRIDË / LAYOUT
+Navigimi:     max-w-7xl mx-auto px-6
+Përmbajtja:   max-w-5xl mx-auto px-6
+Grida 2-col:  grid md:grid-cols-2 gap-8
+Grida 3-col:  grid md:grid-cols-3 gap-6
+Grida 4-col:  grid md:grid-cols-2 lg:grid-cols-4 gap-6
+Hapësira:     gap-6 ose gap-8
+
+10. FORMA / INPUTS
+<input className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white text-gray-900
+  focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+<select className="w-full h-12 px-4 border border-gray-200 rounded-xl bg-white text-gray-900
+  focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+<textarea className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 resize-none
+  focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" rows={4} />
+<label className="text-sm font-semibold text-gray-700 mb-1.5" />
+
+11. TABELA
+{/* Header */}
+<div className="grid grid-cols-3 bg-indigo-600 text-white text-sm font-bold p-4 rounded-t-2xl">
+{/* Rreshta */}
+<div className={`grid grid-cols-3 p-4 text-sm ${i%2===0 ? 'bg-gray-50' : 'bg-white'}`}>
+
+12. SISTEMI I PËRKTHIMEVE (5 gjuhë)
+// Funksioni sq() — duhet në çdo faqe
+function sq(lang: string, alb: string|JSX.Element, eng: string|JSX.Element,
+  es?: string|JSX.Element, de?: string|JSX.Element, mk?: string|JSX.Element) {
+  switch(lang) {
+    case 'sq': return alb;
+    case 'es': return es ?? eng;
+    case 'de': return de ?? eng;
+    case 'mk': return mk ?? eng;
+    default: return eng;
+  }
+}
+// Përdorimi:
+const { currentLanguage: lang } = useLanguage();
+<h1>{sq(lang, "Shqip", "English", "Español", "Deutsch", "Македонски")}</h1>
+
+13. IKONA (lucide-react)
+Përdor vetëm lucide-react për ikona:
+
+FileText, Receipt, Users, CreditCard, BarChart3, Building2, Package,
+Clock, Check, Shield, ChevronDown, Menu, X, ArrowRight, Mail,
+TrendingUp, Headphones, Zap, Globe, CheckCircle, Star, Gift,
+Share2, DollarSign, Rocket, Heart, Copy, Send, Upload
+
+Madhësia standarde: h-5 w-5 ose h-6 w-6
+
+14. RESPONSIVE BREAKPOINTS
+Mobile:   default (< 768px)
+Tablet:   md: (768px+)
+Desktop:  lg: (1024px+)
+Large:    xl: (1280px+)
+
+15. RREGULLA TË RËNDËSISHME
+Valuta GJITHMONË në Euro (€), ASNJËHERË dollar ($)
+Gjuha kryesore: Shqip (sq)
+Navigim: window.location.href për cross-page, JO useLocation
+LanguageSelector në mobile: JASHTË menusë hamburger, pranë butonit ☰
+Teksti normal: jo bold. Vetëm titujt janë bold/extrabold
+rounded-xl ose rounded-2xl për çdo element (jo kënde të mprehta)
+Hije: shadow-sm default, shadow-lg on hover
+Transicione: transition-all duration-200
+hover:-translate-y-0.5 ose hover:-translate-y-1 për efekt ngritjeje
