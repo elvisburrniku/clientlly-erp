@@ -1,16 +1,16 @@
 import { cn } from "@/lib/utils";
 
 const palettes = {
-  blue:   { icon: "bg-blue-500",    iconRing: "ring-blue-100"    },
-  rose:   { icon: "bg-rose-500",    iconRing: "ring-rose-100"    },
-  amber:  { icon: "bg-amber-500",   iconRing: "ring-amber-100"   },
-  green:  { icon: "bg-emerald-500", iconRing: "ring-emerald-100" },
-  teal:   { icon: "bg-teal-500",    iconRing: "ring-teal-100"    },
-  violet: { icon: "bg-violet-500",  iconRing: "ring-violet-100"  },
-  indigo: { icon: "bg-indigo-500",  iconRing: "ring-indigo-100"  },
-  cyan:   { icon: "bg-cyan-500",    iconRing: "ring-cyan-100"    },
-  purple: { icon: "bg-purple-500",  iconRing: "ring-purple-100"  },
-  pink:   { icon: "bg-pink-500",    iconRing: "ring-pink-100"    },
+  blue:   { icon: "bg-blue-500",    iconRing: "ring-blue-100",    bar: "bg-blue-500",    glow: "bg-blue-50"    },
+  rose:   { icon: "bg-rose-500",    iconRing: "ring-rose-100",    bar: "bg-rose-500",    glow: "bg-rose-50"    },
+  amber:  { icon: "bg-amber-500",   iconRing: "ring-amber-100",   bar: "bg-amber-500",   glow: "bg-amber-50"   },
+  green:  { icon: "bg-emerald-500", iconRing: "ring-emerald-100", bar: "bg-emerald-500", glow: "bg-emerald-50" },
+  teal:   { icon: "bg-teal-500",    iconRing: "ring-teal-100",    bar: "bg-teal-500",    glow: "bg-teal-50"    },
+  violet: { icon: "bg-violet-500",  iconRing: "ring-violet-100",  bar: "bg-violet-500",  glow: "bg-violet-50"  },
+  indigo: { icon: "bg-indigo-500",  iconRing: "ring-indigo-100",  bar: "bg-indigo-500",  glow: "bg-indigo-50"  },
+  cyan:   { icon: "bg-cyan-500",    iconRing: "ring-cyan-100",    bar: "bg-cyan-500",    glow: "bg-cyan-50"    },
+  purple: { icon: "bg-purple-500",  iconRing: "ring-purple-100",  bar: "bg-purple-500",  glow: "bg-purple-50"  },
+  pink:   { icon: "bg-pink-500",    iconRing: "ring-pink-100",    bar: "bg-pink-500",    glow: "bg-pink-50"    },
 };
 
 const badgeClasses = {
@@ -41,7 +41,7 @@ export default function StatCard({ icon: Icon, title, value, description, color 
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-700 truncate">{title}</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 truncate">{title}</p>
           <p className="text-lg font-black tracking-tight text-slate-900 leading-tight truncate">{value}</p>
         </div>
         {badge && (
@@ -59,42 +59,46 @@ export default function StatCard({ icon: Icon, title, value, description, color 
 
   return (
     <div className={cn(
-      "bg-white rounded-2xl border border-slate-200 p-5",
-      "hover:shadow-lg hover:-translate-y-1 transition-all duration-300 shadow-sm overflow-hidden antialiased"
+      "bg-white rounded-2xl border border-slate-200 overflow-hidden",
+      "hover:shadow-xl hover:-translate-y-1 transition-all duration-300 shadow-sm antialiased"
     )}>
-      {/* header: label + icon */}
-      <div className="flex items-start justify-between mb-4 gap-2">
-        <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700 leading-tight pt-0.5">
+      {/* colored top accent bar */}
+      <div className={cn("h-[3px] w-full", p.bar)} />
+
+      <div className="p-5">
+        {/* icon row + badge */}
+        <div className="flex items-start justify-between mb-4">
+          {Icon && (
+            <div className={cn(
+              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ring-4",
+              p.icon, p.iconRing
+            )} style={{ isolation: "isolate" }}>
+              <Icon className="text-white" style={{ width: 18, height: 18, backfaceVisibility: "hidden" }} />
+            </div>
+          )}
+          {badge && (
+            <span className={cn(
+              "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest",
+              badgeClasses[badge.color] || badgeClasses.muted
+            )}>
+              {badge.dot && <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />}
+              {badge.label}
+            </span>
+          )}
+        </div>
+
+        {/* number + title stacked closely */}
+        <p className="text-[2.5rem] font-black tracking-tight text-slate-900 leading-none">
+          {value}
+        </p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.13em] text-slate-400 mt-1.5">
           {title}
         </p>
-        {Icon && (
-          <div className={cn(
-            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ring-4",
-            p.icon, p.iconRing
-          )} style={{ isolation: "isolate" }}>
-            <Icon className="text-white" style={{ width: 18, height: 18, backfaceVisibility: "hidden" }} />
-          </div>
+
+        {/* description if no badge */}
+        {!badge && description && (
+          <p className="text-[11px] text-slate-400 mt-1">{description}</p>
         )}
-      </div>
-
-      {/* big number */}
-      <p className="text-[2.6rem] font-black tracking-tight text-slate-900 leading-none mb-4">
-        {value}
-      </p>
-
-      {/* badge / description */}
-      <div className="flex items-center gap-2 flex-wrap min-h-[22px]">
-        {badge ? (
-          <span className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest",
-            badgeClasses[badge.color] || badgeClasses.muted
-          )}>
-            {badge.dot && <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />}
-            {badge.label}
-          </span>
-        ) : description ? (
-          <p className="text-[11px] text-slate-400">{description}</p>
-        ) : null}
       </div>
     </div>
   );
