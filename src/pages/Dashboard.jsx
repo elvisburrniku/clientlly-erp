@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -175,25 +175,18 @@ export default function Dashboard() {
 
   const activePhrase = contextCard ?? (PHRASES[phraseIdx % Math.max(PHRASES.length, 1)] || PHRASES[0]);
 
-  useEffect(() => { loadDashboardData(); }, [period, vatMode]);
+  const loadingRef = useRef(false);
 
-  useEffect(() => {
-    base44.auth.me().then(u => {
-      if (u?.role === 'admin') {
-        base44.entities.CashHandover.filter({ status: 'pending' }).then(setPendingHandovers).catch(() => []);
-      }
-    });
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
+    if (!tenantId || loadingRef.current) return;
+    loadingRef.current = true;
     try {
-      if (!tenantId) return;
       const [invoices, transactions, users, expenses, suppliers] = await Promise.all([
         base44.entities.Invoice.filter({ tenant_id: tenantId }),
         base44.entities.CashTransaction.filter({ tenant_id: tenantId }),
-        base44.entities.User.list().catch(() => []),
+        base44.entities.User.list(),
         base44.entities.Expense.filter({ tenant_id: tenantId }),
-        base44.entities.Supplier.filter({ tenant_id: tenantId }).catch(() => []),
+        base44.entities.Supplier.filter({ tenant_id: tenantId }),
       ]);
 
       const now = new Date();
@@ -230,8 +223,18 @@ export default function Dashboard() {
       console.error("Dashboard load error:", err);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, [tenantId, period, vatMode]);
+
+  useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user?.role === 'admin' || user?.role === 'superadmin') {
+      base44.entities.CashHandover.filter({ status: 'pending' }).then(setPendingHandovers).catch(() => {});
+    }
+  }, [user]);
 
   const periodLabels = { today: t("today"), month: t("month"), year: t("year") };
 
