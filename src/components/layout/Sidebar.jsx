@@ -17,7 +17,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { usePermissions } from "@/lib/usePermissions";
 import { useLanguage } from "@/lib/useLanguage";
 
-const LOGO = "/logo-clientlly.png";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -261,29 +260,16 @@ export default function Sidebar() {
       )}
     >
       <div className={cn(
-        "flex items-center h-16 border-b border-slate-100 transition-all duration-300 overflow-hidden bg-[#0a0a0f]",
-        collapsed ? "justify-center px-2" : "px-3"
+        "flex items-center h-16 border-b border-slate-100 transition-all duration-300",
+        collapsed ? "justify-center px-2" : "gap-3 px-5"
       )}>
-        {collapsed ? (
-          <div className="w-10 h-10 overflow-hidden flex items-center justify-center shrink-0">
-            <img
-              src={LOGO}
-              alt="Clientlly"
-              style={{
-                width: "auto",
-                height: "100%",
-                objectFit: "cover",
-                objectPosition: "right center",
-                transform: "scale(2.5) translateX(-20%)"
-              }}
-            />
-          </div>
-        ) : (
-          <img
-            src={LOGO}
-            alt="Clientlly"
-            className="h-9 w-auto object-contain"
-          />
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0 shadow-md shadow-indigo-200">
+          <span className="text-white font-bold text-sm">E</span>
+        </div>
+        {!collapsed && (
+          <span className="text-base font-bold tracking-tight whitespace-nowrap text-slate-900">
+            ERP Finance
+          </span>
         )}
       </div>
 
