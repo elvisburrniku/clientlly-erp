@@ -177,23 +177,12 @@ export default function InvoiceLineItems({ items, onChange, onDiscountChange, di
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">TVSH %</label>
-                {taxRates.length > 0 ? (
-                  <TaxRateSelector
-                    value={item.vat_rate}
-                    onChange={(v) => update(i, "vat_rate", v)}
-                    taxRates={taxRates}
-                    onTaxRatesChange={setTaxRates}
-                  />
-                ) : (
-                  <Select value={String(item.vat_rate)} onValueChange={(v) => update(i, "vat_rate", parseFloat(v))}>
-                    <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">0%</SelectItem>
-                      <SelectItem value="10">10%</SelectItem>
-                      <SelectItem value="20">20%</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+                <TaxRateSelector
+                  value={item.vat_rate}
+                  onChange={(v) => update(i, "vat_rate", v)}
+                  taxRates={taxRates}
+                  onTaxRatesChange={setTaxRates}
+                />
               </div>
             </div>
 
